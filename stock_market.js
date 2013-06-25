@@ -51,7 +51,7 @@ money.stock_market = (function(){
 			
 			yootil.create.container("<div style='float: left'>Stock Market Investments</div><div style='float: right'>Funds: " + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>", "Show investments here...").show().appendTo("#content");
 			
-			yootil.create.container("<div style='float: left'>Stock Market</div><div style='cursor: pointer; float: right'><span id='stock-left'>&laquo; Previous</span> &nbsp;&nbsp;&nbsp; <span id='stock-right'>Next &raquo;</span></div>", this.html).show().appendTo("#content");
+			yootil.create.container("<div style='float: left'>Stock Market<span id='stock-market-total'></span></div><div style='cursor: pointer; float: right'><span id='stock-left'>&laquo; Previous</span> &nbsp;&nbsp;&nbsp; <span id='stock-right'>Next &raquo;</span></div>", this.html).show().appendTo("#content");
 		},
 		
 		setup: function(){
@@ -86,6 +86,8 @@ money.stock_market = (function(){
 		
 		build_stock_table: function(){
 			var stock_table = "<div class='stock-content' style='overflow: hidden;'><div class='stock-wrapper' style='position: relative; left: 0px; width: 15000px; height: 100%'>";
+			
+			$("#stock-market-total").html(" (" + this.data.length + ")");
 			
 			for(var d = 0, dl = this.data.length; d < dl; d ++){
 				var up_down = "";

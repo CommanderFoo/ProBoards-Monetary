@@ -101,6 +101,14 @@ money.stock_market = (function(){
 			return false;
 		},
 		
+		// If symbol is removed, should we refund original money??
+		
+		remove_from_data: function(symbol){
+			if(this.has_invested(symbol)){
+				delete this.invest_data[symbol];
+			}
+		},
+		
 		build_stock_table: function(){
 			var stock_table = "<div class='stock-content' style='overflow: hidden;'><div class='stock-wrapper' style='position: relative; left: 0px; width: 15000px; height: 100%'>";
 			

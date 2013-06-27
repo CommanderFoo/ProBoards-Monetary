@@ -19,6 +19,8 @@ money.stock_market = (function(){
 			enabled: true
 		},
 		
+		invest_data: {},
+		
 		init: function(){
 			this.setup();
 			
@@ -30,6 +32,7 @@ money.stock_market = (function(){
 			
 			if(yootil.location.check.forum() && location.href.match(/\/stockmarket\/?/i)){
 				if(this.settings.enabled){
+					this.check_for_data();
 					this.start();
 				} else {
 					money.show_default();
@@ -82,6 +85,20 @@ money.stock_market = (function(){
 					
 				this.build_stock_table();
 			});
+		},
+		
+		check_for_data: function(){
+			if(money.data.stock){
+				this.invest_data = money.data.stock;
+			}
+		},
+		
+		has_invested: function(stock_symbol){
+			if(this.invest_data[stock_symbol]){
+				return true;
+			}
+			
+			return false;
 		},
 		
 		build_stock_table: function(){

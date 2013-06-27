@@ -9,6 +9,8 @@ money.stock_market = (function(){
 		
 		data: {},
 		
+		symbols: {},
+		
 		html: "",
 		
 		current: 1,
@@ -103,11 +105,31 @@ money.stock_market = (function(){
 		
 		// If symbol is removed, should we refund original money??
 		
-		remove_from_data: function(symbol){
-			if(this.has_invested(symbol)){
-				delete this.invest_data[symbol];
+		remove_from_data: function(stock_symbol){
+			if(this.has_invested(stock_symbol)){
+				delete this.invest_data[stock_symbol];
 			}
 		},
+		
+		// Flag a stock that is no longer in use so we can do something with it later
+		
+		flag_invested: function(stock_symbol){
+			if(this.has_invested(stock_symbol)){
+				this.invest_data[stock_symbol].rm = 1;
+			}
+		},
+		
+		// How much stock?
+		
+		invest_amount: function(stock_symbol){
+			if(this.has_invested(stock_symbol)){
+				return this.invest_data[stock_symbol].a;
+			}
+			
+			return 0;
+		},
+		
+		// TODO: Tidy up inline CSS
 		
 		build_stock_table: function(){
 			var stock_table = "<div class='stock-content' style='overflow: hidden;'><div class='stock-wrapper' style='position: relative; left: 0px; width: 15000px; height: 100%'>";
@@ -117,15 +139,22 @@ money.stock_market = (function(){
 			for(var d = 0, dl = this.data.length; d < dl; d ++){
 				var up_down = "";
 				
+				this.symbols[this.data[d].Symbol] = this.data[d];
+				
 				if(parseFloat(this.data[d].PreviousClose) < parseFloat(this.data[d].BidRealtime)){
 					up_down = "<img src='" + money.images.up + "' /> ";
 				} else if(parseFloat(this.data[d].PreviousClose) > parseFloat(this.data[d].BidRealtime)){
 					up_down = "<img src='" + money.images.down + "' /> ";
 				}
 				
+				var sell_disable = (this.has_invested(this.data[d].Symbol) && this.invest_amount(this.data[d].Symbol) > 0)? "" : " style='opacity: 0.6";
+				
+				var buy = "<button>Buy</button>";
+				var sell = "<button id='stock-sell-button'" + sell_disable + ">Sell</button>";
+				
 				stock_table += "<div class='stock-block' style='float: left; width: 908px; height: 100%'>";
 				stock_table += "<div style='border-bottom: 2px solid; font-size: 18px; padding: 5px;'>";
-				stock_table += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;'><button>Buy</button> <button>Sell</button></span></div>";
+				stock_table += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'>" + buy + " " + sell + "</span></div>";
 				stock_table += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + ")</span></div><br style='clear: float' /></div>";
 				
 				stock_table += "<table style='width: 32%; float: left; margin-right: 20px; margin-top: 15px;'>";

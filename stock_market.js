@@ -132,12 +132,13 @@ money.stock_market = (function(){
 		// TODO: Tidy up inline CSS
 		
 		build_stock_table: function(){
-			var stock_table = "<div class='stock-content' style='overflow: hidden;'><div class='stock-wrapper' style='position: relative; left: 0px; width: 15000px; height: 100%'>";
+			var stock_table = $("<div class='stock-wrapper' style='position: relative; left: 0px; width: 15000px; height: 100%'></div>");
 			
 			$("#stock-market-total").html(" (" + this.data.length + ")");
 			
 			for(var d = 0, dl = this.data.length; d < dl; d ++){
 				var up_down = "";
+				var stock_html = "";
 				
 				this.symbols[this.data[d].Symbol] = this.data[d];
 				
@@ -146,99 +147,104 @@ money.stock_market = (function(){
 				} else if(parseFloat(this.data[d].PreviousClose) > parseFloat(this.data[d].BidRealtime)){
 					up_down = "<img src='" + money.images.down + "' /> ";
 				}
+												
+				stock_html += "<div class='stock-block' style='float: left; width: 908px; height: 100%'>";
+				stock_html += "<div style='border-bottom: 2px solid; font-size: 18px; padding: 5px;'>";
+				stock_html += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button id='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
+				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + ")</span></div><br style='clear: float' /></div>";
 				
-				var sell_disable = (this.has_invested(this.data[d].Symbol) && this.invest_amount(this.data[d].Symbol) > 0)? "" : " style='opacity: 0.6";
+				stock_html += "<table style='width: 32%; float: left; margin-right: 20px; margin-top: 15px;'>";
 				
-				var buy = "<button>Buy</button>";
-				var sell = "<button id='stock-sell-button'" + sell_disable + ">Sell</button>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Previous Close:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].PreviousClose + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<div class='stock-block' style='float: left; width: 908px; height: 100%'>";
-				stock_table += "<div style='border-bottom: 2px solid; font-size: 18px; padding: 5px;'>";
-				stock_table += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'>" + buy + " " + sell + "</span></div>";
-				stock_table += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + ")</span></div><br style='clear: float' /></div>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Bid:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Bid + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<table style='width: 32%; float: left; margin-right: 20px; margin-top: 15px;'>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Volume:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Volume + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Previous Close:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].PreviousClose + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>1 Year Target:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].YearTarget + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Bid:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Bid + "</td>";
-				stock_table += "</tr>";
-				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Volume:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Volume + "</td>";
-				stock_table += "</tr>";
-				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>1 Year Target:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].YearTarget + "</td>";
-				stock_table += "</tr>";
-				
-				stock_table += "</table>";
+				stock_html += "</table>";
 
-				stock_table += "<table style='width: 31%; float: left; margin-top: 15px; margin-right: 20px;'>";
+				stock_html += "<table style='width: 31%; float: left; margin-top: 15px; margin-right: 20px;'>";
 			
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Open:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Open + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Open:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Open + "</td>";
+				stock_html += "</tr>";
 
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Day's Low:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].DaysLow + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Day's Low:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].DaysLow + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Day's High:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].DaysHigh + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Day's High:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].DaysHigh + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>P/E:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].PERatio + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>P/E:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].PERatio + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "</table>";
+				stock_html += "</table>";
 
-				stock_table += "<table style='width: 32%; float: left; margin-top: 15px;'>";
+				stock_html += "<table style='width: 32%; float: left; margin-top: 15px;'>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Days Range:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].DaysRange + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Days Range:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].DaysRange + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>52 Week Range:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Week52Range + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>52 Week Range:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Week52Range + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Market Cap.:</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].MarketCapitalization + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Market Cap.:</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].MarketCapitalization + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "<tr>";
-				stock_table += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>EPS</td>";
-				stock_table += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].EPS + "</td>";
-				stock_table += "</tr>";
+				stock_html += "<tr>";
+				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>EPS</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].EPS + "</td>";
+				stock_html += "</tr>";
 				
-				stock_table += "</table>";
+				stock_html += "</table>";
 				
-				stock_table += "<br style='clear: both' />";
-				stock_table += "<div style='margin-top: 10px; text-align: center; border: 1px solid; padding: 5px;'>";
-				stock_table += "<img src='http://chart.finance.yahoo.com/z?s=" + this.data[d].Symbol + "&t=2w&l=off&z=l' />";
-				stock_table += "</div>";
-				stock_table += "</div>";
+				stock_html += "<br style='clear: both' />";
+				stock_html += "<div style='margin-top: 10px; text-align: center; border: 1px solid; padding: 5px;'>";
+				stock_html += "<img src='http://chart.finance.yahoo.com/z?s=" + this.data[d].Symbol + "&t=2w&l=off&z=l' />";
+				stock_html += "</div>";
+				stock_html += "</div>";
+				
+				var stock_obj = $(stock_html);
+				
+				stock_obj.find("#stock-buy-button").click(function(){
+					console.log($(this).attr("data-stock-id"));
+				});
+				
+				stock_table.append(stock_obj);
 				
 				this.total ++;
 			}
 			
-			this.html = stock_table + "</div></div>";
+			var stock_content = $("<div class='stock-content' style='overflow: hidden;'></div>").append(stock_table);
+			
+			this.html = stock_content;
 			this.update();
 		},
 		

@@ -234,7 +234,63 @@ money.stock_market = (function(){
 				var stock_obj = $(stock_html);
 				
 				stock_obj.find("#stock-buy-button").click(function(){
-					console.log($(this).attr("data-stock-id"));
+					var stock_id = $(this).attr("data-stock-id");
+					var buy_element = "<div title='Buy Stock (" + stock_id + ")'><p>Stock Units: <input type='text' style='width: 100px' name='stock-buy-" + stock_id + "' /></p></div>";
+					
+					$(buy_element).dialog({
+						modal: true,
+						height: 140,
+						width: 300,
+						resizable: false,
+						draggable: false,
+						open: function(){
+							$(this).find("input[name=stock-buy-" + stock_id + "]").val("0");
+						},
+						
+						buttons: {
+						
+							Cancel: function(){
+								$(this).dialog("close");
+							},
+							
+							"Buy Stock": function(){
+								var amount = parseInt($(this).find("input[name=stock-buy-" + stock_id + "]").val());
+								
+								if(amount > 0){
+									var s = (amount == 1)? "" : "s";
+																		
+									proboards.dialog("stock-buy-confirm", { 
+										title: "Confirm",
+										html: "Purchase " + yootil.number_format(amount) + " unit" + s + " (" + stock_id + ")?", 
+										modal: true,
+										resizable: false,
+										draggable: false,
+										
+										buttons: {
+										
+											No: function(){ 
+												$(this).dialog('close');
+											},
+											
+											"Yes": function(){
+												console.log("Do it");
+												$(this).dialog("close");
+											}
+										}
+									});
+								} else {
+									proboards.alert("Invalid Amount", "You need to enter an amount greater than 0.", {
+										modal: true,
+										resizable: false,
+										draggable: false
+									});
+								}
+								
+								$(this).dialog("close");
+							}
+							
+						}
+					});
 				});
 				
 				stock_table.append(stock_obj);

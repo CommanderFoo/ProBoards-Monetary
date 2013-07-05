@@ -129,10 +129,37 @@ money.stock_market = (function(){
 			return 0;
 		},
 		
+		buy_stock: function(stock_symbol, amount, insert_invest_row){
+			if(stock_symbol && amount && this.stock_exists(stock_symbol)){
+				var current_amount = (this.has_invested(stock_symbol))? this.invest_amount(stock_symbol) : 0;
+				var updating = (current_amount)? false : true;
+				var total_amount = (current_amount + amount);
+				var bid = this.symbols[stock_symbol].Bid;
+				
+				console.log(money.get());
+				console.log(total_amount);
+			} else {
+				proboards.alert("An Error Occurred", "An error occurred, please try again.", {
+					modal: true,
+					resizable: false,
+					draggable: false
+				});
+			}
+		},
+		
+		stock_exists: function(stock_symbol){
+			if(this.symbols[stock_symbol]){
+				return true;
+			}
+			
+			return false;
+		},
+		
 		// TODO: Tidy up inline CSS
 		
 		build_stock_table: function(){
 			var stock_table = $("<div class='stock-wrapper' style='position: relative; left: 0px; width: 15000px; height: 100%'></div>");
+			var self = this;
 			
 			$("#stock-market-total").html(" (" + this.data.length + ")");
 			
@@ -236,7 +263,7 @@ money.stock_market = (function(){
 				stock_obj.find("#stock-buy-button").click(function(){
 					var stock_id = $(this).attr("data-stock-id");
 					var buy_element = "<div title='Buy Stock (" + stock_id + ")'><p>Stock Units: <input type='text' style='width: 100px' name='stock-buy-" + stock_id + "' /></p></div>";
-					
+						
 					$(buy_element).dialog({
 						modal: true,
 						height: 140,
@@ -244,7 +271,7 @@ money.stock_market = (function(){
 						resizable: false,
 						draggable: false,
 						open: function(){
-							$(this).find("input[name=stock-buy-" + stock_id + "]").val("0");
+							$(this).find("input[name=stock-buy-" + stock_id + "]").val("");
 						},
 						
 						buttons: {
@@ -258,10 +285,16 @@ money.stock_market = (function(){
 								
 								if(amount > 0){
 									var s = (amount == 1)? "" : "s";
+									var info = "";
+									
+									info += "<strong>" + self.symbols[stock_id].Name + " (" + stock_id + ")</strong><br /><br />";
+									info += "Purchase Amount: " + yootil.number_format(amount) + " unit" + s + "<br />";
+									info += "Cost Per Unit: " + money.settings.money_symbol + self.symbols[stock_id].Bid + "<br /><br />";
+									info += "Total Purchase: " + money.settings.money_symbol + money.format(amount * parseFloat(self.symbols[stock_id].Bid), true);
 																		
 									proboards.dialog("stock-buy-confirm", { 
-										title: "Confirm",
-										html: "Purchase " + yootil.number_format(amount) + " unit" + s + " (" + stock_id + ")?", 
+										title: "Confirm Purchase",
+										html: info, 
 										modal: true,
 										resizable: false,
 										draggable: false,
@@ -273,7 +306,7 @@ money.stock_market = (function(){
 											},
 											
 											"Yes": function(){
-												console.log("Do it");
+												self.buy_stock(stock_id, amount, true);
 												$(this).dialog("close");
 											}
 										}

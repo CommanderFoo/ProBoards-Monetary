@@ -136,8 +136,15 @@ money.stock_market = (function(){
 				var total_amount = (current_amount + amount);
 				var bid = this.symbols[stock_symbol].Bid;
 				
-				console.log(money.get());
-				console.log(total_amount);
+				if(money.get() < total_amount){
+					proboards.alert("Not Enough Funds", "You do not have enough funds to make this purchase.", {
+						modal: true,
+						resizable: false,
+						draggable: false
+					});
+				} else {
+					console.log("BUY BUY BUY");
+				}
 			} else {
 				proboards.alert("An Error Occurred", "An error occurred, please try again.", {
 					modal: true,

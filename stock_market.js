@@ -73,11 +73,7 @@ money.stock_market = (function(){
 				url: "http://pixeldepth.net/proboards/plugins/monetary_system/stock/quotes.php",
 				context: this,
 				crossDomain: true,
-				dataType: "json",
-							
-				error: function(){
-					console.log(arguments);
-				}
+				dataType: "json"				
 			}).done(function(data){
 				this.fetching = false;
 				
@@ -90,8 +86,8 @@ money.stock_market = (function(){
 		},
 		
 		check_for_data: function(){
-			if(money.data.stock){
-				this.invest_data = money.data.stock;
+			if(money.data.s){
+				this.invest_data = money.data.s;
 			}
 		},
 		
@@ -129,21 +125,40 @@ money.stock_market = (function(){
 			return 0;
 		},
 		
+		save_investment: function(){
+			money.data.s = this.invest_data;
+			yootil.key.set("pixeldepth_money", money.data, null, true);
+			this.insert_invest_row();
+		},
+		
+		insert_invest_row: function(){
+		
+		},
+		
+		update_wallet: function(){
+			$("#pd_money_wallet_amount").html(money.get(true));
+		},
+		
 		buy_stock: function(stock_symbol, amount, insert_invest_row){
 			if(stock_symbol && amount && this.stock_exists(stock_symbol)){
 				var current_amount = (this.has_invested(stock_symbol))? this.invest_amount(stock_symbol) : 0;
 				var updating = (current_amount)? false : true;
 				var total_amount = (current_amount + amount);
 				var bid = this.symbols[stock_symbol].Bid;
+				var total_cost = (bid * amount);
 				
-				if(money.get() < total_amount){
+				if(money.get() < total_cost){
 					proboards.alert("Not Enough Funds", "You do not have enough funds to make this purchase.", {
 						modal: true,
 						resizable: false,
 						draggable: false
 					});
 				} else {
-					console.log("BUY BUY BUY");
+					money.data.m -= money.format(total_cost);
+					this.invest_data[stock_symbol].a = total_amount;
+					this.invest_data[stock_symbol].b = bid;
+					this.update_wallet();
+					this.save_investment();
 				}
 			} else {
 				proboards.alert("An Error Occurred", "An error occurred, please try again.", {

@@ -155,8 +155,12 @@ money.stock_market = (function(){
 					});
 				} else {
 					money.data.m -= money.format(total_cost);
-					this.invest_data[stock_symbol].a = total_amount;
-					this.invest_data[stock_symbol].b = bid;
+					
+					this.invest_data[stock_symbol] = {
+						a: total_amount,
+						b: bid
+					};
+					
 					this.update_wallet();
 					this.save_investment();
 				}

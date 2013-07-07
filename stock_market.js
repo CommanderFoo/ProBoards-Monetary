@@ -54,7 +54,7 @@ money.stock_market = (function(){
 			yootil.create.page("stockmarket", "Stock Market");
 			yootil.create.nav_branch("/stockmarket/", "Stock Market");	
 			
-			yootil.create.container("<div style='float: left'>Stock Market Investments</div><div style='float: right'>Funds: " + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>", "Show investments here...").show().appendTo("#content");
+			yootil.create.container("<div style='float: left'>Stock Market Investments</div><div style='float: right'>Funds: " + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>", "<div id='stock-invest-content' style='text-align: center; padding: 10px'><img src='" + money.images.invest_preloader + "' /></div>").show().appendTo("#content");
 			
 			yootil.create.container("<div style='float: left'>Stock Market<span id='stock-market-total'></span></div><div style='cursor: pointer; float: right'><span id='stock-left'>&laquo; Previous</span> &nbsp;&nbsp;&nbsp; <span id='stock-right'>Next &raquo;</span></div>", this.html).show().appendTo("#content");
 		},
@@ -132,7 +132,7 @@ money.stock_market = (function(){
 		},
 		
 		insert_invest_row: function(){
-		
+
 		},
 		
 		update_wallet: function(){
@@ -179,6 +179,17 @@ money.stock_market = (function(){
 			}
 			
 			return false;
+		},
+		
+		current_investment_list: function(){
+			var invest = $("#stock-invest-content");
+			var html = "";
+			
+			for(var key in this.invest_data){
+				html += key + ": " + this.invest_data[key].a + " - " + this.invest_data[key].b + "<br />";
+			}
+			
+			invest.empty().html(html);		
 		},
 		
 		// TODO: Tidy up inline CSS
@@ -360,6 +371,7 @@ money.stock_market = (function(){
 			var stock_content = $("<div class='stock-content' style='overflow: hidden;'></div>").append(stock_table);
 			
 			this.html = stock_content;
+			this.current_investment_list();
 			this.update();
 		},
 		

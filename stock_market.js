@@ -1,6 +1,3 @@
-// http://code.google.com/p/yahoo-finance-managed/wiki/miscapiImageDownload
-// http://chart.finance.yahoo.com/z?
-
 money.stock_market = (function(){
 
 	return {
@@ -215,7 +212,7 @@ money.stock_market = (function(){
 				stock_html += "<div class='stock-block' style='float: left; width: 908px; height: 100%'>";
 				stock_html += "<div style='border-bottom: 2px solid; font-size: 18px; padding: 5px;'>";
 				stock_html += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button id='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
-				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + ")</span></div><br style='clear: float' /></div>";
+				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + "%)</span></div><br style='clear: float' /></div>";
 				
 				stock_html += "<table style='width: 32%; float: left; margin-right: 20px; margin-top: 15px;'>";
 				
@@ -226,7 +223,7 @@ money.stock_market = (function(){
 				
 				stock_html += "<tr>";
 				stock_html += "<td style='text-align: left; padding: 8px; border-bottom: 1px solid;'>Bid:</td>";
-				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].Bid + "</td>";
+				stock_html += "<td style='text-align: right; padding: 8px; border-bottom: 1px solid; font-weight: bold;'>" + this.data[d].BidRealtime + "</td>";
 				stock_html += "</tr>";
 				
 				stock_html += "<tr>";

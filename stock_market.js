@@ -141,7 +141,7 @@ money.stock_market = (function(){
 				var current_amount = (this.has_invested(stock_symbol))? this.invest_amount(stock_symbol) : 0;
 				var updating = (current_amount)? false : true;
 				var total_amount = (current_amount + amount);
-				var bid = this.symbols[stock_symbol].Bid;
+				var bid = this.symbols[stock_symbol].BidRealtime;
 				var total_cost = (bid * amount);
 				
 				if(money.get() < total_cost){
@@ -184,6 +184,10 @@ money.stock_market = (function(){
 			
 			for(var key in this.invest_data){
 				html += key + ": " + this.invest_data[key].a + " - " + this.invest_data[key].b + "<br />";
+			}
+			
+			if(!html.length){
+				html = "You currently have no investments.";
 			}
 			
 			invest.empty().html(html);		
@@ -297,7 +301,21 @@ money.stock_market = (function(){
 				stock_obj.find("#stock-buy-button").click(function(){
 					var stock_id = $(this).attr("data-stock-id");
 					var buy_element = "<div title='Buy Stock (" + stock_id + ")'><p>Stock Units: <input type='text' style='width: 100px' name='stock-buy-" + stock_id + "' /></p></div>";
+					
+					if(self.has_invested(stock_id) && self.invest_amount(stock_id) > 0){
+						if(self.invest_data[stock_id].b != self.symbols[stock_id].BidRealtime){
+							proboards.alert("An Error Occurred", "You have already made an investment in " + self.symbols[stock_id].Name + " (" + stock_id + ") at a different price.  You will need to sell your current units before investing into this company again.", {
+								modal: true,
+								resizable: false,
+								draggable: false,
+								width: 350,
+								height: 200
+							});
 						
+							return;
+						}
+					}
+								
 					$(buy_element).dialog({
 						modal: true,
 						height: 140,
@@ -316,15 +334,15 @@ money.stock_market = (function(){
 							
 							"Buy Stock": function(){
 								var amount = parseInt($(this).find("input[name=stock-buy-" + stock_id + "]").val());
-								
+															
 								if(amount > 0){
 									var s = (amount == 1)? "" : "s";
 									var info = "";
 									
 									info += "<strong>" + self.symbols[stock_id].Name + " (" + stock_id + ")</strong><br /><br />";
 									info += "Purchase Amount: " + yootil.number_format(amount) + " unit" + s + "<br />";
-									info += "Cost Per Unit: " + money.settings.money_symbol + self.symbols[stock_id].Bid + "<br /><br />";
-									info += "Total Purchase: " + money.settings.money_symbol + money.format(amount * parseFloat(self.symbols[stock_id].Bid), true);
+									info += "Cost Per Unit: " + money.settings.money_symbol + self.symbols[stock_id].BidRealtime + "<br /><br />";
+									info += "Total Purchase: " + money.settings.money_symbol + money.format(amount * parseFloat(self.symbols[stock_id].BidRealtime), true);
 																		
 									proboards.dialog("stock-buy-confirm", { 
 										title: "Confirm Purchase",

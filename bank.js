@@ -152,7 +152,7 @@ money.bank = (function(){
 			var transactions = this.get_transactions();
 			
 			if(!transactions.length){
-				trans_html += '<tr style="font-size: 10px; height: 25px"><td><em>There are no transactions to view.</td></tr>';
+				trans_html += '<tr class="bank-transaction-list-row"><td><em>There are no transactions to view.</td></tr>';
 			} else {
 				trans_html += this.get_transaction_html_headers();
 								
@@ -186,7 +186,7 @@ money.bank = (function(){
 					var out_amount = (transactions[t][2] > 0)? transactions[t][2] : "--";
 					var date_str = this.format_transaction_date(transactions[t][3]);
 					
-					trans_html += '<tr style="font-size: 10px; height: 25px">';
+					trans_html += '<tr class="bank-transaction-list-row">';
 					trans_html += '<td>' + date_str + '</td>';
 					trans_html += '<td>' + type + '</td>';
 					trans_html += '<td>' + yootil.number_format(money.format(in_amount, true)) + '</td>';
@@ -195,7 +195,7 @@ money.bank = (function(){
 					trans_html += '</tr>';
 			
 					if(counter < (l - 1)){
-						trans_html += '<tr style="height: 5px;"><td colspan="5" style="border-top: 1px solid;"> </td></tr>';
+						trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
 					}
 					
 					counter ++;
@@ -449,7 +449,7 @@ money.bank = (function(){
 					
 			}
 			
-			trans_html += '<tr id="bank-transaction-list-row">';
+			trans_html += '<tr class="bank-transaction-list-row">';
 			trans_html += '<td>' + date_str + '</td>';
 			trans_html += '<td>' + trans_type + '</td>';
 			trans_html += '<td>' + yootil.number_format(money.format(in_amount, true)) + '</td>';
@@ -458,7 +458,7 @@ money.bank = (function(){
 			trans_html += '</tr>';
 		
 			if($("#bank-transaction-list tr").length > 2){
-				trans_html += '<tr id="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
+				trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
 			}
 			
 			$(trans_html).hide().insertAfter($("#bank-transaction-list-headers-dotted")).show("fast").fadeIn(3000).css("display", "");

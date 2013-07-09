@@ -191,7 +191,7 @@ money.stock_market = (function(){
 			var table = "";
 			
 			for(var key in this.invest_data){
-				table += "<tr>";
+				table += "<tr class='stock-invest-content-row'>";
 				table += "<td>" + this.symbols[key].Name + " (" + key + ")</td>";
 				table += "<td>" + this.invest_data[key].a + "</td>";
 				table += "<td>" + this.invest_data[key].b + "</td>";

@@ -100,7 +100,7 @@ tr#bank-transaction-list-headers th {
 
 }
 
-tr#bank-transaction-list-row {
+tr.bank-transaction-list-row {
 
 	font-size: 10px;
 	height: 25px;
@@ -114,13 +114,13 @@ tr#bank-transaction-list-headers-dotted {
 	
 }
 
-tr#bank-transaction-list-spacer {
+tr.bank-transaction-list-spacer {
 
 	height: 5px;
 	
 }
 
-tr#bank-transaction-list-spacer td {
+tr.bank-transaction-list-spacer td {
 
 	border-top: 1px solid;
 	

@@ -1,0 +1,117 @@
+div#stock-invest-content {
+
+	text-align: center;
+	padding: 10px;
+
+}
+
+div#stock-invest-content table {
+
+	width: 100%;
+
+}
+
+div#stock-invest-content table tr.stock-invest-content-headers {
+
+	border-bottom: 1px solid;
+
+}
+
+div#stock-invest-content table tr th, div#stock-invest-content table tr td {
+
+	text-align: left;
+
+}
+
+div#stock-wrapper {
+
+	padding: 10px;
+	text-align: center; 
+
+}
+
+div#stock-content {
+
+	overflow: hidden;
+	text-align: center;
+	
+}
+
+div#stock-content-strip {
+
+	position: relative;
+	left: 0px;
+	width: 15000px;
+	height: 100%;
+
+}
+
+div.stock-block {
+
+	float: left;
+	width: 908px;
+	height: 100%;
+
+}
+
+div.stock-block-header {
+
+	border-bottom: 2px solid; 
+	font-size: 18px; 
+	padding: 5px;
+
+}
+
+table.stock-block-table-left, table.stock-block-table-center, table.stock-block-table-right {
+
+	float: left;
+	margin-top: 15px;
+
+}
+
+table.stock-block-table-left, table.stock-block-table-center {
+
+	margin-right: 20px;
+
+}
+
+table.stock-block-table-left, table.stock-block-table-right {
+
+	width: 32%;
+
+}
+
+table.stock-block-table-center {
+
+	width: 31%;
+	
+}
+
+td.stock-block-cell-right, td.stock-block-cell-left {
+
+	padding: 5px;
+	border-bottom: 1px solid;
+
+}
+
+td.stock-block-cell-left {
+
+	text-align: left;
+
+}
+
+td.stock-block-cell-right {
+
+	text-align: right;
+	font-weight: bold;
+
+}
+
+div.stock-block-chart {
+
+	margin-top: 10px;
+	text-align: center;
+	border: 1px solid;
+	padding: 5px;
+
+}

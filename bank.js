@@ -251,7 +251,7 @@ money.bank = (function(){
 			if(last_date != today){
 				this.setup();
 				
-				var interest = ((balance * parseFloat(this.settings.interest)) / 100);
+				var interest = ((parseFloat(balance) * parseFloat(this.settings.interest)) / 100);
 		
 				money.data.li = today;
 
@@ -260,6 +260,12 @@ money.bank = (function(){
 					this.create_transaction(3, interest, 0, true);
 				}
 			}
+		},
+		
+		clear_last_interest: function(){
+			money.data.li = "";
+			yootil.key.set("pixeldepth_money", money.data, null, true);
+			
 		},
 		
 		format_transaction_date: function(date, format){

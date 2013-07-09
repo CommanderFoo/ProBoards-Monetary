@@ -1,3 +1,135 @@
+/* BANK */
+
+div#bank-overview-wrapper {
+
+	display: table;
+
+}
+
+div#bank-coin-image {
+
+	float: left;
+	
+}
+
+div#bank-overview-inner {
+
+	display: table-cell;
+	vertical-align: middle;
+	width: 100%;
+
+}
+
+div#bank-overview-details {
+
+	float: right;
+	margin-right: 50px;
+	margin-top: -10px;
+
+}
+
+span#bank-overview-details-money {
+
+	font-size: 24px;
+	font-weight: bold;
+
+}
+
+span#bank-overview-details-account-number, span#bank-overview-details-sort-code {
+
+	font-size: 9px;
+	
+}
+
+div#bank-controls {
+
+	float: left;
+	margin-left: 60px;
+
+}
+
+div#bank-error {
+
+	height: 30px;
+	
+}
+
+div#bank-error span {
+
+	color: red;
+	display: none;
+	font-size: 11px;
+
+}
+
+div#bank-controls-buttons-wrapper {
+
+	line-height: 24px;
+	
+}
+
+div#bank-controls-buttons-wrapper input {
+
+	width: 100px;
+	border: 1px solid;
+
+}
+
+div#bank-controls-buttons-wrapper a {
+
+	border-top-left-radius: 0px; 
+	border-bottom-left-radius: 0px;
+	margin-right: 50px;
+	position: relative;
+	left: -7px;
+	
+}
+
+table#bank-transaction-list {
+
+	width: 100%;
+	padding: 0px;
+	text-align: left;
+
+}
+
+tr#bank-transaction-list-headers th {
+
+	width: 20%;
+	text-align: left;
+
+}
+
+tr#bank-transaction-list-row {
+
+	font-size: 10px;
+	height: 25px;
+
+}
+
+tr#bank-transaction-list-headers-dotted {
+
+	border-top: 1px dotted;
+	height: 5px;
+	
+}
+
+tr#bank-transaction-list-spacer {
+
+	height: 5px;
+	
+}
+
+tr#bank-transaction-list-spacer td {
+
+	border-top: 1px solid;
+	
+}
+
+/* END BANK */
+
+/* STOCK */
+
 div#stock-invest-content {
 
 	text-align: center;
@@ -115,3 +247,5 @@ div.stock-block-chart {
 	padding: 5px;
 
 }
+
+/* END STOCK */

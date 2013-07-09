@@ -44,30 +44,27 @@ money.bank = (function(){
 			var sort_code = this.get_sort_code();
 			var html = "";
 			
-			html += '<div style="display: table"><div style="float: left"><img src="' + money.images.coins + '"></div>';
+			html += '<div id="bank-overview-wrapper"><div id="bank-coin-image"><img src="' + money.images.coins + '"></div>';
+			html += '<div id="bank-overview-inner">';
 			
-			html += '<div style="display: table-cell; vertical-align: middle; width: 100%">';
-			
-			html += '<div style="float: right; margin-right: 50px; margin-top: -10px">';
+			html += '<div id="bank-overview-details">';
 			html += '<strong>Savings Account</strong><br />';
-			html += '<span style="font-size: 9px">Account Number: ' + account_number + '</span><br />';
-			html += '<span style="font-size: 9px">Sort Code: ' + sort_code + '</span><br /><br />';
-			html += '<span style="font-size: 24px; font-weight: bold;">' + money.settings.money_symbol + '<span id="pd_money_bank_balance">' + money.get(true, true) + '</span></span>';
+			html += '<span id="bank-overview-details-account-number">Account Number: ' + account_number + '</span><br />';
+			html += '<span id="bank-overview-details-sort-code">Sort Code: ' + sort_code + '</span><br /><br />';
+			html += '<span id="bank-overview-details-money">' + money.settings.money_symbol + '<span id="pd_money_bank_balance">' + money.get(true, true) + '</span></span>';
 			html += '</div>';
 										
-			html += '<div style="float: left; margin-left: 60px;">';
-			
-			html += '<div style="height: 30px"><span style="color: red; display: none; font-size: 11px;" id="pd_money_bank_error"></span></div>';
-			
-			html += '<div style="line-height: 24px">';
+			html += '<div id="bank-controls">';
+			html += '<div id="bank-error"><span id="pd_money_bank_error"></span></div>';
+			html += '<div id="bank-controls-buttons-wrapper">';
 			
 			// I know, it's bad, but IE annoyed me.
 			var _top = ($.browser.msie)? "0" : "-2";
 			
-			html += '<input type="text" value="' + money.format(0, true) + '" style="width: 100px; border: 1px solid;" id="pd_money_withdraw">';
-			html += '<a id="pd_money_withdraw_button" class="button" href="#" role="button" style="border-top-left-radius: 0px;  border-bottom-left-radius: 0px; margin-right: 50px; position: relative; left: -7px; top: ' + _top + 'px;">Withdraw</a>';
-			html += '<input type="text" value="' + money.format(0, true) + '" style="width: 100px; border: 1px solid" id="pd_money_deposit">';
-			html += '<a id="pd_money_deposit_button" class="button" href="#" role="button" style="border-top-left-radius: 0px;  border-bottom-left-radius: 0px; position: relative; left: -7px; top: ' + _top + 'px;">Deposit</a>';
+			html += '<input type="text" value="' + money.format(0, true) + '" id="pd_money_withdraw">';
+			html += '<a id="pd_money_withdraw_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">Withdraw</a>';
+			html += '<input type="text" value="' + money.format(0, true) + '" id="pd_money_deposit">';
+			html += '<a id="pd_money_deposit_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">Deposit</a>';
 			html += '</div>';
 			
 			html += '</div>';
@@ -150,7 +147,7 @@ money.bank = (function(){
 			
 			var trans_html = "";
 			
-			trans_html += '<table width="100%" style="padding: 0px; text-align: left;" id="pd_money_bank_transaction_list">';
+			trans_html += '<table id="bank-transaction-list">';
 							
 			var transactions = this.get_transactions();
 			
@@ -300,15 +297,15 @@ money.bank = (function(){
 		get_transaction_html_headers: function(){
 			var html = "";
 			
-			html += '<tr id="pd_money_bank_transaction_headers">';
-			html += '<th style="width: 20%; text-align: left;">Date</th>';
-			html += '<th style="width: 20%; text-align: left;">Type</th>';
-			html += '<th style="width: 20%; text-align: left;">In</th>';
-			html += '<th style="width: 20%; text-align: left;">Out</th>';
-			html += '<th style="width: 20%; text-align: left;">Balance</th>';
+			html += '<tr id="bank-transaction-list-headers">';
+			html += '<th>Date</th>';
+			html += '<th>Type</th>';
+			html += '<th>In</th>';
+			html += '<th>Out</th>';
+			html += '<th>Balance</th>';
 			html += '</tr>';
 			
-			html += '<tr id="pd_money_bank_transaction_headers_dotted"><td colspan="5" style="border-top: 1px dotted; height: 5px;"> </td></tr>';
+			html += '<tr id="bank-transaction-list-headers-dotted"><td colspan="5"> </td></tr>';
 			
 			return html;
 		},
@@ -423,9 +420,9 @@ money.bank = (function(){
 		
 		
 		add_new_transaction_row: function(type, in_amount, out_amount, now, balance){
-			if($("#pd_money_bank_transaction_headers").length == 0){
-				$("#pd_money_bank_transaction_list").empty();
-				$("#pd_money_bank_transaction_list").append(this.get_transaction_html_headers());
+			if($("#bank-transaction-list-headers").length == 0){
+				$("#bank-transaction-list").empty();
+				$("#bank-transaction-list").append(this.get_transaction_html_headers());
 			}
 			
 			var trans_html = "";
@@ -452,7 +449,7 @@ money.bank = (function(){
 					
 			}
 			
-			trans_html += '<tr style="font-size: 10px; height: 25px;">';
+			trans_html += '<tr id="bank-transaction-list-row">';
 			trans_html += '<td>' + date_str + '</td>';
 			trans_html += '<td>' + trans_type + '</td>';
 			trans_html += '<td>' + yootil.number_format(money.format(in_amount, true)) + '</td>';
@@ -460,11 +457,11 @@ money.bank = (function(){
 			trans_html += '<td>' + yootil.number_format(money.format(balance, true)) + '</td>';
 			trans_html += '</tr>';
 		
-			if($("#pd_money_bank_transaction_list tr").length > 2){
-				trans_html += '<tr style="height: 5px; display: ;"><td colspan="5" style="border-top: 1px solid;"> </td></tr>';
+			if($("#bank-transaction-list tr").length > 2){
+				trans_html += '<tr id="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
 			}
 			
-			$(trans_html).hide().insertAfter($("#pd_money_bank_transaction_headers_dotted")).show("fast").fadeIn(3000).css("display", "");
+			$(trans_html).hide().insertAfter($("#bank-transaction-list-headers-dotted")).show("fast").fadeIn(3000).css("display", "");
 		},
 		
 		clear_transactions: function(){

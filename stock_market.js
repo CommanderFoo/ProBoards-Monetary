@@ -184,8 +184,9 @@ money.stock_market = (function(){
 						
 			html += "<table><tr class='stock-invest-content-headers'>";
 			html += "<th>Stock Name</th>";
-			html += "<th>Units</th>";
-			html += "<th>Bid</th>";
+			html += "<th>Unit Cost</th>";
+			html += "<th>Total Units</th>";
+			html += "<th>Total Cost</th>";
 			html += "</tr>";
 			
 			var table = "";
@@ -193,8 +194,9 @@ money.stock_market = (function(){
 			for(var key in this.invest_data){
 				table += "<tr class='stock-invest-content-row'>";
 				table += "<td>" + this.symbols[key].Name + " (" + key + ")</td>";
-				table += "<td>" + this.invest_data[key].a + "</td>";
 				table += "<td>" + this.invest_data[key].b + "</td>";
+				table += "<td>" + this.invest_data[key].a + "</td>";
+				table += "<td>" + money.settings.money_symbol + money.format(parseInt(this.invest_data[key].a) * parseFloat(this.invest_data[key].b), true); + "</td>";
 				table += "</tr>";
 			}
 			

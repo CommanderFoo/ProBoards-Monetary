@@ -155,6 +155,18 @@ div#stock-invest-content table tr th, div#stock-invest-content table tr td {
 
 }
 
+tr.stock-invest-content-row td {
+
+	padding: 6px;
+
+}
+
+tr.stock-invest-content-headers th {
+
+	padding-left: 6px;
+
+}
+
 div#stock-wrapper {
 
 	padding: 10px;

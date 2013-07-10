@@ -2,6 +2,8 @@
 
 var money = {
 
+	VERSION: "0.6.0",
+	
 	data: {
 		
 		// General money (aka wallet)
@@ -28,6 +30,9 @@ var money = {
 	images: null,
 	
 	settings: {
+		
+		check_for_update: true,
+		check_how_often: 2,
 		
 		money_text: "Money",
 		money_symbol: "&pound;",
@@ -78,8 +83,9 @@ var money = {
 	
 	init: function(){
 		this.setup();
+		this.check_version();
 		
-		PD_DEBUG && console.log("--- MONETARY SYSTEM 0.6.0 ---");
+		PD_DEBUG && console.log("--- MONETARY SYSTEM " + this.VERSION + " ---");
 		PD_DEBUG && console.log("INIT");
 		
 		if(yootil.user.logged_in() && this.can_earn()){
@@ -121,6 +127,94 @@ var money = {
 			PD_DEBUG && console.log("SETTING: show in members list = true");
 			this.show_in_members_list();	
 			yootil.ajax.after_search(this.show_in_members_list, this);
+		}
+	},
+	
+	check_version: function(){
+		if(this.settings.check_for_update && yootil.user.logged_in() && yootil.user.id() == 1){
+			var data = yootil.storage.get("monetary_last_check", true);
+			var first_data = false;
+			
+			if(!data || !data.t){
+				first_data = true;
+				
+				data = {
+					t: (+ new Date()),
+					s: 1,
+					v: this.VERSION,
+					m: ""
+				};
+			}
+			
+			var DAY = (86400 * 1000);
+			var WEEK = (DAY * 7);
+			var WEEK_2 = (WEEK * 2);
+			var WEEK_3 = (WEEK * 3);
+			var MONTH = (WEEK_2 * 2);
+			
+			var check_ts = 0;
+			
+			switch(parseInt(this.settings.check_how_often)){
+			
+				case 1 :
+					check_ts = DAY;
+					break;
+					
+				case 2 :
+					check_ts = WEEK;
+					break
+					
+				case 3 :
+					check_ts = WEEK_2;
+					break
+					
+				case 4 :
+					check_ts = WEEK_3;
+					break
+					
+				case 5 :
+					check_ts = MONTH;
+					break
+					
+			}
+			
+			var now = (+ new Date());
+						
+			if((data.t + check_ts) < now){
+				var self = this;
+				
+				$.ajax({
+					url: "http://pixeldepth.net/proboards/plugins/monetary_system/updates/update_check.php",
+					context: this,
+					crossDomain: true,
+					dataType: "json"				
+				}).done(function(latest){
+					if(latest && latest.v && self.VERSION != latest.v){
+						yootil.storage.set("monetary_last_check", {
+							t: (+ new Date()),
+							s: 0,
+							v: latest.v,
+							m: latest.m
+						}, true, true);
+					}
+				});
+			}
+			
+			// Style and add msg then TEST
+			
+			if(data.v != this.VERSION && data.s == 0){
+				var msg = "";
+				
+				msg += "There is a new Monetary System version available to install / download.";
+				msg += "<p>You current have version " + this.VERSION + " installed.  Latest version is " + data.v + "</p>";
+				
+				$("div#content").prepend(yootil.create.container("Monetary System Update Notice", msg).show().attr("id", "monetary-notification"));
+			}
+			
+			if(first_data){
+				data.t = (+ new Date() - (DAY * 60));
+				yootil.storage.set("monetary_last_check", data, true, true);
+			}
 		}
 	},
 	
@@ -434,6 +528,9 @@ var money = {
 			this.settings.member_list_text = (settings.member_list_text)? settings.member_list_text : ((settings.money_text.length)? settings.money_text : this.member_list_text);
 			
 			this.settings.staff_edit_money = (settings.staff_edit_money == "0")? false : this.settings.staff_edit_money;
+			
+			this.settings.check_for_update = (settings.check_for_update && settings.check_for_update == "0")? false : true;
+			this.settings.check_how_often = (settings.check_how_often && settings.check_how_often.length)? settings.check_how_often : 2;
 			
 			this.bank.settings.enabled = (settings.bank_enabled == "0")? false : this.bank.settings.enabled;
 			

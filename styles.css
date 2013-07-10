@@ -7,6 +7,12 @@ img.money-symbol-image {
 
 }
 
+div#monetary-notification {
+
+	display: block !important;
+	
+}
+
 /* END GENERAL */
 
 /* BANK */

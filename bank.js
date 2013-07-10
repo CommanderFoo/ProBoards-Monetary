@@ -215,6 +215,10 @@ money.bank = (function(){
 				this.settings.interest = (settings.interest_rate.toString().length)? settings.interest_rate : "1.00";
 				this.settings.minimum_deposit = money.format(settings.minimum_deposit);
 				this.settings.minimum_withdraw = money.format(settings.minimum_withdraw);
+				
+				if(settings.coin_image && settings.coin_image.length){
+					money.images.coins = settings.coin_image;
+				}
 	
 				// Protection incase admin makes a mistake
 				

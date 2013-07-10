@@ -440,6 +440,10 @@ var money = {
 			this.settings.money_text = settings.money_text;
 			this.settings.money_symbol = settings.money_symbol;
 			
+			if(settings.money_symbol_image && settings.money_symbol_image.length){
+				this.settings.money_symbol = "<img class='money-symbol-image' src='" + settings.money_symbol_image + "' />";
+			}
+			
 			this.settings.decimal_money = (settings.decimal_money == "0")? false : this.settings.decimal_money;
 			
 			this.settings.posting.earn_from_quick_reply = (parseInt(settings.earn_from_quick_reply) || this.settings.posting.earn_from_quick_reply);

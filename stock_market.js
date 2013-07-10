@@ -15,7 +15,8 @@ money.stock_market = (function(){
 		total: 0,
 		
 		settings: {
-			enabled: true
+			enabled: true,
+			show_chart: true
 		},
 		
 		invest_data: {},
@@ -59,6 +60,9 @@ money.stock_market = (function(){
 		setup: function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
+				
+				this.settings.enabled = (settings.stock_enabled == "0")? false : true;
+				this.settings.show_chart = (settings.stock_show_chart == "0")? false : true;
 				
 			}
 		},
@@ -122,14 +126,41 @@ money.stock_market = (function(){
 			return 0;
 		},
 		
-		save_investment: function(){
+		save_investments: function(){
 			money.data.s = this.invest_data;
 			yootil.key.set("pixeldepth_money", money.data, null, true);
-			this.insert_invest_row();
 		},
 		
-		insert_invest_row: function(){
+		insert_invest_row: function(stock_id){
+			var new_bid_total = (parseInt(this.invest_data[stock_id].a) * parseFloat(this.symbols[stock_id].BidRealtime));
+			var old_bid_total = (parseInt(this.invest_data[stock_id].a) * parseFloat(this.invest_data[stock_id].b));
+			var html = "<tr class='stock-invest-content-row' id='stock-invest-row-" + stock_id + "' style='display: none'>";
+			
+			html += "<td>" + this.symbols[stock_id].Name + " (" + stock_id + ")</td>";
+			html += "<td>" + yootil.number_format(this.invest_data[stock_id].b) + "</td>";
+			html += "<td>" + yootil.number_format(this.symbols[stock_id].BidRealtime) + "</td>";
+			html += "<td>" + yootil.number_format(this.invest_data[stock_id].a) + "</td>";
+			html += "<td>" + money.settings.money_symbol + yootil.number_format(money.format(parseInt(this.invest_data[stock_id].a) * parseFloat(this.invest_data[stock_id].b), true)); + "</td>";
+			html += "<td>" + money.settings.money_symbol + yootil.number_format(money.format(new_bid_total - old_bid_total, true)) + "</td>";
+			html += "<td><button class='stock-sell-button' data-stock-id='" + stock_id + "'>Sell</button></td>";
 
+			html += "</tr>";
+			
+			var self = this;
+			
+			$("#stock-investments-table").append($(html).hide());
+			
+			$("#stock-investments-table").find(".stock-sell-button[data-stock-id=" + stock_id + "]").click(function(){
+				$.proxy(self.bind_sell_event, self)(this); 
+			})
+			
+			$("#stock-invest-row-" + stock_id).show("slow");
+		},
+		
+		remove_invest_row: function(stock_id){
+			$("#stock-invest-row-" + stock_id).hide("slow", function(){
+				$(this).remove();
+			});
 		},
 		
 		update_wallet: function(){
@@ -158,8 +189,9 @@ money.stock_market = (function(){
 						b: bid
 					};
 					
+					this.insert_invest_row(stock_symbol);
 					this.update_wallet();
-					this.save_investment();
+					this.save_investments();
 				}
 			} else {
 				proboards.alert("An Error Occurred", "An error occurred, please try again.", {
@@ -182,35 +214,38 @@ money.stock_market = (function(){
 			var invest = $("#stock-invest-content");
 			var html = "";
 						
-			html += "<table><tr class='stock-invest-content-headers'>";
+			html += "<table id='stock-investments-table'><tr class='stock-invest-content-headers'>";
 			html += "<th style='width: 35%'>Stock Name</th>";
-			html += "<th style='width: 14%'>Unit Cost</th>";
+			html += "<th style='width: 15%'>Paid Bid</th>";
+			html += "<th style='width: 15%'>Current Bid</th>";
 			html += "<th style='width: 13%'>Total Units</th>";
 			html += "<th style='width: 15%'>Total Cost</th>";
 			html += "<th style='width: 14%'>Profit</th>";
-			html += "<th style='width: 9%'></th>";
+			html += "<th style='width: 7%'></th>";
 			html += "</tr>";
 			
 			var table = "";
 			
 			for(var key in this.invest_data){
-				table += "<tr class='stock-invest-content-row'>";
+				table += "<tr class='stock-invest-content-row' id='stock-invest-row-" + key + "'>";
 				table += "<td>" + this.symbols[key].Name + " (" + key + ")</td>";
-				table += "<td>" + this.invest_data[key].b + "</td>";
-				table += "<td>" + this.invest_data[key].a + "</td>";
-				table += "<td>" + money.settings.money_symbol + money.format(parseInt(this.invest_data[key].a) * parseFloat(this.invest_data[key].b), true); + "</td>";
+				table += "<td>" + yootil.number_format(this.invest_data[key].b) + "</td>";
+				table += "<td>" + yootil.number_format(this.symbols[key].BidRealtime) + "</td>";
+				table += "<td>" + yootil.number_format(this.invest_data[key].a) + "</td>";
+				table += "<td>" + money.settings.money_symbol + yootil.number_format(money.format(parseInt(this.invest_data[key].a) * parseFloat(this.invest_data[key].b), true)); + "</td>";
 				
 				var profit_html = "";
 				var new_bid_total = (parseInt(this.invest_data[key].a) * parseFloat(this.symbols[key].BidRealtime));
 				var old_bid_total = (parseInt(this.invest_data[key].a) * parseFloat(this.invest_data[key].b));
-				
-				profit_html = money.settings.money_symbol + money.format(new_bid_total - old_bid_total, true);
+				var formatted_total = money.settings.money_symbol + yootil.number_format(money.format(new_bid_total - old_bid_total, true));
 							
 				if(new_bid_total < old_bid_total){
-					profit_html += " <img src='" + money.images.down + "' style='position: relative; top: 2px;' />";
-				} else {					
-					if(new_bid_total != old_bid_total){
-						profit_html += " <img src='" + money.images.up + "' style='position: relative; top: 2px;' />";
+					profit_html += "<span class='stock-market-loss'>" + formatted_total + "</span> <img src='" + money.images.down + "' style='position: relative; top: 2px;' />";
+				} else {				
+					if(new_bid_total > old_bid_total){
+						profit_html += "<span class='stock-market-profit'>" + formatted_total + "</span> <img src='" + money.images.up + "' style='position: relative; top: 2px;' />";
+					} else {
+						profit_html += formatted_total;
 					}
 				}
 				
@@ -226,7 +261,89 @@ money.stock_market = (function(){
 				html += table;
 			}
 			
-			invest.empty().html(html);		
+			var stock_invest_obj = $(html);
+			var self = this;
+			
+			stock_invest_obj.find(".stock-sell-button").click(function(){
+				$.proxy(self.bind_sell_event, self)(this); 
+			});
+			
+			invest.empty().append(stock_invest_obj);
+		},
+		
+		bind_sell_event: function(button){
+			var stock_id = $(button).attr("data-stock-id");
+			
+			var amount = parseInt(this.invest_data[stock_id].a);
+			var bid = parseInt(this.symbols[stock_id].BidRealtime);
+			var s = (amount == 1)? "" : "s";
+			var info = "";
+				
+			info += "<strong>" + this.symbols[stock_id].Name + " (" + stock_id + ")</strong><br /><br />";
+			info += "Purchased Amount: " + yootil.number_format(amount) + " unit" + s + "<br />";
+			info += "Paid Bid: " + yootil.number_format(this.invest_data[stock_id].b) + "<br />";
+			info += "Current Bid: " + yootil.number_format(this.symbols[stock_id].BidRealtime) + "<br /><br />";
+			info += "Total Return: " + money.settings.money_symbol + yootil.number_format(money.format(amount * parseFloat(this.symbols[stock_id].BidRealtime), true));
+			
+			var self = this;
+			
+			proboards.dialog("stock-sell-dialog", {
+				modal: true,
+				height: 220,
+				width: 320,
+				title: "Sell Stock",
+				html: info,
+				resizable: false,
+				draggable: false,
+				
+				buttons: {
+				
+					Cancel: function(){
+						$(this).dialog("close");
+					},
+					
+					"Sell Stock": function(){
+						proboards.dialog("stock-sell-confirm-dialog", { 
+							title: "Confirm Selling Stock",
+							html: "Are you sure you want to sell this stock?", 
+							modal: true,
+							resizable: false,
+							draggable: false,
+							
+							buttons: {
+							
+								No: function(){ 
+									$(this).dialog('close');
+								},
+								
+								"Yes": function(){
+									self.sell_stock(stock_id);
+									$(this).dialog("close");
+								}
+							}
+						});
+					
+						$(this).dialog("close");
+					}
+				}
+			});	
+		},
+		
+		sell_stock: function(stock_id){
+			var amount = (this.has_invested(stock_id))? this.invest_amount(stock_id) : 0;
+			
+			if(amount){
+				var bid = this.symbols[stock_id].BidRealtime;
+				var total_cost = (bid * amount);
+				
+				money.data.m += money.format(total_cost);
+					
+				delete this.invest_data[stock_id];
+
+				this.update_wallet();
+				this.remove_invest_row(stock_id);
+				this.save_investments();
+			}
 		},
 		
 		// TODO: Tidy up inline CSS
@@ -325,9 +442,13 @@ money.stock_market = (function(){
 				stock_html += "</table>";
 				
 				stock_html += "<br style='clear: both' />";
-				stock_html += "<div class='stock-block-chart'>";
-				stock_html += "<img src='http://chart.finance.yahoo.com/z?s=" + this.data[d].Symbol + "&t=2w&l=off&z=l' />";
-				stock_html += "</div>";
+				
+				if(this.settings.show_chart){
+					stock_html += "<div class='stock-block-chart'>";
+					stock_html += "<img src='http://chart.finance.yahoo.com/z?s=" + this.data[d].Symbol + "&t=2w&l=off&z=l' />";
+					stock_html += "</div>";
+				}
+				
 				stock_html += "</div>";
 				
 				var stock_obj = $(stock_html);
@@ -375,8 +496,8 @@ money.stock_market = (function(){
 									
 									info += "<strong>" + self.symbols[stock_id].Name + " (" + stock_id + ")</strong><br /><br />";
 									info += "Purchase Amount: " + yootil.number_format(amount) + " unit" + s + "<br />";
-									info += "Cost Per Unit: " + money.settings.money_symbol + self.symbols[stock_id].BidRealtime + "<br /><br />";
-									info += "Total Purchase: " + money.settings.money_symbol + money.format(amount * parseFloat(self.symbols[stock_id].BidRealtime), true);
+									info += "Cost Per Unit: " + money.settings.money_symbol + yootil.number_format(self.symbols[stock_id].BidRealtime) + "<br /><br />";
+									info += "Total Purchase: " + money.settings.money_symbol + yootil.number_format(money.format(amount * parseFloat(self.symbols[stock_id].BidRealtime), true));
 																		
 									proboards.dialog("stock-buy-confirm", { 
 										title: "Confirm Purchase",

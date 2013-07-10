@@ -1,3 +1,14 @@
+/* GENERAL */
+
+img.money-symbol-image {
+
+	position: relative;
+	top: 3px;
+
+}
+
+/* END GENERAL */
+
 /* BANK */
 
 div#bank-overview-wrapper {
@@ -257,6 +268,18 @@ div.stock-block-chart {
 	text-align: center;
 	border: 1px solid;
 	padding: 5px;
+
+}
+
+span.stock-market-loss {
+
+	color: red;
+
+}
+
+span.stock-market-profit {
+
+	color: blue;
 
 }
 

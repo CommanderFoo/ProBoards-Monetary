@@ -183,10 +183,12 @@ money.stock_market = (function(){
 			var html = "";
 						
 			html += "<table><tr class='stock-invest-content-headers'>";
-			html += "<th>Stock Name</th>";
-			html += "<th>Unit Cost</th>";
-			html += "<th>Total Units</th>";
-			html += "<th>Total Cost</th>";
+			html += "<th style='width: 35%'>Stock Name</th>";
+			html += "<th style='width: 14%'>Unit Cost</th>";
+			html += "<th style='width: 13%'>Total Units</th>";
+			html += "<th style='width: 15%'>Total Cost</th>";
+			html += "<th style='width: 14%'>Profit</th>";
+			html += "<th style='width: 9%'></th>";
 			html += "</tr>";
 			
 			var table = "";
@@ -197,6 +199,23 @@ money.stock_market = (function(){
 				table += "<td>" + this.invest_data[key].b + "</td>";
 				table += "<td>" + this.invest_data[key].a + "</td>";
 				table += "<td>" + money.settings.money_symbol + money.format(parseInt(this.invest_data[key].a) * parseFloat(this.invest_data[key].b), true); + "</td>";
+				
+				var profit_html = "";
+				var new_bid_total = (parseInt(this.invest_data[key].a) * parseFloat(this.symbols[key].BidRealtime));
+				var old_bid_total = (parseInt(this.invest_data[key].a) * parseFloat(this.invest_data[key].b));
+				
+				profit_html = money.settings.money_symbol + money.format(new_bid_total - old_bid_total, true);
+							
+				if(new_bid_total < old_bid_total){
+					profit_html += " <img src='" + money.images.down + "' style='position: relative; top: 2px;' />";
+				} else {					
+					if(new_bid_total != old_bid_total){
+						profit_html += " <img src='" + money.images.up + "' style='position: relative; top: 2px;' />";
+					}
+				}
+				
+				table += "<td>" + profit_html + "</td>";
+				table += "<td><button class='stock-sell-button' data-stock-id='" + key + "'>Sell</button></td>";
 				table += "</tr>";
 			}
 			
@@ -225,14 +244,14 @@ money.stock_market = (function(){
 				this.symbols[this.data[d].Symbol] = this.data[d];
 				
 				if(parseFloat(this.data[d].PreviousClose) < parseFloat(this.data[d].BidRealtime)){
-					up_down = "<img src='" + money.images.up + "' /> ";
+					up_down = "<img src='" + money.images.up + "' style='position: relative; top: 2px;' /> ";
 				} else if(parseFloat(this.data[d].PreviousClose) > parseFloat(this.data[d].BidRealtime)){
-					up_down = "<img src='" + money.images.down + "' /> ";
+					up_down = "<img src='" + money.images.down + "' style='position: relative; top: 2px;' /> ";
 				}
 												
 				stock_html += "<div class='stock-block'>";
 				stock_html += "<div class='stock-block-header'>";
-				stock_html += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button id='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
+				stock_html += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button class='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
 				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + "%)</span></div><br style='clear: float' /></div>";
 				
 				stock_html += "<table class='stock-block-table-left'>";
@@ -313,7 +332,7 @@ money.stock_market = (function(){
 				
 				var stock_obj = $(stock_html);
 				
-				stock_obj.find("#stock-buy-button").click(function(){
+				stock_obj.find(".stock-buy-button").click(function(){
 					var stock_id = $(this).attr("data-stock-id");
 					var buy_element = "<div title='Buy Stock (" + stock_id + ")'><p>Stock Units: <input type='text' style='width: 100px' name='stock-buy-" + stock_id + "' /></p></div>";
 					

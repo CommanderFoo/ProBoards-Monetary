@@ -203,12 +203,14 @@ var money = {
 			// Style and add msg then TEST
 			
 			if(data.v != this.VERSION && data.s == 0){
-				var msg = "";
+				var msg = "<div class='monetary-notification-content'>";
 				
-				msg += "There is a new Monetary System version available to install / download.";
-				msg += "<p>You current have version " + this.VERSION + " installed.  Latest version is " + data.v + "</p>";
+				msg += "<p>There is a new Monetary System version available to install / download.</p>";
+				msg += "<p>You currently have version " + this.VERSION + " installed.  Latest version is " + data.v + "</p>";
 				
-				$("div#content").prepend(yootil.create.container("Monetary System Update Notice", msg).show().attr("id", "monetary-notification"));
+				msg += "</div>";
+				
+				$("div#content").prepend(yootil.create.container("Monetary System Update Notice", msg).show().addClass("monetary-notification"));
 			}
 			
 			if(first_data){

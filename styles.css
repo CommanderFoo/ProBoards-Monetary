@@ -7,10 +7,16 @@ img.money-symbol-image {
 
 }
 
-div#monetary-notification {
+div.monetary-notification {
 
 	display: block !important;
 	
+}
+
+div.monetary-notification-content p {
+
+	line-height: 20px;
+
 }
 
 /* END GENERAL */

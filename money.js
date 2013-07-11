@@ -141,8 +141,7 @@ var money = {
 				data = {
 					t: (+ new Date()),
 					s: 1,
-					v: this.VERSION,
-					m: ""
+					v: this.VERSION
 				};
 			}
 			
@@ -189,32 +188,43 @@ var money = {
 					crossDomain: true,
 					dataType: "json"				
 				}).done(function(latest){
-					if(latest && latest.v && self.VERSION != latest.v){
-						yootil.storage.set("monetary_last_check", {
-							t: (+ new Date()),
-							s: 0,
-							v: latest.v,
-							m: latest.m
-						}, true, true);
-					}
+					data = {
+						t: (+ new Date()),
+						s: 0,
+						v: latest.v
+					};
+					
+					yootil.storage.set("monetary_last_check", data, true, true);
 				});
 			}
-			
-			// Style and add msg then TEST
 			
 			if(data.v != this.VERSION && data.s == 0){
 				var msg = "<div class='monetary-notification-content'>";
 				
-				msg += "<p>There is a new Monetary System version available to install / download.</p>";
-				msg += "<p>You currently have version " + this.VERSION + " installed.  Latest version is " + data.v + "</p>";
+				msg += "<p>There is a new <strong>Monetary System</strong> version available to install / download for your forum.</p>";
+				msg += "<p>You currently have version <strong>" + this.VERSION + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
+				
+				msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
+				msg += "<p style='margin-top: 8px;'>You can hide this message from the Monetary System settings, or can hide it temporarily by <span id='monetary-hide-update'>clicking here</span>.</p>";
 				
 				msg += "</div>";
 				
-				$("div#content").prepend(yootil.create.container("Monetary System Update Notice", msg).show().addClass("monetary-notification"));
+				var notification = yootil.create.container("Monetary System Update Notice", msg).show().addClass("monetary-notification");
+				
+				notification.find("span#monetary-hide-update").click(function(){
+					data.s = 1;
+					
+					yootil.storage.set("monetary_last_check", data, true, true);
+					
+					$(".monetary-notification").hide("slow", function(){
+						$(this).remove();
+					});
+				});
+				
+				$("div#content").prepend(notification);
 			}
 			
 			if(first_data){
-				data.t = (+ new Date() - (DAY * 60));
 				yootil.storage.set("monetary_last_check", data, true, true);
 			}
 		}

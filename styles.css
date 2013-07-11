@@ -19,6 +19,14 @@ div.monetary-notification-content p {
 
 }
 
+span#monetary-hide-update {
+
+	cursor: pointer;
+	text-decoration: underline;
+	font-weight: bold;
+
+}
+
 /* END GENERAL */
 
 /* BANK */

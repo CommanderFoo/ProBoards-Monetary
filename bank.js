@@ -1,3 +1,5 @@
+// Staff edit transactions are broken
+
 money.bank = (function(){
 	
 	return {

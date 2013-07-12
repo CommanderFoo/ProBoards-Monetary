@@ -96,12 +96,12 @@ money.stock_market = (function(){
 		
 		fetch_stock_data: function(){
 			this.fetching = true;
-
+			
 			$.ajax({
 				url: "http://pixeldepth.net/proboards/plugins/monetary_system/stock/quotes.php",
 				context: this,
 				crossDomain: true,
-				dataType: "json"				
+				dataType: "json"		
 			}).done(function(data){
 				this.fetching = false;
 				

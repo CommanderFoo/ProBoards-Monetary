@@ -80,6 +80,8 @@ var money = {
 	modules: [],
 	
 	init: function(){
+		$.support.cors = true;
+		
 		this.setup();
 		this.check_version();
 		

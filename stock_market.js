@@ -205,18 +205,33 @@ money.stock_market = (function(){
 			
 			var self = this;
 			
-			$("#stock-investments-table").append($(html).hide());
+			if(!$("#stock-investments-table").length){
+				this.create_investment_headers();
+			}
+			
+			if($("#stock-invest-row-" + stock_id).length){
+				$("#stock-invest-row-" + stock_id).replaceWith($(html));
+			} else {
+				$("#stock-investments-table").append($(html).hide());
+			}
 			
 			$("#stock-investments-table").find(".stock-sell-button[data-stock-id=" + stock_id + "]").click(function(){
 				$.proxy(self.bind_sell_event, self)(this); 
 			})
 			
-			$("#stock-invest-row-" + stock_id).show("slow");
+			$("#stock-invest-row-" + stock_id).show("normal");
 		},
 		
 		remove_invest_row: function(stock_id){
-			$("#stock-invest-row-" + stock_id).hide("slow", function(){
+			$("#stock-invest-row-" + stock_id).hide("normal", function(){
 				$(this).remove();
+				
+				var invest_table = $("#stock-investments-table");
+									
+				if(invest_table.find("tr").length == 1){
+					invest_table.remove();
+					$("#stock-invest-content").html("<span>You currently have no investments.</span>");
+				}
 			});
 		},
 		
@@ -267,8 +282,7 @@ money.stock_market = (function(){
 			return false;
 		},
 		
-		current_investment_list: function(){
-			var invest = $("#stock-invest-content");
+		create_investment_headers: function(return_html){
 			var html = "";
 						
 			html += "<table id='stock-investments-table'><tr class='stock-invest-content-headers'>";
@@ -280,6 +294,21 @@ money.stock_market = (function(){
 			html += "<th style='width: 16%'>Profit</th>";
 			html += "<th style='width: 6%'></th>";
 			html += "</tr>";
+			
+			if(return_html){
+				return html;
+			}
+			
+			html += "</table>";
+			
+			$("#stock-invest-content").empty().html(html);
+		},
+		
+		current_investment_list: function(){
+			var invest = $("#stock-invest-content");
+			var html = "";
+						
+			html += this.create_investment_headers(true);
 			
 			var table = "";
 			
@@ -317,12 +346,12 @@ money.stock_market = (function(){
 			}
 			
 			if(!table.length){
-				html = "You currently have no investments.";
+				html = "<span>You currently have no investments.</span>";
 			} else {
-				table += "</tr></table>";
+				table += "</table>";
 				html += table;
 			}
-			
+
 			var stock_invest_obj = $(html);
 			var self = this;
 			
@@ -402,7 +431,7 @@ money.stock_market = (function(){
 					
 				this.remove_from_data(stock_id);
 				this.update_wallet();
-				this.remove_invest_row(stock_id);
+				this.remove_invest_row(stock_id);				
 				this.save_investments();
 			}
 		},
@@ -438,7 +467,7 @@ money.stock_market = (function(){
 				stock_html += "<div class='stock-block'>";
 				stock_html += "<div class='stock-block-header'>";
 				stock_html += "<div style='float: left;'>" + this.get_stock_name(this.data[d].Symbol) + " (" + this.get_stock_symbol(this.data[d].Symbol) + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button class='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
-				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + "%)</span></div><br style='clear: float' /></div>";
+				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + "%)</span></div><br style='clear: both' /></div>";
 				
 				stock_html += "<table class='stock-block-table-left'>";
 				

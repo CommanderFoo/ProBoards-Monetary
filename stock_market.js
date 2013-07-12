@@ -19,6 +19,8 @@ money.stock_market = (function(){
 			show_chart: true
 		},
 		
+		replacements: {},
+		
 		invest_data: {},
 		
 		init: function(){
@@ -64,7 +66,32 @@ money.stock_market = (function(){
 				this.settings.enabled = (settings.stock_enabled == "0")? false : true;
 				this.settings.show_chart = (settings.stock_show_chart == "0")? false : true;
 				
+				if(settings.stock_replace && settings.stock_replace.length){
+					for(var r = 0, l = settings.stock_replace.length; r < l; r ++){
+						this.replacements[settings.stock_replace[r].current_symbol] = settings.stock_replace[r];
+					}
+				}
 			}
+		},
+		
+		get_stock_name: function(stock_id){
+			if(this.replacements[stock_id]){
+				return this.replacements[stock_id].new_name;
+			}
+			
+			if(this.symbols[stock_id]){
+				return this.symbols[stock_id].Name;
+			}
+			
+			return stock_id;
+		},
+		
+		get_stock_symbol: function(stock_id){
+			if(this.replacements[stock_id]){
+				return this.replacements[stock_id].new_symbol;
+			}
+			
+			return stock_id;
 		},
 		
 		fetch_stock_data: function(){
@@ -100,20 +127,50 @@ money.stock_market = (function(){
 			return false;
 		},
 		
-		// If symbol is removed, should we refund original money??
-		
 		remove_from_data: function(stock_symbol){
 			if(this.has_invested(stock_symbol)){
 				delete this.invest_data[stock_symbol];
 			}
 		},
 		
-		// Flag a stock that is no longer in use so we can do something with it later
-		
-		flag_invested: function(stock_symbol){
-			if(this.has_invested(stock_symbol)){
-				this.invest_data[stock_symbol].rm = 1;
-			}
+		refund_stock: function(stock_id){
+			var self = this;
+			var info = "";
+			
+			info += "Your investment in " + this.get_stock_symbol(stock_id) + " is being refunded, as the";
+			info += " stock has been removed from the market.<br /><br />";
+			info += "Refund: " + money.settings.money_symbol + yootil.number_format(money.format(parseInt(this.invest_data[stock_id].a) * parseFloat(this.invest_data[stock_id].b), true));
+			
+			proboards.dialog("stock-refund-dialog", {
+				modal: true,
+				height: 220,
+				width: 320,
+				title: "Refunding Stock",
+				html: info,
+				resizable: false,
+				draggable: false,
+				
+				buttons: {
+									
+					"Accept Refund": function(){
+											
+						var amount = (self.has_invested(stock_id))? self.invest_amount(stock_id) : 0;
+						
+						if(amount){
+							var bid = self.invest_data[stock_id].b;
+							var total_cost = (bid * amount);
+							
+							money.data.m += money.format(total_cost);
+								
+							self.remove_from_data(stock_id);
+							self.update_wallet();
+							self.save_investments();
+						}
+					
+						$(this).dialog("close");
+					}
+				}
+			});
 		},
 		
 		// How much stock?
@@ -136,7 +193,7 @@ money.stock_market = (function(){
 			var old_bid_total = (parseInt(this.invest_data[stock_id].a) * parseFloat(this.invest_data[stock_id].b));
 			var html = "<tr class='stock-invest-content-row' id='stock-invest-row-" + stock_id + "' style='display: none'>";
 			
-			html += "<td>" + this.symbols[stock_id].Name + " (" + stock_id + ")</td>";
+			html += "<td>" + this.get_stock_name(stock_id) + " (" + this.get_stock_symbol(stock_id) + ")</td>";
 			html += "<td>" + yootil.number_format(this.invest_data[stock_id].b) + "</td>";
 			html += "<td>" + yootil.number_format(this.symbols[stock_id].BidRealtime) + "</td>";
 			html += "<td>" + yootil.number_format(this.invest_data[stock_id].a) + "</td>";
@@ -215,20 +272,25 @@ money.stock_market = (function(){
 			var html = "";
 						
 			html += "<table id='stock-investments-table'><tr class='stock-invest-content-headers'>";
-			html += "<th style='width: 35%'>Stock Name</th>";
+			html += "<th style='width: 34%'>Stock Name</th>";
 			html += "<th style='width: 15%'>Paid Bid</th>";
 			html += "<th style='width: 15%'>Current Bid</th>";
 			html += "<th style='width: 13%'>Total Units</th>";
 			html += "<th style='width: 15%'>Total Cost</th>";
-			html += "<th style='width: 14%'>Profit</th>";
-			html += "<th style='width: 7%'></th>";
+			html += "<th style='width: 16%'>Profit</th>";
+			html += "<th style='width: 6%'></th>";
 			html += "</tr>";
 			
 			var table = "";
 			
 			for(var key in this.invest_data){
+				if(!this.symbols[key]){
+					this.refund_stock(key);
+					continue;
+				}
+				
 				table += "<tr class='stock-invest-content-row' id='stock-invest-row-" + key + "'>";
-				table += "<td>" + this.symbols[key].Name + " (" + key + ")</td>";
+				table += "<td>" + this.get_stock_name(key) + " (" + this.get_stock_symbol(key) + ")</td>";
 				table += "<td>" + yootil.number_format(this.invest_data[key].b) + "</td>";
 				table += "<td>" + yootil.number_format(this.symbols[key].BidRealtime) + "</td>";
 				table += "<td>" + yootil.number_format(this.invest_data[key].a) + "</td>";
@@ -279,7 +341,7 @@ money.stock_market = (function(){
 			var s = (amount == 1)? "" : "s";
 			var info = "";
 				
-			info += "<strong>" + this.symbols[stock_id].Name + " (" + stock_id + ")</strong><br /><br />";
+			info += "<strong>" + this.get_stock_name(stock_id) + " (" + this.get_stock_symbol(stock_id) + ")</strong><br /><br />";
 			info += "Purchased Amount: " + yootil.number_format(amount) + " unit" + s + "<br />";
 			info += "Paid Bid: " + yootil.number_format(this.invest_data[stock_id].b) + "<br />";
 			info += "Current Bid: " + yootil.number_format(this.symbols[stock_id].BidRealtime) + "<br /><br />";
@@ -338,8 +400,7 @@ money.stock_market = (function(){
 				
 				money.data.m += money.format(total_cost);
 					
-				delete this.invest_data[stock_id];
-
+				this.remove_from_data(stock_id);
 				this.update_wallet();
 				this.remove_invest_row(stock_id);
 				this.save_investments();
@@ -376,7 +437,7 @@ money.stock_market = (function(){
 								
 				stock_html += "<div class='stock-block'>";
 				stock_html += "<div class='stock-block-header'>";
-				stock_html += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button class='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
+				stock_html += "<div style='float: left;'>" + this.get_stock_name(this.data[d].Symbol) + " (" + this.get_stock_symbol(this.data[d].Symbol) + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button class='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
 				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + "%)</span></div><br style='clear: float' /></div>";
 				
 				stock_html += "<table class='stock-block-table-left'>";
@@ -463,11 +524,11 @@ money.stock_market = (function(){
 				
 				stock_obj.find(".stock-buy-button").click(function(){
 					var stock_id = $(this).attr("data-stock-id");
-					var buy_element = "<div title='Buy Stock (" + stock_id + ")'><p>Stock Units: <input type='text' style='width: 100px' name='stock-buy-" + stock_id + "' /></p></div>";
+					var buy_element = "<div title='Buy Stock (" + self.get_stock_symbol(stock_id) + ")'><p>Stock Units: <input type='text' style='width: 100px' name='stock-buy-" + stock_id + "' /></p></div>";
 					
 					if(self.has_invested(stock_id) && self.invest_amount(stock_id) > 0){
 						if(self.invest_data[stock_id].b != self.symbols[stock_id].BidRealtime){
-							proboards.alert("An Error Occurred", "You have already made an investment in " + self.symbols[stock_id].Name + " (" + stock_id + ") at a different price.  You will need to sell your current units before investing into this company again.", {
+							proboards.alert("An Error Occurred", "You have already made an investment in " + self.get_stock_name(stock_id) + " (" + self.get_stock_symbol(stock_id) + ") at a different price.  You will need to sell your current units before investing into this company again.", {
 								modal: true,
 								resizable: false,
 								draggable: false,
@@ -502,7 +563,7 @@ money.stock_market = (function(){
 									var s = (amount == 1)? "" : "s";
 									var info = "";
 									
-									info += "<strong>" + self.symbols[stock_id].Name + " (" + stock_id + ")</strong><br /><br />";
+									info += "<strong>" + self.get_stock_name(stock_id) + " (" + self.get_stock_symbol(stock_id) + ")</strong><br /><br />";
 									info += "Purchase Amount: " + yootil.number_format(amount) + " unit" + s + "<br />";
 									info += "Cost Per Unit: " + money.settings.money_symbol + yootil.number_format(self.symbols[stock_id].BidRealtime) + "<br /><br />";
 									info += "Total Purchase: " + money.settings.money_symbol + yootil.number_format(money.format(amount * parseFloat(self.symbols[stock_id].BidRealtime), true));

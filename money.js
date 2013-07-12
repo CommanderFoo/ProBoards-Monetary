@@ -1,5 +1,3 @@
-//post_quick_reply
-
 var money = {
 
 	VERSION: "0.6.0",
@@ -85,18 +83,9 @@ var money = {
 		this.setup();
 		this.check_version();
 		
-		PD_DEBUG && console.log("--- MONETARY SYSTEM " + this.VERSION + " ---");
-		PD_DEBUG && console.log("INIT");
-		
 		if(yootil.user.logged_in() && this.can_earn()){
-			PD_DEBUG && console.log("USER LOGGED IN");
-			PD_DEBUG && console.log("USER CAN EARN");
-			
-			if(yootil.location.check.posting() || (yootil.location.check.thread() && this.settings.posting.earn_from_quick_reply)){
-				PD_DEBUG && console.log("POST / THREAD MATCH");
-				
+			if(yootil.location.check.posting() || (yootil.location.check.thread() && this.settings.posting.earn_from_quick_reply)){				
 				if(this.can_earn_in_cat_board()){
-					PD_DEBUG && console.log("CAN EARN IN CAT / BOARD");
 					this.bind_events();
 				}
 			}
@@ -113,18 +102,15 @@ var money = {
 		var location_check = (yootil.location.check.search_results() || yootil.location.check.message_thread() || yootil.location.check.thread() || yootil.location.check.recent_posts());
 		
 		if(this.settings.show_in_mini_profile && location_check){
-			PD_DEBUG && console.log("SETTING: show in mini profile = true");
 			this.show_in_mini_profile();
 			yootil.ajax.after_search(this.show_in_mini_profile, this);
 		}
 					
 		if(this.settings.show_in_profile && yootil.location.check.profile_home() && this.params && this.params.user_id != "undefined"){
-			PD_DEBUG && console.log("SETTING: show in profile = true");
 			this.show_in_profile();
 		}
 		
 		if(this.settings.show_in_members_list && yootil.location.check.members()){
-			PD_DEBUG && console.log("SETTING: show in members list = true");
 			this.show_in_members_list();	
 			yootil.ajax.after_search(this.show_in_members_list, this);
 		}
@@ -351,17 +337,14 @@ var money = {
 	},
 	
 	bind_events: function(){
-		PD_DEBUG && console.log("BINDING EVENTS");
-		
+				
 		// Check if in thread or posting, then check if thread is disabled
 		// from earning
 		
 		if(yootil.location.check.thread() || yootil.location.check.posting()){
 			var thread_id = parseInt(yootil.page.thread.id());
 			
-			if(thread_id){
-				PD_DEBUG && console.log("THREAD ID: " + thread_id);
-				
+			if(thread_id){				
 				if(thread_id && $.inArray(thread_id, this.settings.no_earn_threads) > -1){
 					return false;
 				}
@@ -369,12 +352,10 @@ var money = {
 		}
 		
 		if(yootil.location.check.posting_thread()){
-			PD_DEBUG && console.log("POSTING: Is a new thread");
 			this.is_new_thread = true;
 		}
 
 		if(yootil.location.check.editing()){
-			PD_DEBUG && console.log("POSTING: Is editing post");
 			this.is_editing = true;
 		}
 		
@@ -399,19 +380,12 @@ var money = {
 			this.using_quick_reply = true;
 		}
 		
-		PD_DEBUG && console.log("-- POST FORM --");
-		PD_DEBUG && console.log(the_form);
-		
 		if(the_form.length){
 		
 			// Bind validated event in case the form wasn't submitted (onsubmit is useless)
 			
-			the_form.bind("validated", function(event){
-				PD_DEBUG && console.log("VALIDATED");
-				
-				if(!self.processed){
-					PD_DEBUG && console.log("NOT PROCESSED");
-					
+			the_form.bind("validated", function(event){				
+				if(!self.processed){					
 					if(self.is_new_thread || self.is_editing){
 						var poll_input = $(this).find("input[name=has_poll]");
 						
@@ -419,15 +393,11 @@ var money = {
 					}
 					
 					if(hook){
-						PD_DEBUG && console.log("HOOKING");
-						PD_DEBUG && console.log("SUBMITTING");
 						self.form_hook(hook, self.apply_posting_money);
 						self.processed = false;
 						self.clear_auto_save();
 						this.submit();
 					} else {
-						PD_DEBUG && console.log("BINDING");
-						
 						yootil.ajax.bind("complete", this, function(){
 							self.clear_auto_save();
 							this.submit();
@@ -440,8 +410,6 @@ var money = {
 						var completed = self.apply_posting_money();
 						
 						if(!completed){
-							PD_DEBUG && console.log("COMPLETED");
-							PD_DEBUG && console.log("SUBMITTING");
 							self.clear_auto_save();
 							this.submit();
 						}
@@ -464,8 +432,6 @@ var money = {
 			return false;
 		}
 		
-		PD_DEBUG && console.log("CAN EARN");
-		
 		var money_to_add = 0.00;
 
 		if(!this.is_editing && !this.is_new_thread){
@@ -483,8 +449,6 @@ var money = {
 		if(this.is_new_thread){
 			money_to_add += this.format(this.settings.posting.amounts.per_thread);
 		}
-
-		PD_DEBUG && console.log("MONEY TO ADD: " + money_to_add);
 		
 		if(!this.processed){
 			this.processed = true;

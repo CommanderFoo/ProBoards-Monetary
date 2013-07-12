@@ -365,7 +365,15 @@ money.stock_market = (function(){
 				} else if(parseFloat(this.data[d].PreviousClose) > parseFloat(this.data[d].BidRealtime)){
 					up_down = "<img src='" + money.images.down + "' style='position: relative; top: 2px;' /> ";
 				}
-												
+
+				if(this.data[d].ChangeAndPercent == 0){
+					this.data[d].ChangeAndPercent = 0.00;
+				}
+
+				if(this.data[d].RealPercentChange == 0){
+					this.data[d].RealPercentChange = 0.00;
+				}
+								
 				stock_html += "<div class='stock-block'>";
 				stock_html += "<div class='stock-block-header'>";
 				stock_html += "<div style='float: left;'>" + this.data[d].Name + " (" + this.data[d].Symbol + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button class='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";

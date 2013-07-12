@@ -367,11 +367,11 @@ money.stock_market = (function(){
 				}
 
 				if(this.data[d].ChangeAndPercent == 0){
-					this.data[d].ChangeAndPercent = 0.00;
+					this.data[d].ChangeAndPercent = "0.00";
 				}
 
 				if(this.data[d].RealPercentChange == 0){
-					this.data[d].RealPercentChange = 0.00;
+					this.data[d].RealPercentChange = "0.00";
 				}
 								
 				stock_html += "<div class='stock-block'>";

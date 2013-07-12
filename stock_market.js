@@ -286,12 +286,12 @@ money.stock_market = (function(){
 			var html = "";
 						
 			html += "<table id='stock-investments-table'><tr class='stock-invest-content-headers'>";
-			html += "<th style='width: 34%'>Stock Name</th>";
-			html += "<th style='width: 15%'>Paid Bid</th>";
-			html += "<th style='width: 15%'>Current Bid</th>";
-			html += "<th style='width: 13%'>Total Units</th>";
-			html += "<th style='width: 15%'>Total Cost</th>";
-			html += "<th style='width: 16%'>Profit</th>";
+			html += "<th style='width: 30%'>Stock Name</th>";
+			html += "<th style='width: 12%'>Paid Bid</th>";
+			html += "<th style='width: 12%'>Current Bid</th>";
+			html += "<th style='width: 12%'>Total Units</th>";
+			html += "<th style='width: 13%'>Total Cost</th>";
+			html += "<th style='width: 15%'>Profit</th>";
 			html += "<th style='width: 6%'></th>";
 			html += "</tr>";
 			

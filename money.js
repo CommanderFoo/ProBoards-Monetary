@@ -82,6 +82,10 @@ var money = {
 	init: function(){
 		$.support.cors = true;
 		
+		if(!this.check_yootil()){
+			return;
+		}
+		
 		this.setup();
 		this.check_version();
 		
@@ -116,6 +120,30 @@ var money = {
 			this.show_in_members_list();	
 			yootil.ajax.after_search(this.show_in_members_list, this);
 		}
+	},
+	
+	check_yootil: function(){
+		if(typeof yootil == "undefined"){
+			var msg = "<div class='monetary-notification-content'>";
+				
+			msg += "<p>You do not have the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a> plugin installed.</p>";
+			msg += "<p>Without the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a>, the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> will not work.</p>";
+			
+			msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/#plugindownload'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
+			
+			msg += "</div>";
+			
+			var notification = "<div class=\"container monetary-yootil-notification\">";
+			
+			notification += "<div class=\"title-bar\"><h2>Monetary System - Yootil Library Not Found</h2></div>";
+			notification += "<div class=\"content pad-all\">" + msg + "</div></div>";
+			
+			$("div#content").prepend(notification);
+			
+			return false;
+		}
+		
+		return true;
 	},
 	
 	check_version: function(){

@@ -338,7 +338,7 @@ money.stock_market = (function(){
 				table += "<td>" + this.get_stock_name(key);
 				
 				if(!this.settings.compact){
-					tbale += " (" + this.get_stock_symbol(key) + ")";
+					table += " (" + this.get_stock_symbol(key) + ")";
 				}
 				
 				table += "</td>";
@@ -468,8 +468,14 @@ money.stock_market = (function(){
 		build_stock_table: function(){
 			var stock_table = $("<div id='stock-content-strip'></div>");
 			var self = this;
-			var compact_width = (this.settings.compact)? " style='width: 600px'" : "";
+			var compact_width = col_left_styles = col_center_styles = "";
 			var chart_size = (this.settings.compact)? "m" : "l";
+			
+			if(this.settings.compact){		
+				compact_width = " style='width: 600px'";
+				col_left_styles = " style='width: 48%;'";
+				col_center_styles = " style='width: 48%; margin-right: 0px;'";
+			}
 			
 			$("#stock-market-total").html(" (" + this.data.length + ")");
 			
@@ -503,7 +509,7 @@ money.stock_market = (function(){
 				stock_html += "<div style='float: left;'>" + this.get_stock_name(this.data[d].Symbol) + " (" + this.get_stock_symbol(this.data[d].Symbol) + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button class='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
 				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + "%)</span></div><br style='clear: both' /></div>";
 				
-				stock_html += "<table class='stock-block-table-left'>";
+				stock_html += "<table class='stock-block-table-left'" + col_left_styles + ">";
 				
 				stock_html += "<tr>";
 				stock_html += "<td class='stock-block-cell-left'>Previous Close:</td>";
@@ -526,7 +532,7 @@ money.stock_market = (function(){
 				stock_html += "</tr>";
 				
 				stock_html += "</table>";
-				stock_html += "<table class='stock-block-table-center'>";
+				stock_html += "<table class='stock-block-table-center'" + col_center_styles + ">";
 			
 				stock_html += "<tr>";
 				stock_html += "<td class='stock-block-cell-left'>Open:</td>";
@@ -549,29 +555,32 @@ money.stock_market = (function(){
 				stock_html += "</tr>";
 				
 				stock_html += "</table>";
-				stock_html += "<table class='stock-block-table-right'>";
 				
-				stock_html += "<tr>";
-				stock_html += "<td class='stock-block-cell-left'>Days Range:</td>";
-				stock_html += "<td class='stock-block-cell-right'>" + this.data[d].DaysRange + "</td>";
-				stock_html += "</tr>";
-				
-				stock_html += "<tr>";
-				stock_html += "<td class='stock-block-cell-left'>52 Week Range:</td>";
-				stock_html += "<td class='stock-block-cell-right'>" + this.data[d].Week52Range + "</td>";
-				stock_html += "</tr>";
-				
-				stock_html += "<tr>";
-				stock_html += "<td class='stock-block-cell-left'>Market Cap.:</td>";
-				stock_html += "<td class='stock-block-cell-right'>" + this.data[d].MarketCapitalization + "</td>";
-				stock_html += "</tr>";
-				
-				stock_html += "<tr>";
-				stock_html += "<td class='stock-block-cell-left'>EPS</td>";
-				stock_html += "<td class='stock-block-cell-right'>" + this.data[d].EPS + "</td>";
-				stock_html += "</tr>";
-				
-				stock_html += "</table>";
+				if(!this.settings.compact){
+					stock_html += "<table class='stock-block-table-right'>";
+					
+					stock_html += "<tr>";
+					stock_html += "<td class='stock-block-cell-left'>Days Range:</td>";
+					stock_html += "<td class='stock-block-cell-right'>" + this.data[d].DaysRange + "</td>";
+					stock_html += "</tr>";
+					
+					stock_html += "<tr>";
+					stock_html += "<td class='stock-block-cell-left'>52 Week Range:</td>";
+					stock_html += "<td class='stock-block-cell-right'>" + this.data[d].Week52Range + "</td>";
+					stock_html += "</tr>";
+					
+					stock_html += "<tr>";
+					stock_html += "<td class='stock-block-cell-left'>Market Cap.:</td>";
+					stock_html += "<td class='stock-block-cell-right'>" + this.data[d].MarketCapitalization + "</td>";
+					stock_html += "</tr>";
+					
+					stock_html += "<tr>";
+					stock_html += "<td class='stock-block-cell-left'>EPS</td>";
+					stock_html += "<td class='stock-block-cell-right'>" + this.data[d].EPS + "</td>";
+					stock_html += "</tr>";
+					
+					stock_html += "</table>";
+				}
 				
 				stock_html += "<br style='clear: both' />";
 				
@@ -679,6 +688,7 @@ money.stock_market = (function(){
 		
 		update: function(){
 			var self = this;
+			var pixels = (self.settings.compact)? "600" : "908";
 			
 			$("#stock-wrapper").empty().append($(this.html));
 
@@ -689,7 +699,11 @@ money.stock_market = (function(){
     
 				self.current ++;
     
-				$("#stock-content-strip").animate({"left": "-=908px"}, "slow");
+				var move_by = "-=" + pixels + "px";
+				
+				$("#stock-content-strip").animate({
+					"left": move_by
+				}, "slow");
 			});
 			
 			$("#stock-left").click(function(){
@@ -699,7 +713,11 @@ money.stock_market = (function(){
     
 				self.current --;
     
-				$("#stock-content-strip").animate({"left": "+=908px"}, "slow");
+				var move_by = "+=" + pixels + "px";
+				
+				$("#stock-content-strip").animate({
+					"left": move_by
+				}, "slow");
 			});
 			
 		}

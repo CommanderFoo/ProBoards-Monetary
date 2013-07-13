@@ -468,6 +468,8 @@ money.stock_market = (function(){
 		build_stock_table: function(){
 			var stock_table = $("<div id='stock-content-strip'></div>");
 			var self = this;
+			var compact_width = (this.settings.compact)? " style='width: 600px'" : "";
+			var chart_size = (this.settings.compact)? "m" : "l";
 			
 			$("#stock-market-total").html(" (" + this.data.length + ")");
 			
@@ -496,7 +498,7 @@ money.stock_market = (function(){
 					this.data[d].RealPercentChange = "0.00";
 				}
 								
-				stock_html += "<div class='stock-block'>";
+				stock_html += "<div class='stock-block'" + compact_width + ">";
 				stock_html += "<div class='stock-block-header'>";
 				stock_html += "<div style='float: left;'>" + this.get_stock_name(this.data[d].Symbol) + " (" + this.get_stock_symbol(this.data[d].Symbol) + ") <span style='position: relative; top: -2px;' id='stock-invest-buttons'><button class='stock-buy-button' data-stock-id='" + this.data[d].Symbol + "'>Buy</button></span></div>";
 				stock_html += "<div style='float: right'>" + this.data[d].BidRealtime + " " + up_down + "<span style='font-size: 14px;'>" + this.data[d].ChangeAndPercent + " (" + this.data[d].RealPercentChange + "%)</span></div><br style='clear: both' /></div>";
@@ -575,7 +577,7 @@ money.stock_market = (function(){
 				
 				if(this.settings.show_chart){
 					stock_html += "<div class='stock-block-chart'>";
-					stock_html += "<img src='http://chart.finance.yahoo.com/z?s=" + this.data[d].Symbol + "&t=2w&l=off&z=l' />";
+					stock_html += "<img src='http://chart.finance.yahoo.com/z?s=" + this.data[d].Symbol + "&t=2w&l=off&z=" + chart_size + "' />";
 					stock_html += "</div>";
 				}
 				
@@ -668,7 +670,7 @@ money.stock_market = (function(){
 				this.total ++;
 			}
 			
-			var stock_content = $("<div id='stock-content'></div>").append(stock_table);
+			var stock_content = $("<div id='stock-content'" + compact_width + "></div>").append(stock_table);
 			
 			this.html = stock_content;
 			this.current_investment_list();

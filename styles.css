@@ -209,6 +209,8 @@ div#stock-content {
 
 	overflow: hidden;
 	text-align: center;
+	margin: auto;
+	max-width: 908px;
 	
 }
 

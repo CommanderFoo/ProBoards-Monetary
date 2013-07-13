@@ -448,6 +448,11 @@ money.stock_market = (function(){
 				var up_down = "";
 				var stock_html = "";
 				
+				if(this.replacements[this.data[d].Symbol] && this.replacements[this.data[d].Symbol].disabled && this.replacements[this.data[d].Symbol].disabled == 1){
+					delete this.replacements[this.data[d].Symbol];
+					continue;
+				}
+				
 				this.symbols[this.data[d].Symbol] = this.data[d];
 				
 				if(parseFloat(this.data[d].PreviousClose) < parseFloat(this.data[d].BidRealtime)){

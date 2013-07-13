@@ -123,7 +123,7 @@ var money = {
 	},
 	
 	check_yootil: function(){
-		if(typeof yootil == "undefined"){
+		if(typeof yootil == "undefined" && proboards.data && proboards.data("user") && proboards.data("user").id == 1){
 			var msg = "<div class='monetary-notification-content'>";
 				
 			msg += "<p>You do not have the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a> plugin installed.</p>";

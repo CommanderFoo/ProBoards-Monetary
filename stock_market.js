@@ -16,7 +16,8 @@ money.stock_market = (function(){
 		
 		settings: {
 			enabled: true,
-			show_chart: true
+			show_chart: true,
+			compact: false
 		},
 		
 		replacements: {},
@@ -65,6 +66,7 @@ money.stock_market = (function(){
 				
 				this.settings.enabled = (settings.stock_enabled == "0")? false : true;
 				this.settings.show_chart = (settings.stock_show_chart == "0")? false : true;
+				this.settings.compact = (settings.compact_layout && settings.compact_layout == 1)? true : false;
 				
 				if(settings.stock_replace && settings.stock_replace.length){
 					for(var r = 0, l = settings.stock_replace.length; r < l; r ++){
@@ -75,7 +77,7 @@ money.stock_market = (function(){
 		},
 		
 		get_stock_name: function(stock_id){
-			if(this.replacements[stock_id]){
+			if(this.replacements[stock_id] && this.replacements[stock_id].new_name.length){
 				return this.replacements[stock_id].new_name;
 			}
 			
@@ -87,7 +89,7 @@ money.stock_market = (function(){
 		},
 		
 		get_stock_symbol: function(stock_id){
-			if(this.replacements[stock_id]){
+			if(this.replacements[stock_id] && this.replacements[stock_id].new_symbol.length){
 				return this.replacements[stock_id].new_symbol;
 			}
 			
@@ -193,10 +195,20 @@ money.stock_market = (function(){
 			var old_bid_total = (parseInt(this.invest_data[stock_id].a) * parseFloat(this.invest_data[stock_id].b));
 			var html = "<tr class='stock-invest-content-row' id='stock-invest-row-" + stock_id + "' style='display: none'>";
 			
-			html += "<td>" + this.get_stock_name(stock_id) + " (" + this.get_stock_symbol(stock_id) + ")</td>";
+			html += "<td>" + this.get_stock_name(stock_id);
+			
+			if(!this.settings.compact){
+				html += " (" + this.get_stock_symbol(stock_id) + ")";
+			}
+			
+			html += "</td>";
 			html += "<td>" + yootil.number_format(this.invest_data[stock_id].b) + "</td>";
 			html += "<td>" + yootil.number_format(this.symbols[stock_id].BidRealtime) + "</td>";
-			html += "<td>" + yootil.number_format(this.invest_data[stock_id].a) + "</td>";
+			
+			if(!this.settings.compact){
+				html += "<td>" + yootil.number_format(this.invest_data[stock_id].a) + "</td>";
+			}
+			
 			html += "<td>" + money.settings.money_symbol + yootil.number_format(money.format(parseInt(this.invest_data[stock_id].a) * parseFloat(this.invest_data[stock_id].b), true)); + "</td>";
 			html += "<td>" + money.settings.money_symbol + yootil.number_format(money.format(new_bid_total - old_bid_total, true)) + "</td>";
 			html += "<td><button class='stock-sell-button' data-stock-id='" + stock_id + "'>Sell</button></td>";
@@ -289,7 +301,11 @@ money.stock_market = (function(){
 			html += "<th style='width: 30%'>Stock Name</th>";
 			html += "<th style='width: 12%'>Paid Bid</th>";
 			html += "<th style='width: 12%'>Current Bid</th>";
-			html += "<th style='width: 12%'>Total Units</th>";
+			
+			if(!this.settings.compact){
+				html += "<th style='width: 12%'>Total Units</th>";
+			}
+			
 			html += "<th style='width: 13%'>Total Cost</th>";
 			html += "<th style='width: 15%'>Profit</th>";
 			html += "<th style='width: 6%'></th>";
@@ -319,10 +335,21 @@ money.stock_market = (function(){
 				}
 				
 				table += "<tr class='stock-invest-content-row' id='stock-invest-row-" + key + "'>";
-				table += "<td>" + this.get_stock_name(key) + " (" + this.get_stock_symbol(key) + ")</td>";
+				table += "<td>" + this.get_stock_name(key);
+				
+				if(!this.settings.compact){
+					tbale += " (" + this.get_stock_symbol(key) + ")";
+				}
+				
+				table += "</td>";
+				
 				table += "<td>" + yootil.number_format(this.invest_data[key].b) + "</td>";
 				table += "<td>" + yootil.number_format(this.symbols[key].BidRealtime) + "</td>";
-				table += "<td>" + yootil.number_format(this.invest_data[key].a) + "</td>";
+				
+				if(!this.settings.compact){
+					table += "<td>" + yootil.number_format(this.invest_data[key].a) + "</td>";
+				}
+				
 				table += "<td>" + money.settings.money_symbol + yootil.number_format(money.format(parseInt(this.invest_data[key].a) * parseFloat(this.invest_data[key].b), true)); + "</td>";
 				
 				var profit_html = "";

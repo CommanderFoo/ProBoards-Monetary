@@ -67,6 +67,11 @@ money.stock_market = (function(){
 				this.settings.enabled = (settings.stock_enabled == "0")? false : true;
 				this.settings.show_chart = (settings.stock_show_chart == "0")? false : true;
 				this.settings.compact = (settings.compact_layout && settings.compact_layout == 1)? true : false;
+				this.settings.compact_width = (settings.stock_block_width && parseInt(settings.stock_block_width) > 0)? settings.stock_block_width : "600";
+				
+				if(parseInt(this.settings.compact_width) < 533){
+					this.settings.compact_width = 533;
+				}
 				
 				if(settings.stock_replace && settings.stock_replace.length){
 					for(var r = 0, l = settings.stock_replace.length; r < l; r ++){
@@ -469,10 +474,18 @@ money.stock_market = (function(){
 			var stock_table = $("<div id='stock-content-strip'></div>");
 			var self = this;
 			var compact_width = col_left_styles = col_center_styles = "";
-			var chart_size = (this.settings.compact)? "m" : "l";
+			var chart_size = "l";
+			
+			if(this.settings.compact){
+				chart_size = "m";
+				
+				if(parseInt(this.settings.compact_width) >= 807){
+					chart_size = "l";
+				}
+			}
 			
 			if(this.settings.compact){		
-				compact_width = " style='width: 600px'";
+				compact_width = " style='width: " + this.settings.compact_width + "px'";
 				col_left_styles = " style='width: 48%;'";
 				col_center_styles = " style='width: 48%; margin-right: 0px;'";
 			}
@@ -688,7 +701,7 @@ money.stock_market = (function(){
 		
 		update: function(){
 			var self = this;
-			var pixels = (self.settings.compact)? "600" : "908";
+			var pixels = (self.settings.compact)? self.settings.compact_width : "908";
 			
 			$("#stock-wrapper").empty().append($(this.html));
 

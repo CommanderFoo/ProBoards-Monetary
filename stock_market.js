@@ -73,6 +73,14 @@ money.stock_market = (function(){
 					this.settings.compact_width = 533;
 				}
 				
+				if(settings.stock_up_image && settings.stock_up_image.length){
+					money.images.up = settings.stock_up_image;
+				}
+				
+				if(settings.stock_down_image && settings.stock_down_image.length){
+					money.images.down = settings.stock_down_image;
+				}
+				
 				if(settings.stock_replace && settings.stock_replace.length){
 					for(var r = 0, l = settings.stock_replace.length; r < l; r ++){
 						this.replacements[settings.stock_replace[r].current_symbol] = settings.stock_replace[r];

@@ -388,26 +388,18 @@ var money = {
 		if(yootil.location.check.editing()){
 			this.is_editing = true;
 		}
-		
-		/*
-		thread_new
-		post_new
-		message_new
-		conversation_new
-		
-		proboards.plugin.key('super-user-key-name').set_on('thread_new',user_id,'Hello world');
-		*/
-		
+				
 		var self = this;
 		var the_form;
 		var hook;
 		
 		if(yootil.location.check.posting()){
 			the_form = yootil.form.post_form();
-			hook = (this.is_new_thread)? "thread" : "post";
+			hook = (this.is_new_thread)? "thread_new" : "post_new";
 		} else if(yootil.location.check.thread()){
 			the_form = yootil.form.post_quick_reply_form();
 			this.using_quick_reply = true;
+			hook = "post_quick_reply";
 		}
 		
 		if(the_form.length){
@@ -427,7 +419,7 @@ var money = {
 						self.processed = false;
 						self.clear_auto_save();
 						this.submit();
-					} else {
+					}/* else {
 						yootil.ajax.bind("complete", this, function(){
 							self.clear_auto_save();
 							this.submit();
@@ -443,7 +435,7 @@ var money = {
 							self.clear_auto_save();
 							this.submit();
 						}
-					}
+					}*/
 					
 					return;
 				}
@@ -490,7 +482,7 @@ var money = {
 				
 				if(hooking){
 					this.data.m += this.format(money_to_add);
-					yootil.key.get_key("pixeldepth_money").set_on(event + "_new", null, JSON.stringify(this.data));
+					yootil.key.get_key("pixeldepth_money").set_on(event, null, JSON.stringify(this.data));
 				} else {
 					this.add(money_to_add);
 				}

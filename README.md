@@ -1,4 +1,4 @@
-Monetary System 0.6.0
+Monetary System 0.6.1
 =====================
 
 0.6 adds stock market features allowing members to buy virtual stock

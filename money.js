@@ -330,7 +330,7 @@ var money = {
 	
 	can_earn: function(){
 		if(this.settings.no_earn_members && this.settings.no_earn_members.length){
-			if($.inArray(yootil.user.id(), this.settings.no_earn_members) > -1){
+			if($.inArrayLoose(yootil.user.id(), this.settings.no_earn_members) > -1){
 				return false;
 			}
 		}
@@ -347,12 +347,12 @@ var money = {
 			var cat_id = parseInt(yootil.page.category.id());
 			
 			if(cat_id){
-				if($.inArray(cat_id, this.settings.no_earn_categories) > -1){
+				if($.inArrayLoose(cat_id, this.settings.no_earn_categories) > -1){
 					return false;
 				} else if(this.settings.no_earn_boards && this.settings.no_earn_boards.length){
 					var board_id = parseInt(yootil.page.board.id());
 					
-					if(board_id && $.inArray(board_id, this.settings.no_earn_boards) > -1){
+					if(board_id && $.inArrayLoose(board_id, this.settings.no_earn_boards) > -1){
 						return false;
 					}
 				}
@@ -375,7 +375,7 @@ var money = {
 			var thread_id = parseInt(yootil.page.thread.id());
 			
 			if(thread_id){				
-				if(thread_id && $.inArray(thread_id, this.settings.no_earn_threads) > -1){
+				if(thread_id && $.inArrayLoose(thread_id, this.settings.no_earn_threads) > -1){
 					return false;
 				}
 			}

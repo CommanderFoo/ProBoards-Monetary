@@ -1,6 +1,6 @@
 var money = {
 
-	VERSION: "0.6.0",
+	VERSION: "{VER}",
 	
 	data: {
 		

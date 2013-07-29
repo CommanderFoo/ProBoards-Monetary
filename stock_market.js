@@ -17,7 +17,14 @@ money.stock_market = (function(){
 		settings: {
 			enabled: true,
 			show_chart: true,
-			compact: false
+			compact: false,
+			
+			text: {
+			
+				stock_market: "Stock Market",
+				investments: "Investments"
+			
+			}
 		},
 		
 		replacements: {},
@@ -52,12 +59,12 @@ money.stock_market = (function(){
 			this.html = "<div id='stock-wrapper'><img src='" + money.images.preloader + "' /></div>";
 			this.fetch_stock_data();
 			
-			yootil.create.page("stockmarket", "Stock Market");
-			yootil.create.nav_branch("/stockmarket/", "Stock Market");	
+			yootil.create.page("stockmarket", this.settings.text.stock_market);
+			yootil.create.nav_branch("/stockmarket/", this.settings.text.stock_market);	
 			
-			yootil.create.container("<div style='float: left'>Stock Market Investments</div><div style='float: right'>Funds: " + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>", "<div id='stock-invest-content'><img src='" + money.images.invest_preloader + "' /></div>").show().appendTo("#content");
+			yootil.create.container("<div style='float: left'>" + this.settings.text.stock_market + " Investments</div><div style='float: right'>" + money.settings.text.wallet + ": " + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>", "<div id='stock-invest-content'><img src='" + money.images.invest_preloader + "' /></div>").show().appendTo("#content");
 			
-			yootil.create.container("<div style='float: left'>Stock Market<span id='stock-market-total'></span></div><div style='cursor: pointer; float: right'><span id='stock-left'>&laquo; Previous</span> &nbsp;&nbsp;&nbsp; <span id='stock-right'>Next &raquo;</span></div>", this.html).show().appendTo("#content");
+			yootil.create.container("<div style='float: left'>" + this.settings.text.stock_market + "<span id='stock-market-total'></span></div><div style='cursor: pointer; float: right'><span id='stock-left'>&laquo; Previous</span> &nbsp;&nbsp;&nbsp; <span id='stock-right'>Next &raquo;</span></div>", this.html).show().appendTo("#content");
 		},
 		
 		setup: function(){
@@ -86,7 +93,13 @@ money.stock_market = (function(){
 						this.replacements[settings.stock_replace[r].current_symbol] = settings.stock_replace[r];
 					}
 				}
+				
+				this.settings.text.stock_market = (settings.stock_market_text && settings.stock_market_text.length)? settings.stock_market_text : this.settings.text.stock_market;
 			}
+		},
+		
+		escape_expression: function(expr){
+			return expr.replace(".", "\\.");
 		},
 		
 		get_stock_name: function(stock_id){
@@ -234,21 +247,21 @@ money.stock_market = (function(){
 				this.create_investment_headers();
 			}
 			
-			if($("#stock-invest-row-" + stock_id).length){
-				$("#stock-invest-row-" + stock_id).replaceWith($(html));
+			if($("#stock-invest-row-" + this.escape_expression(stock_id)).length){
+				$("#stock-invest-row-" + this.escape_expression(stock_id)).replaceWith($(html));
 			} else {
 				$("#stock-investments-table").append($(html).hide());
 			}
 			
-			$("#stock-investments-table").find(".stock-sell-button[data-stock-id=" + stock_id + "]").click(function(){
+			$("#stock-investments-table").find(".stock-sell-button[data-stock-id=" + this.escape_expression(stock_id) + "]").click(function(){
 				$.proxy(self.bind_sell_event, self)(this); 
 			})
 			
-			$("#stock-invest-row-" + stock_id).show("normal");
+			$("#stock-invest-row-" + this.escape_expression(stock_id)).show("normal");
 		},
 		
 		remove_invest_row: function(stock_id){
-			$("#stock-invest-row-" + stock_id).hide("normal", function(){
+			$("#stock-invest-row-" + this.escape_expression(stock_id)).hide("normal", function(){
 				$(this).remove();
 				
 				var invest_table = $("#stock-investments-table");
@@ -273,7 +286,7 @@ money.stock_market = (function(){
 				var total_cost = (bid * amount);
 				
 				if(money.get() < total_cost){
-					proboards.alert("Not Enough Funds", "You do not have enough funds to make this purchase.", {
+					proboards.alert("Not Enough " + money.settings.money_text, "You do not have enough " + money.settings.money_text.toLowerCase() + " to make this purchase.", {
 						modal: true,
 						resizable: false,
 						draggable: false
@@ -640,7 +653,7 @@ money.stock_market = (function(){
 						resizable: false,
 						draggable: false,
 						open: function(){
-							$(this).find("input[name=stock-buy-" + stock_id + "]").val("");
+							$(this).find("input[name=stock-buy-" + self.escape_expression(stock_id) + "]").val("");
 						},
 						
 						buttons: {
@@ -650,7 +663,7 @@ money.stock_market = (function(){
 							},
 							
 							"Buy Stock": function(){
-								var amount = parseInt($(this).find("input[name=stock-buy-" + stock_id + "]").val());
+								var amount = parseInt($(this).find("input[name=stock-buy-" + self.escape_expression(stock_id) + "]").val());
 															
 								if(amount > 0){
 									var s = (amount == 1)? "" : "s";

@@ -31,6 +31,12 @@ span#monetary-hide-update {
 
 /* BANK */
 
+span#bank-clear-transactions {
+
+	cursor: pointer;
+
+}
+
 div#bank-overview-wrapper {
 
 	display: table;
@@ -54,7 +60,7 @@ div#bank-overview-inner {
 div#bank-overview-details {
 
 	float: right;
-	margin-right: 50px;
+	margin-right: 25px;
 	margin-top: -10px;
 
 }

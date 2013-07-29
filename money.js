@@ -18,7 +18,15 @@ var money = {
 		
 		// Last interest date
 		
-		li: ""
+		li: "",
+		
+		// Stock market
+		
+		s: {},
+		
+		// Wages
+		
+		w: {}
 		
 	},
 	
@@ -67,7 +75,13 @@ var money = {
 		no_earn_members: [],
 		no_earn_categories: [],
 		no_earn_boards: [],
-		no_earn_threads: []
+		no_earn_threads: [],
+		
+		text: {
+		
+			wallet: "Wallet"
+		
+		}
 		
 	},
 	
@@ -303,25 +317,34 @@ var money = {
 		return amount;
 	},
 			
-	subtract: function(value, bank){
+	subtract: function(value, bank, no_update){
 		var type = (bank)? "b" : "m";
 		
 		this.data[type] -= this.format(value);
-		yootil.key.set("pixeldepth_money", this.data, null, true);
+		
+		if(!no_update){
+			yootil.key.set("pixeldepth_money", this.data, null, true);
+		}
 	},
 			
-	add: function(value, bank){
+	add: function(value, bank, no_update){
 		var type = (bank)? "b" : "m";
 		
 		this.data[type] += this.format(value);
-		yootil.key.set("pixeldepth_money", this.data, null, true);
+		
+		if(!no_update){
+			yootil.key.set("pixeldepth_money", this.data, null, true);
+		}
 	},
 	
-	clear: function(bank){
+	clear: function(bank, no_update){
 		var type = (bank)? "b" : "m";
 
 		this.data[type] = 0.00;
-		yootil.key.set("pixeldepth_money", this.data, null, true);
+		
+		if(!no_update){
+			yootil.key.set("pixeldepth_money", this.data, null, true);
+		}
 	},
 	
 	clear_all: function(){
@@ -475,11 +498,12 @@ var money = {
 		if(!this.processed){
 			this.processed = true;
 			
-			// Only update if we have money to add.  This prevents a request if not hooking.
+			// Only update if we have data changes.  This prevents a request if not hooking.
 			
-			if(money_to_add > 0){
-				this.bank.apply_interest();
-				
+			var interest_applied = this.bank.apply_interest();
+			var wages_paid = this.wages.pay();
+			
+			if(money_to_add > 0 || interest_applied || wages_paid){
 				if(hooking){
 					this.data.m += this.format(money_to_add);
 					yootil.key.get_key("pixeldepth_money").set_on(event, null, JSON.stringify(this.data));
@@ -581,6 +605,8 @@ var money = {
 					return parseInt(v.thread_id);
 				});
 			}
+			
+			this.settings.text.wallet = (settings.wallet_text && settings.wallet_text.length)? settings.wallet_text : this.settings.text.wallet;
 		}
 	},
 	
@@ -588,11 +614,12 @@ var money = {
 		var self = this;
 		var bank_edit = (bank)? true : false;
 		var bank_str = (bank_edit)? "bank_" : "";
+		var title = (bank_edit)? (this.bank.settings.text.bank + " Balance") : this.settings.money_text;
 		
 		element = $(element);
 		
 		if(self.settings.staff_edit_money && yootil.key.write("pixeldepth_money", user_id) && yootil.user.is_staff() && (yootil.user.id() != user_id || yootil.user.id() == 1)){
-			var edit_element = "<div title='Edit " + ((bank_edit)? "Bank Balance" : "Money") + "'><p>" + this.settings.money_symbol + ": <input type='text' style='width: 100px' name='edit" + bank_str + "money' /></p></div>";
+			var edit_element = "<div title='Edit " + title + "'><p>" + this.settings.money_symbol + ": <input type='text' style='width: 100px' name='edit" + bank_str + "money' /></p></div>";
 					
 			element.click(function(event){
 				event.stopPropagation();
@@ -667,8 +694,8 @@ var money = {
 					
 					}
 					
-				}).attr("title", "Edit " + ((bank_edit)? "Bank Balance" : "Money"));
-			}).css("cursor", "pointer").attr("title", "Edit " + ((bank_edit)? "Bank Balance" : "Money"));
+				}).attr("title", "Edit " + title);
+			}).css("cursor", "pointer").attr("title", "Edit " + title);
 		}
 		
 		return element;
@@ -731,9 +758,11 @@ var money = {
 				var money_text = (this.settings.show_money_text_profile)? this.settings.money_text : "";
 				
 				if(yootil.user.is_staff()){
-					var bank_money_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_bank_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>", this.params.user_id, true);
+					if(this.bank.settings.enabled){
+						var bank_money_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_bank_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>", this.params.user_id, true);
 				
-					$("<tr/>").html("<td>Bank Balance:</td>").append(bank_money_td).insertAfter(row);
+						$("<tr/>").html("<td>" + this.bank.settings.text.bank + " Balance:</td>").append(bank_money_td).insertAfter(row);
+					}
 				}
 				
 				var money_td = this.bind_edit_dialog("<td class=\"pd_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_money) + "</span></td>", this.params.user_id, false);

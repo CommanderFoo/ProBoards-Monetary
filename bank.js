@@ -1,5 +1,3 @@
-// Staff edit transactions are broken
-
 money.bank = (function(){
 	
 	return {
@@ -9,7 +7,29 @@ money.bank = (function(){
 			enabled: true,
 			interest: 0.00,
 			minimum_deposit: 0.01,
-			minimum_withdraw: 0.01			
+			minimum_withdraw: 0.01,
+			
+			text: {
+			
+				bank: "Bank",
+				interest_rate: "Interest Rate",
+				withdraw: "Withdraw",
+				deposit: "Deposit",
+				transactions: "Transactions",
+				savings_account: "Savings Account",
+				account_number: "Account Number",
+				sort_code: "Sort Code",
+				
+				types: {
+
+					DEPOSIT: "DEPOSIT",
+					WITHDRAW: "WITHDRAW",
+					INTEREST: "INTEREST",
+					STAFFEDIT: "STAFFEDIT",
+					WAGES: "WAGES"			
+			
+				}
+			}	
 			
 		},
 		
@@ -39,8 +59,8 @@ money.bank = (function(){
 		start: function(){
 			var self = this;
 								
-			yootil.create.page("bank", "Bank");
-			yootil.create.nav_branch("/bank/", "Bank");
+			yootil.create.page("bank", this.settings.text.bank);
+			yootil.create.nav_branch("/bank/", this.settings.text.bank);
 			
 			var account_number = this.get_account_number();
 			var sort_code = this.get_sort_code();
@@ -50,9 +70,9 @@ money.bank = (function(){
 			html += '<div id="bank-overview-inner">';
 			
 			html += '<div id="bank-overview-details">';
-			html += '<strong>Savings Account</strong><br />';
-			html += '<span id="bank-overview-details-account-number">Account Number: ' + account_number + '</span><br />';
-			html += '<span id="bank-overview-details-sort-code">Sort Code: ' + sort_code + '</span><br /><br />';
+			html += '<strong>' + this.settings.text.savings_account + '</strong><br />';
+			html += '<span id="bank-overview-details-account-number">' + this.settings.text.account_number + ': ' + account_number + '</span><br />';
+			html += '<span id="bank-overview-details-sort-code">' + this.settings.text.sort_code + ': ' + sort_code + '</span><br /><br />';
 			html += '<span id="bank-overview-details-money">' + money.settings.money_symbol + '<span id="pd_money_bank_balance">' + money.get(true, true) + '</span></span>';
 			html += '</div>';
 										
@@ -64,9 +84,9 @@ money.bank = (function(){
 			var _top = ($.browser.msie)? "0" : "-2";
 			
 			html += '<input type="text" value="' + money.format(0, true) + '" id="pd_money_withdraw">';
-			html += '<a id="pd_money_withdraw_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">Withdraw</a>';
+			html += '<a id="pd_money_withdraw_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">' + this.settings.text.withdraw + '</a>';
 			html += '<input type="text" value="' + money.format(0, true) + '" id="pd_money_deposit">';
-			html += '<a id="pd_money_deposit_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">Deposit</a>';
+			html += '<a id="pd_money_deposit_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">' + this.settings.text.deposit + '</a>';
 			html += '</div>';
 			
 			html += '</div>';
@@ -78,8 +98,8 @@ money.bank = (function(){
 
 			var title = '<div>';
 			
-			title += '<div style="float: left">Bank (Interest Rate: ' + this.settings.interest.toString() + '%)</div>';
-			title += '<div style="float: right" id="pd_money_wallet">Wallet: ' + money.settings.money_symbol + '<span id="pd_money_wallet_amount">' + money.get(true) + '</span></div>';
+			title += '<div style="float: left">' + this.settings.text.bank + ' (' + this.settings.text.interest_rate + ': ' + this.settings.interest.toString() + '%)</div>';
+			title += '<div style="float: right" id="pd_money_wallet">' + money.settings.text.wallet + ': ' + money.settings.money_symbol + '<span id="pd_money_wallet_amount">' + money.get(true) + '</span></div>';
 			
 			title += '</div><br style="clear: both" />';
 			
@@ -113,13 +133,13 @@ money.bank = (function(){
 					var current_amount = money.get(false);
 					
 					if(value > current_amount){
-						self.bank_error("You do not have enough to deposit that amount.");
+						self.bank_error("You do not have enough to " + self.settings.text.deposit.toLowerCase() + " that amount.");
 					} else {
 						self.deposit(value);
 						input.val(money.format(0, true));
 					}
 				} else {
-					self.bank_error("Deposit value can't be less than " + money.format(self.settings.minimum_deposit, true) + ".");
+					self.bank_error(self.settings.text.deposit + " value can't be less than " + money.format(self.settings.minimum_deposit, true) + ".");
 				}
 				
 				return false;
@@ -133,13 +153,13 @@ money.bank = (function(){
 					var current_amount = money.get(false, true);
 					
 					if(value > current_amount){
-						self.bank_error("You do not have enough in the bank to withdraw that amount.");
+						self.bank_error("You do not have enough in the " + self.settings.text.bank.toLowerCase() + " to " + self.settings.text.withdraw.toLowerCase() + " that amount.");
 					} else {
 						self.withdraw(value);
 						input.val(money.format(0, true));
 					}
 				} else {
-					self.bank_error("Withdraw value can't be less than " + money.format(self.settings.minimum_withdraw, true) + ".");
+					self.bank_error(self.settings.text.withdraw + " value can't be less than " + money.format(self.settings.minimum_withdraw, true) + ".");
 				}
 				
 				return false;
@@ -154,7 +174,7 @@ money.bank = (function(){
 			var transactions = this.get_transactions();
 			
 			if(!transactions.length){
-				trans_html += '<tr class="bank-transaction-list-row"><td><em>There are no transactions to view.</td></tr>';
+				trans_html += '<tr class="bank-transaction-list-row"><td><em>There are no ' + this.settings.text.transactions.toLowerCase() + ' to view.</td></tr>';
 			} else {
 				trans_html += this.get_transaction_html_headers();
 								
@@ -167,19 +187,23 @@ money.bank = (function(){
 					switch(transactions[t][0]){
 					
 						case 1 :
-							type = "DEPOSIT";
+							type = this.settings.text.types.DEPOSIT;
 							break;
 							
 						case 2 :
-							type = "WITHDRAW";
+							type = this.settings.text.types.WITHDRAW;
 							break;
 							
 						case 3 :
-							type = "INTEREST";
+							type = this.settings.text.types.INTEREST;
 							break;
 							
 						case 4 :
-							type = "STAFFEDIT";
+							type = this.settings.text.types.STAFFEDIT;
+							break;
+							
+						case 5 :
+							type = this.settings.text.types.WAGES;
 							break;
 							
 					}
@@ -206,7 +230,17 @@ money.bank = (function(){
 			
 			trans_html += '</table>';
    
-			yootil.create.container("Last 5 Transactions", trans_html).show().appendTo("#content");//.find("div.content");
+			var self = this;
+			var trans = yootil.create.container("Recent " + this.settings.text.transactions + " <span id='bank-clear-transactions'>(Clear)</span>", trans_html).show().appendTo("#content");
+			
+			trans.find("#bank-clear-transactions").click(function(){
+				var no_transactions = $('<tr class="bank-transaction-list-row"><td><em>There are no ' + self.settings.text.transactions.toLowerCase() + ' to view.</td></tr>');
+				var list = $("#bank-transaction-list");
+				
+				list.find("tr").remove()
+				list.append(no_transactions);
+				self.clear_transactions();
+			});
 		},
 		
 		setup: function(){
@@ -239,6 +273,21 @@ money.bank = (function(){
 						this.settings.minimum_withdraw = 0.01;
 					}
 				}
+				
+				this.settings.text.bank = (settings.bank_text && settings.bank_text.length)? settings.bank_text : this.settings.text.bank;
+				this.settings.text.interest_rate = (settings.interest_rate_text && settings.interest_rate_text.length)? settings.interest_rate_text : this.settings.text.interest_rate;
+				this.settings.text.withdraw = (settings.withdraw_text && settings.withdraw_text.length)? settings.withdraw_text : this.settings.text.withdraw;
+				this.settings.text.deposit = (settings.deposit_text && settings.deposit_text.length)? settings.deposit_text : this.settings.text.deposit;
+				this.settings.text.transactions = (settings.transactions_text && settings.transactions_text.length)? settings.transactions_text : this.settings.text.transactions;
+				this.settings.text.savings_account = (settings.savings_account_text && settings.savings_account_text.length)? settings.savings_account_text : this.settings.text.savings_account;
+				this.settings.text.account_number = (settings.account_number_text && settings.account_number_text.length)? settings.account_number_text : this.settings.text.account_number;
+				this.settings.text.sort_code = (settings.sort_code_text && settings.sort_code_text.length)? settings.sort_code_text : this.settings.text.sort_code;
+				
+				this.settings.text.types.WITHDRAW = (settings.type_withdraw_text && settings.type_withdraw_text.length)? settings.type_withdraw_text : this.settings.text.types.WITHDRAW;
+				this.settings.text.types.DEPOSIT = (settings.type_deposit_text && settings.type_deposit_text.length)? settings.type_deposit_text : this.settings.text.types.DEPOSIT;
+				this.settings.text.types.INTEREST = (settings.type_interest_text && settings.type_interest_text.length)? settings.type_interest_text : this.settings.text.types.INTEREST;
+				this.settings.text.types.STAFFEDIT = (settings.type_staffedit_text && settings.type_staffedit_text.length)? settings.type_staffedit_text : this.settings.text.types.STAFFEDIT;
+				this.settings.text.types.WAGES = (settings.type_wages_text && settings.type_wages_text.length)? settings.type_wages_text : this.settings.text.types.WAGES;
 			}
 		},
 		
@@ -261,8 +310,12 @@ money.bank = (function(){
 				if(balance > 0 && interest > 0){
 					money.data.b = (parseFloat(balance) + parseFloat(interest.toFixed(2)));
 					this.create_transaction(3, interest, 0, true);
+					
+					return true;
 				}
 			}
+			
+			return false;
 		},
 		
 		clear_last_interest: function(){
@@ -384,7 +437,7 @@ money.bank = (function(){
 			
 			return lt;
 		},
-		
+			
 		create_transaction: function(type, in_amount, out_amount, skip_key_update, force_previous_balance, other_money_obj){
 			var current_transactions = this.get_transactions(other_money_obj);
 			var now = +new Date();
@@ -424,7 +477,6 @@ money.bank = (function(){
 			}
 		},
 		
-		
 		add_new_transaction_row: function(type, in_amount, out_amount, now, balance){
 			if($("#bank-transaction-list-headers").length == 0){
 				$("#bank-transaction-list").empty();
@@ -437,20 +489,29 @@ money.bank = (function(){
 			
 			switch(type){
 			
+				// Deposit
 				case 1 :
-					trans_type = "DEPOSIT";
+					trans_type = this.settings.text.types.DEPOSIT;
 					break;
-					
+				
+				// Withdraw	
 				case 2 :
-					trans_type = "WITHDRAW";
+					trans_type = this.settings.text.types.WITHDRAW;
 					break;
 					
+				// Interest
 				case 3 :
-					trans_type = "INTEREST";
+					trans_type = this.settings.text.types.INTEREST;
 					break;
 					
+				// Staff edit
 				case 4 :
-					type = "STAFFEDIT";
+					type = this.settings.text.types.STAFFEDIT;
+					break;
+					
+				// Wages
+				case 5 :
+					type = this.settings.text.types.WAGES;
 					break;
 					
 			}

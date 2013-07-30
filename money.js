@@ -89,7 +89,7 @@ var money = {
 	is_editing: false,
 	processed: false,
 	using_quick_reply: false,
-	can_earn: true,
+	can_earn_money: true,
 	
 	modules: [],
 	
@@ -299,11 +299,11 @@ var money = {
 	},
 
 	disable_earning: function(){
-		this.can_earn = false;
+		this.can_earn_money = false;
 	},
 	
 	enable_earning: function(){
-		this.can_earn = true;
+		this.can_earn_money = true;
 	},
 	
 	get: function(format, bank){
@@ -473,7 +473,7 @@ var money = {
 	},
 	
 	apply_posting_money: function(event, hooking){
-		if(!this.can_earn){
+		if(!this.can_earn_money){
 			return false;
 		}
 		
@@ -573,39 +573,10 @@ var money = {
 			this.settings.posting.amounts.per_quick_reply = this.format(settings.money_per_quick_reply);
 			
 			this.settings.no_earn_members = settings.no_earn_members;
-	
-			// Map over all 3 below and cast them to an int
-			
-			if(this.settings.no_earn_members && this.settings.no_earn_members.length){
-				this.settings.no_earn_members = $.map(this.settings.no_earn_members, function(v){
-					return parseInt(v);
-				});
-			}
-			
 			this.settings.no_earn_categories = settings.no_earn_categories;
-			
-			if(this.settings.no_earn_categories && this.settings.no_earn_categories.length){
-				this.settings.no_earn_categories = $.map(this.settings.no_earn_categories, function(v){
-					return parseInt(v);
-				});
-			}
-			
 			this.settings.no_earn_boards = settings.no_earn_boards;
-			
-			if(this.settings.no_earn_boards && this.settings.no_earn_boards.length){
-				this.settings.no_earn_boards = $.map(this.settings.no_earn_boards, function(v){
-					return parseInt(v);
-				});
-			}
-			
 			this.settings.no_earn_threads = settings.no_earn_threads;
 
-			if(this.settings.no_earn_threads && this.settings.no_earn_threads.length){
-				this.settings.no_earn_threads = $.map(this.settings.no_earn_threads, function(v){
-					return parseInt(v.thread_id);
-				});
-			}
-			
 			this.settings.text.wallet = (settings.wallet_text && settings.wallet_text.length)? settings.wallet_text : this.settings.text.wallet;
 		}
 	},

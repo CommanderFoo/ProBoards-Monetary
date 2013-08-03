@@ -67,7 +67,10 @@ var money = {
 				per_thread: 10,
 				per_poll: 5,
 				per_reply: 5,
-				per_quick_reply: 0
+				per_quick_reply: 5,
+				
+				categories: {},
+				boards: {}
 				
 			}
 		},
@@ -186,22 +189,24 @@ var money = {
 			switch(parseInt(this.settings.check_how_often)){
 			
 				case 1 :
-					check_ts = DAY;
+				case 2 :
+				case 3 :
+				case 4 :
+				case 5 :
+				case 6 :
+				case 7 :
+					check_ts = (DAY * parseInt(this.settings.check_how_often));
 					break;
 					
-				case 2 :
-					check_ts = WEEK;
-					break
-					
-				case 3 :
+				case 8 :
 					check_ts = WEEK_2;
 					break
 					
-				case 4 :
+				case 9 :
 					check_ts = WEEK_3;
 					break
 					
-				case 5 :
+				case 10 :
 					check_ts = MONTH;
 					break
 					
@@ -478,7 +483,25 @@ var money = {
 		}
 		
 		var money_to_add = 0.00;
+		var category_id = yootil.page.category.id();
+		var board_id = yootil.page.board.id();
 
+		if(board_id && this.settings.posting.amounts.boards[board_id]){
+			var amounts = this.settings.posting.amounts.boards[board_id];
+			
+			this.settings.posting.amounts.per_quick_reply = amounts.per_quick_reply;
+			this.settings.posting.amounts.per_reply = amounts.per_reply;
+			this.settings.posting.amounts.per_poll = amounts.per_poll;
+			this.settings.posting.amounts.per_thread = amounts.per_thread;
+		} else if(category_id && this.settings.posting.amounts.categories[category_id]){
+			var amounts = this.settings.posting.amounts.categories[category_id];
+			
+			this.settings.posting.amounts.per_quick_reply = amounts.per_quick_reply;
+			this.settings.posting.amounts.per_reply = amounts.per_reply;
+			this.settings.posting.amounts.per_poll = amounts.per_poll;
+			this.settings.posting.amounts.per_thread = amounts.per_thread;
+		}
+		
 		if(!this.is_editing && !this.is_new_thread){
 			if(this.using_quick_reply){
 				money_to_add += this.format(this.settings.posting.amounts.per_quick_reply);
@@ -571,6 +594,28 @@ var money = {
 			this.settings.posting.amounts.per_poll = this.format(settings.money_per_poll);
 			this.settings.posting.amounts.per_reply = this.format(settings.money_per_reply);
 			this.settings.posting.amounts.per_quick_reply = this.format(settings.money_per_quick_reply);
+			
+			if(settings.categories_earn_amounts && settings.categories_earn_amounts.length){
+				for(var c = 0, cl = settings.categories_earn_amounts.length; c < cl; c ++){
+					this.settings.posting.amounts.categories[settings.categories_earn_amounts[c].category] = {
+						per_thread: this.format(settings.categories_earn_amounts[c].money_per_thread),
+						per_poll: this.format(settings.categories_earn_amounts[c].money_per_poll),
+						per_reply: this.format(settings.categories_earn_amounts[c].money_per_reply),
+						per_quick_reply: this.format(settings.categories_earn_amounts[c].money_per_quick_reply)
+					};
+				}
+			}
+			
+			if(settings.boards_earn_amounts && settings.boards_earn_amounts.length){
+				for(var b = 0, bl = settings.boards_earn_amounts.length; b < bl; b ++){
+					this.settings.posting.amounts.boards[settings.boards_earn_amounts[b].board] = {
+						per_thread: this.format(settings.boards_earn_amounts[b].money_per_thread),
+						per_poll: this.format(settings.boards_earn_amounts[b].money_per_poll),
+						per_reply: this.format(settings.boards_earn_amounts[b].money_per_reply),
+						per_quick_reply: this.format(settings.boards_earn_amounts[b].money_per_quick_reply)
+					};
+				}	
+			}
 			
 			this.settings.no_earn_members = settings.no_earn_members;
 			this.settings.no_earn_categories = settings.no_earn_categories;
@@ -705,7 +750,7 @@ var money = {
 	},
 	
 	show_in_profile: function(){
-		var post_heading = $("div.content-box.center-col td.headings:contains(Posts:)");
+		var post_heading = $("div.content-box.center-col td.headings:contains(Posts)");
 		
 		if(post_heading.length){
 			var row = post_heading.parent();

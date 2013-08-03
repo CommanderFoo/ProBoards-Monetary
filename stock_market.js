@@ -36,11 +36,11 @@ money.stock_market = (function(){
 			
 			if(this.settings.enabled){
 				if(money.images.stock_market){
-					yootil.bar.add("/stockmarket", money.images.stock_market, "Stock Market", "pdmsstock");
+					yootil.bar.add("/?stockmarket", money.images.stock_market, "Stock Market", "pdmsstock");
 				}
 			}
 			
-			if(yootil.location.check.forum() && location.href.match(/\/stockmarket\/?/i)){
+			if(yootil.location.check.forum() && location.href.match(/\/?stockmarket\/?/i)){
 				if(this.settings.enabled){
 					this.check_for_data();
 					this.start();
@@ -59,8 +59,8 @@ money.stock_market = (function(){
 			this.html = "<div id='stock-wrapper'><img src='" + money.images.preloader + "' /></div>";
 			this.fetch_stock_data();
 			
-			yootil.create.page("stockmarket", this.settings.text.stock_market);
-			yootil.create.nav_branch("/stockmarket/", this.settings.text.stock_market);	
+			yootil.create.page("?stockmarket", this.settings.text.stock_market);
+			yootil.create.nav_branch("/?stockmarket", this.settings.text.stock_market);	
 			
 			yootil.create.container("<div style='float: left'>" + this.settings.text.stock_market + " Investments</div><div style='float: right'>" + money.settings.text.wallet + ": " + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>", "<div id='stock-invest-content'><img src='" + money.images.invest_preloader + "' /></div>").show().appendTo("#content");
 			
@@ -86,6 +86,10 @@ money.stock_market = (function(){
 				
 				if(settings.stock_down_image && settings.stock_down_image.length){
 					money.images.down = settings.stock_down_image;
+				}
+				
+				if(settings.stock_market_icon && settings.stock_market_icon.length){
+					money.images.stock_market = settings.stock_market_icon;
 				}
 				
 				if(settings.stock_replace && settings.stock_replace.length){

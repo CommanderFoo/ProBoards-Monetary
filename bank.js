@@ -43,11 +43,11 @@ money.bank = (function(){
 			
 			if(this.settings.enabled){
 				if(money.images.bank){
-					yootil.bar.add("/bank", money.images.bank, "Bank", "pdmsbank");
+					yootil.bar.add("/?bank", money.images.bank, "Bank", "pdmsbank");
 				}
 			}
 			
-			if(yootil.location.check.forum() && location.href.match(/\/bank\/?/i)){	
+			if(yootil.location.check.forum() && location.href.match(/\/?bank\/?/i)){	
 				if(this.settings.enabled){
 					this.start();
 				} else {
@@ -59,8 +59,8 @@ money.bank = (function(){
 		start: function(){
 			var self = this;
 								
-			yootil.create.page("bank", this.settings.text.bank);
-			yootil.create.nav_branch("/bank/", this.settings.text.bank);
+			yootil.create.page("?bank", this.settings.text.bank);
+			yootil.create.nav_branch("/?bank", this.settings.text.bank);
 			
 			var account_number = this.get_account_number();
 			var sort_code = this.get_sort_code();
@@ -254,6 +254,10 @@ money.bank = (function(){
 				
 				if(settings.coin_image && settings.coin_image.length){
 					money.images.coins = settings.coin_image;
+				}
+				
+				if(settings.bank_icon && settings.bank_icon.length){
+					money.images.bank = settings.bank_icon;
 				}
 	
 				// Protection incase admin makes a mistake

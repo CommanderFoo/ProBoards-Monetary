@@ -163,6 +163,22 @@ var money = {
 		return true;
 	},
 	
+	convert_versions: function(v1, v2){
+		var versions = [];
+		
+		$([v1, v2]).each(function(i, e){
+			var n = e.replace(/\./g, "");
+			
+			while(n.length < 3){
+				n += "0";
+			}
+			
+			versions.push(n);			
+		});
+		
+		return versions;
+	},
+	
 	check_version: function(){
 		if(this.settings.check_for_update && yootil.user.logged_in() && yootil.user.id() == 1){
 			var data = yootil.storage.get("monetary_last_check", true);
@@ -218,7 +234,7 @@ var money = {
 				var self = this;
 				
 				$.ajax({
-					url: "http://pixeldepth.net/proboards/plugins/monetary_system/updates/update_check.php",
+					url: "http://pixeldepth.net/proboards/plugins/monetary_system/updates/update_check.php?t=" + (+ new Date),
 					context: this,
 					crossDomain: true,
 					dataType: "json"				
@@ -233,7 +249,9 @@ var money = {
 				});
 			}
 			
-			if(data.v != this.VERSION && data.s == 0){
+			var versions = this.convert_versions(this.VERSION, data.v);
+			
+			if(versions[0] < versions[1] && data.s == 0){
 				var msg = "<div class='monetary-notification-content'>";
 				
 				msg += "<p>There is a new <strong>Monetary System</strong> version available to install / download for your forum.</p>";

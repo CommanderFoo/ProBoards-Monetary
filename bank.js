@@ -6,6 +6,7 @@ money.bank = (function(){
 		
 			enabled: true,
 			interest: 0.00,
+			compact: false,
 			minimum_deposit: 0.01,
 			minimum_withdraw: 0.01,
 			
@@ -251,6 +252,8 @@ money.bank = (function(){
 				this.settings.interest = (settings.interest_rate.toString().length)? settings.interest_rate : "1.00";
 				this.settings.minimum_deposit = money.format(settings.minimum_deposit);
 				this.settings.minimum_withdraw = money.format(settings.minimum_withdraw);
+				
+				//this.settings.compact = (settings.bank_compact_layout && settings.bank_compact_layout == 1)? true : false;
 				
 				if(settings.coin_image && settings.coin_image.length){
 					money.images.coins = settings.coin_image;

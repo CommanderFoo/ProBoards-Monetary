@@ -1,3 +1,6 @@
+// <span class='money_amount'></span>
+// Profile spans like mini profile
+
 var money = {
 
 	VERSION: "{VER}",
@@ -42,6 +45,7 @@ var money = {
 		
 		money_text: "Money",
 		money_symbol: "&pound;",
+		money_separator: ":",
 		
 		decimal_money: true,
 		
@@ -58,6 +62,7 @@ var money = {
 		member_list_text: "Money",
 		
 		staff_edit_money: true,
+		show_edit_money_image: true,
 		
 		posting: {
 		
@@ -106,17 +111,21 @@ var money = {
 		this.setup();
 		this.check_version();
 		
-		if(yootil.user.logged_in() && this.can_earn()){
-			if(yootil.location.check.posting() || (yootil.location.check.thread() && this.settings.posting.earn_from_quick_reply)){				
-				if(this.can_earn_in_cat_board()){
-					this.bind_events();
-				}
-			}
+		if(yootil.user.logged_in()){
+			this.look_for_wallet();
 			
-			if(this.modules.length){
-				for(var m = 0, ml = this.modules.length; m < ml; m ++){
-					if(this.modules[m].init){
-						this.modules[m].init();
+			if(this.can_earn()){
+				if(yootil.location.check.posting() || (yootil.location.check.thread() && this.settings.posting.earn_from_quick_reply)){				
+					if(this.can_earn_in_cat_board()){
+						this.bind_events();
+					}
+				}
+				
+				if(this.modules.length){
+					for(var m = 0, ml = this.modules.length; m < ml; m ++){
+						if(this.modules[m].init){
+							this.modules[m].init();
+						}
 					}
 				}
 			}
@@ -136,6 +145,14 @@ var money = {
 		if(this.settings.show_in_members_list && yootil.location.check.members()){
 			this.show_in_members_list();	
 			yootil.ajax.after_search(this.show_in_members_list, this);
+		}
+	},
+	
+	look_for_wallet: function(){
+		var wallet = $(".money_wallet_amount");
+		
+		if(wallet.length){
+			wallet.html(this.settings.text.wallet + this.settings.money_separator + this.settings.money_symbol + this.get(true));
 		}
 	},
 	
@@ -162,25 +179,9 @@ var money = {
 		
 		return true;
 	},
-	
-	convert_versions: function(v1, v2){
-		var versions = [];
 		
-		$([v1, v2]).each(function(i, e){
-			var n = e.replace(/\./g, "");
-			
-			while(n.length < 3){
-				n += "0";
-			}
-			
-			versions.push(n);			
-		});
-		
-		return versions;
-	},
-	
 	check_version: function(){
-		if(this.settings.check_for_update && yootil.user.logged_in() && yootil.user.id() == 1){
+		if(this.settings.check_for_update && yootil.user.logged_in() && yootil.user.is_staff()){
 			var data = yootil.storage.get("monetary_last_check", true);
 			var first_data = false;
 			
@@ -189,7 +190,6 @@ var money = {
 				
 				data = {
 					t: (+ new Date()),
-					s: 1,
 					v: this.VERSION
 				};
 			}
@@ -241,7 +241,6 @@ var money = {
 				}).done(function(latest){
 					data = {
 						t: (+ new Date()),
-						s: 0,
 						v: latest.v
 					};
 					
@@ -249,24 +248,23 @@ var money = {
 				});
 			}
 			
-			var versions = this.convert_versions(this.VERSION, data.v);
+			var versions = yootil.convert_versions(this.VERSION, data.v);
 			
-			if(versions[0] < versions[1] && data.s == 0){
+			if(versions[0] < versions[1]){
 				var msg = "<div class='monetary-notification-content'>";
 				
-				msg += "<p>There is a new <strong>Monetary System</strong> version available to install / download for your forum.</p>";
-				msg += "<p>You currently have version <strong>" + this.VERSION + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
+				msg += "<p>There is a new <strong>Monetary System</strong> version available to install / download for this forum.</p>";
+				msg += "<p>This forum currently have version <strong>" + this.VERSION + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
 				
 				msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
-				msg += "<p style='margin-top: 8px;'>You can hide this message from the Monetary System settings, or can hide it temporarily by <span id='monetary-hide-update'>clicking here</span>.</p>";
+				msg += "<p style='margin-top: 8px;'>This message can be disabled from the Monetary Systemy settings.</p>";
+				msg += "<p style='margin-top: 8px;'><a href='http://proboards.com/library/plugins/item/90'>ProBoards Plugin Library Link</a> | <a href='http://support.proboards.com/thread/429762/'>ProBoards Monetary System Forum Link</a></p>";
 				
 				msg += "</div>";
 				
-				var notification = yootil.create.container("Monetary System Update Notice", msg).show().addClass("monetary-notification");
+				var notification = yootil.create.container("Staff Notification: Monetary System Update Notice", msg).show().addClass("monetary-notification");
 				
-				notification.find("span#monetary-hide-update").click(function(){
-					data.s = 1;
-					
+				notification.find("span#monetary-hide-update").click(function(){					
 					yootil.storage.set("monetary_last_check", data, true, true);
 					
 					$(".monetary-notification").hide("slow", function(){
@@ -591,6 +589,11 @@ var money = {
 			this.settings.member_list_text = (settings.member_list_text)? settings.member_list_text : ((settings.money_text.length)? settings.money_text : this.member_list_text);
 			
 			this.settings.staff_edit_money = (settings.staff_edit_money == "0")? false : this.settings.staff_edit_money;
+			this.settings.show_edit_money_image = (settings.show_edit_money_image == "0")? false : this.settings.show_edit_money_image;
+			
+			if(settings.edit_money_image && settings.edit_money_image.length){
+				this.images.edit_money = settings.edit_money_image;
+			}
 			
 			this.settings.check_for_update = (settings.check_for_update && settings.check_for_update == "0")? false : true;
 			this.settings.check_how_often = (settings.check_how_often && settings.check_how_often.length)? settings.check_how_often : 2;
@@ -599,6 +602,9 @@ var money = {
 			
 			this.settings.money_text = settings.money_text;
 			this.settings.money_symbol = settings.money_symbol;
+			this.settings.money_separator = (settings.separator && settings.separator.length)? settings.separator : this.settings.money_separator;
+			
+			this.settings.money_separator += (settings.separator_space && settings.separator_space == "0")? "" : " ";
 			
 			if(settings.money_symbol_image && settings.money_symbol_image.length){
 				this.settings.money_symbol = "<img class='money-symbol-image' src='" + settings.money_symbol_image + "' />";
@@ -644,7 +650,7 @@ var money = {
 		}
 	},
 	
-	bind_edit_dialog: function(element, user_id, bank){
+	bind_edit_dialog: function(element, user_id, bank, update_selector, edit_image){
 		var self = this;
 		var bank_edit = (bank)? true : false;
 		var bank_str = (bank_edit)? "bank_" : "";
@@ -720,7 +726,10 @@ var money = {
 								}
 								
 								yootil.key.set("pixeldepth_money", money_obj, user_id, true);
-								$("span.pd_" + bank_str + "money_value_" + user_id).html(yootil.number_format(self.format(value, true)));
+								
+								var update_element = (update_selector)? update_selector : (".pd_" + bank_str + "money_value_" + user_id);
+								
+								$(update_element).html(yootil.number_format(self.format(value, true)) + (edit_image || ""));
 							}
 							
 							$(this).dialog("close");
@@ -768,40 +777,90 @@ var money = {
 	},
 	
 	show_in_profile: function(){
-		var post_heading = $("div.content-box.center-col td.headings:contains(Posts)");
-		
-		if(post_heading.length){
-			var row = post_heading.parent();
+		var user_data = yootil.key.value("pixeldepth_money", this.params.user_id, true);
+		var user_money = 0.00;
+		var user_bank_money = 0.00;
+		var edit_image = (this.settings.show_edit_money_image)? (" <img class='money-edit-image' src='" + this.images.edit_money + "' title='Edit' />") : "";
+		 
+		if(user_data){
+			if(user_data.m && user_data.m.toString().length){
+				user_money = this.format(user_data.m, true);
+			}
 			
-			if(row){
-				var user_data = yootil.key.value("pixeldepth_money", this.params.user_id, true);
-				var user_money = 0.00;
-				var user_bank_money = 0.00;
+			if(user_data.b && user_data.b.toString().length){
+				user_bank_money = this.format(user_data.b, true);
+			}
+		}
+		
+		var money_symbol = (this.settings.show_money_symbol_profile)? this.settings.money_symbol : "";
+		var money_text = (this.settings.show_money_text_profile)? this.settings.money_text : "";
+		
+		var using_custom = false;
+		
+		var container = $("div.container.show-user");
+		var money_text_custom = container.find(".money_text");
+		var money_symbol_custom = container.find(".money_symbol");
+		var money_amount_custom = container.find(".money_amount");
+		
+		if(money_text_custom.length || money_symbol_custom.length || money_amount_custom.length){
+			using_custom = true;
+			
+			if(money_text_custom.length){
+				money_text_custom.append(money_text + this.settings.money_separator).addClass("pd_money_text_" + this.params.user_id);
+			}
+			
+			if(money_symbol_custom.length){
+				money_symbol_custom.append(money_symbol).addClass("pd_money_symbol_" + this.params.user_id);
+			}
+			
+			if(money_amount_custom.length){
+				money_amount_custom.append(yootil.number_format(user_money) + edit_image).addClass("pd_money_amount_" + this.params.user_id);
 				
-				if(user_data){
-					if(user_data.m && user_data.m.toString().length){
-						user_money = this.format(user_data.m, true);
+				this.bind_edit_dialog(money_amount_custom, this.params.user_id, false, ".pd_money_amount_" + this.params.user_id, edit_image);
+			}
+		}
+		
+		if(yootil.user.is_staff() && this.bank.settings.enabled){
+			var bank_text_custom = container.find(".bank_text");
+			var bank_symbol_custom = container.find(".bank_symbol");
+			var bank_amount_custom = container.find(".bank_amount");
+			
+			if(money_text_custom.length || money_symbol_custom.length || money_amount_custom.length){
+				using_custom = true;
+				
+				if(bank_text_custom.length){
+					bank_text_custom.append(this.bank.settings.text.bank + " Balance" + this.settings.money_separator).addClass("pd_bank_text_" + this.params.user_id);
+				}
+				
+				if(bank_symbol_custom.length){
+					bank_symbol_custom.append(money_symbol).addClass("pd_bank_symbol_" + this.params.user_id);
+				}
+				
+				if(bank_amount_custom.length){
+					bank_amount_custom.append(yootil.number_format(user_bank_money) + edit_image).addClass("pd_bank_amount_" + this.params.user_id);
+
+					this.bind_edit_dialog(bank_amount_custom, this.params.user_id, true, ".pd_bank_amount_" + this.params.user_id, edit_image);
+				}
+			}
+		}
+		
+		if(!using_custom){
+			var post_heading = $("div.content-box.center-col td.headings:contains(Posts)");
+			
+			if(post_heading.length){
+				var row = post_heading.parent();
+				
+				if(row){
+					if(yootil.user.is_staff() && this.bank.settings.enabled){
+						var bank_money_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_bank_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_bank_money) + "</span>" + edit_image + "</td>", this.params.user_id, true);
+					
+						$("<tr/>").html("<td>" + this.bank.settings.text.bank + " Balance" + this.settings.money_separator + "</td>").append(bank_money_td).insertAfter(row);
 					}
 					
-					if(user_data.b && user_data.b.toString().length){
-						user_bank_money = this.format(user_data.b, true);
-					}
+					var money_td = this.bind_edit_dialog("<td class=\"pd_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_money) + "</span>" + edit_image + "</td>", this.params.user_id, false);
+					
+					$("<tr/>").html("<td>" + money_text + this.settings.money_separator + "</td>").append(money_td).insertAfter(row);
 				}
-				
-				var money_symbol = (this.settings.show_money_symbol_profile)? this.settings.money_symbol : "";
-				var money_text = (this.settings.show_money_text_profile)? this.settings.money_text : "";
-				
-				if(yootil.user.is_staff()){
-					if(this.bank.settings.enabled){
-						var bank_money_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_bank_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>", this.params.user_id, true);
-				
-						$("<tr/>").html("<td>" + this.bank.settings.text.bank + " Balance:</td>").append(bank_money_td).insertAfter(row);
-					}
-				}
-				
-				var money_td = this.bind_edit_dialog("<td class=\"pd_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_money) + "</span></td>", this.params.user_id, false);
-				
-				$("<tr/>").html("<td>" + money_text + ":</td>").append(money_td).insertAfter(row);
 			}
 		}
 	},
@@ -814,63 +873,58 @@ var money = {
 				return;
 			}
 			
-			for(var m = 0, l = minis.length; m < l; m ++){
-				var info = $(minis[m]).find("div.info");
-				
-				if(info && info.length){
-					var info_div = info.get(0);
-					var user_link = $(minis[m]).find("a.user-link[href*='user']:first");
-					
-					if(user_link && user_link.length){
-						var user_id_match = user_link.attr("href").match(/\/user\/(\d+)\/?/i);
-						
-						if(user_id_match && user_id_match.length == 2){
-							var user_id = user_id_match[1];
-							var money = 0.00;
-							var money_text = (this.settings.show_money_text_mini)? this.settings.money_text : "";
-							var money_symbol = (this.settings.show_money_symbol_mini)? this.settings.money_symbol : "";
+			var self = this;
 			
-							if(yootil.key.has_value("pixeldepth_money", user_id)){
-								var user_data = yootil.key.value("pixeldepth_money", user_id, true);
-								
-								if(user_data){
-									money = this.format(user_data.m, true);
-								}
+			minis.each(function(){
+				var user_link = $(this).find("a.user-link[href*='user']:first");
+					
+				if(user_link && user_link.length){
+					var user_id_match = user_link.attr("href").match(/\/user\/(\d+)\/?/i);
+					
+					if(user_id_match && user_id_match.length == 2){
+						var user_id = user_id_match[1];
+						var money = 0.00;
+						var money_text = (self.settings.show_money_text_mini)? self.settings.money_text : "";
+						var money_symbol = (self.settings.show_money_symbol_mini)? self.settings.money_symbol : "";
+		
+						if(yootil.key.has_value("pixeldepth_money", user_id)){
+							var user_data = yootil.key.value("pixeldepth_money", user_id, true);
+							
+							if(user_data){
+								money = self.format(user_data.m, true);
+							}
+						}
+												
+						money = yootil.number_format(money);
+						
+						if(money_text.toString().length){
+							money_text += self.settings.money_separator;
+						}
+						
+						var money_text_custom = $(this).find(".money_text");
+						var money_symbol_custom = $(this).find(".money_symbol");
+						var money_amount_custom = $(this).find(".money_amount");
+						
+						if(money_text_custom.length || money_symbol_custom.length || money_amount_custom.length){
+							if(money_text_custom.length){
+								money_text_custom.append(money_text).addClass("pd_money_text_" + user_id);
 							}
 							
-							//money = money.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
-							
-							money = yootil.number_format(money);
-							
-							if(money_text.toString().length){
-								money_text += ": ";
+							if(money_symbol_custom.length){
+								money_symbol_custom.append(money_symbol).addClass("pd_money_symbol_" + user_id);
 							}
 							
-							//var money_edit = this.bind_edit_dialog("<span class=\"pd_money_" + user_id + "\">" + money_text + " " + this.settings.money_symbol + "<span class=\"pd_money_value_" + user_id + "\">" + money + "</span><br /></span>", user_id);
-														
-							// Check for class names if user has a custom mini profile layout
-							// If one of these, then assume they are going the custom route
-							
-							var money_text_span = $(info_div).find("span.money_text");
-							var money_symbol_span = $(info_div).find("span.money_symbol");
-							var money_amount_span = $(info_div).find("span.money_amount");
-							
-							if(money_text_span.length || money_text_span.length || money_text_span.length){
-								if(money_text_span.length){
-									money_text_span.append(money_text).addClass("pd_money_text_" + user_id);
-								}
-								
-								if(money_symbol_span.length){
-									money_symbol_span.append(money_symbol).addClass("pd_money_symbol_" + user_id);
-								}
-								
-								if(money_text_span.length){
-									money_amount_span.append(money).addClass("pd_money_amount_" + user_id);
-								}
-							} else {					
+							if(money_amount_custom.length){
+								money_amount_custom.append(money).addClass("pd_money_amount_" + user_id);
+							}
+						} else {
+							var info = $(this).find("div.info");
+				
+							if(info && info.length){
+								var info_div = info.get(0);
 								var money_str_html = "";
 								
-								money_str_html += "<span class=\"pd_money_text_" + user_id + "\">" + money_text + "</span> ";
+								money_str_html += "<span class=\"pd_money_text_" + user_id + "\">" + money_text + "</span>";
 								money_str_html += "<span class=\"pd_money_symbol_" + user_id + "\">" + money_symbol + "</span>";
 								money_str_html += "<span class=\"pd_money_amount_" + user_id + "\">" + money + "</span><br />";
 								
@@ -879,7 +933,7 @@ var money = {
 						}
 					}
 				}
-			}
+			});
 		}
 	}	
 };

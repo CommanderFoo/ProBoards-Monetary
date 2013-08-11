@@ -27,7 +27,8 @@ money.bank = (function(){
 					WITHDRAW: "WITHDRAW",
 					INTEREST: "INTEREST",
 					STAFFEDIT: "STAFFEDIT",
-					WAGES: "WAGES"			
+					WAGES: "WAGES",
+					RANKUP: "RANKUP"		
 			
 				}
 			}	
@@ -207,6 +208,10 @@ money.bank = (function(){
 							type = this.settings.text.types.WAGES;
 							break;
 							
+						case 6 :
+							type = this.settings.text.types.RANKUP;
+							break;
+							
 					}
 					
 					var in_amount = (transactions[t][1] > 0)? transactions[t][1] : "--";
@@ -295,6 +300,7 @@ money.bank = (function(){
 				this.settings.text.types.INTEREST = (settings.type_interest_text && settings.type_interest_text.length)? settings.type_interest_text : this.settings.text.types.INTEREST;
 				this.settings.text.types.STAFFEDIT = (settings.type_staffedit_text && settings.type_staffedit_text.length)? settings.type_staffedit_text : this.settings.text.types.STAFFEDIT;
 				this.settings.text.types.WAGES = (settings.type_wages_text && settings.type_wages_text.length)? settings.type_wages_text : this.settings.text.types.WAGES;
+				this.settings.text.types.RANKUP = (settings.type_rankup_text && settings.type_rankup_text.length)? settings.type_rankup_text : this.settings.text.types.RANKUP;
 			}
 		},
 		
@@ -519,6 +525,11 @@ money.bank = (function(){
 				// Wages
 				case 5 :
 					type = this.settings.text.types.WAGES;
+					break;
+					
+				// Rank Up
+				case 6 :
+					type = this.settings.text.types.RANKUP;
 					break;
 					
 			}

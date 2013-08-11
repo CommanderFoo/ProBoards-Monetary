@@ -254,7 +254,7 @@ var money = {
 				var msg = "<div class='monetary-notification-content'>";
 				
 				msg += "<p>There is a new <strong>Monetary System</strong> version available to install / download for this forum.</p>";
-				msg += "<p>This forum currently have version <strong>" + this.VERSION + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
+				//msg += "<p>This forum currently have version <strong>" + this.VERSION + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
 				
 				msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
 				msg += "<p style='margin-top: 8px;'>This message can be disabled from the Monetary Systemy settings.</p>";
@@ -541,8 +541,9 @@ var money = {
 			
 			var interest_applied = this.bank.apply_interest();
 			var wages_paid = this.wages.pay();
+			var rank_up_paid = this.rank_up.pay();
 			
-			if(money_to_add > 0 || interest_applied || wages_paid){
+			if(money_to_add > 0 || interest_applied || wages_paid || rank_up_paid){
 				if(hooking){
 					this.data.m += this.format(money_to_add);
 					yootil.key.get_key("pixeldepth_money").set_on(event, null, JSON.stringify(this.data));

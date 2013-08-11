@@ -183,7 +183,11 @@ money.wages = (function(){
 			if(set_wage){
 				wage_amount = this.get_wage_amount();
 				wage_bonus = this.get_wage_bonus();
-						
+				
+				if(wage_amount == 0){
+					wage_bonus = 0;
+				}
+				
 				this.set_default(today, this.settings.how_often, true);
 			}
 			

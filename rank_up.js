@@ -20,7 +20,7 @@ money.rank_up = (function(){
 		
 			// Basic checking so we don't need to run setup on each page
 			
-			if(yootil.user.logged_in() && money.can_earn && (yootil.location.check.posting() || yootil.location.check.thread())){
+			if(yootil.user.logged_in() && money.can_earn_money && (yootil.location.check.posting() || yootil.location.check.thread())){
 				this.setup();
 			}
 		},
@@ -34,6 +34,10 @@ money.rank_up = (function(){
 				this.settings.enabled = (settings.rank_up_enabled && settings.rank_up_enabled == "0")? false : this.settings.enabled;
 				this.settings.amount = (settings.rank_up_how_much && parseInt(settings.rank_up_how_much) > 0)? parseInt(settings.rank_up_how_much) : this.settings.amount;
 				this.settings.paid_into = (settings.rank_up_paid_into && settings.rank_up_paid_into == "1")? 1 : this.settings.paid_into;
+				
+				if(!money.bank.settings.enabled){
+					this.settings.paid_into = 1;
+				}
 			}
 		},
 		

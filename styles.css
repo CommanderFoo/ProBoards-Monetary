@@ -312,3 +312,26 @@ span.stock-market-profit {
 }
 
 /* END STOCK */
+
+/* GIFT NOTICED */
+
+div.monetary-gift-notice-icon {
+	
+	float: left; 
+	margin-right: 20px;
+	margin-left: 10px;
+	
+}
+
+div.monetary-gift-notice-content {
+	
+	float: left;
+	margin-top: 5px;
+
+}
+
+div.monetary-gift-notice-content p {
+
+	margin-top: 10px;
+
+}

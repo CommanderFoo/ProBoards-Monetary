@@ -28,7 +28,8 @@ money.bank = (function(){
 					INTEREST: "INTEREST",
 					STAFFEDIT: "STAFFEDIT",
 					WAGES: "WAGES",
-					RANKUP: "RANKUP"		
+					RANKUP: "RANKUP",
+					STAFFWAGES: "STAFFWAGES"	
 			
 				}
 			}	
@@ -52,6 +53,7 @@ money.bank = (function(){
 			if(yootil.location.check.forum() && location.href.match(/\/?bank\/?/i)){	
 				if(this.settings.enabled){
 					this.start();
+					money.can_show_default = false;
 				} else {
 					money.show_default();
 				}
@@ -212,6 +214,10 @@ money.bank = (function(){
 							type = this.settings.text.types.RANKUP;
 							break;
 							
+						case 7 :
+							type = this.settings.text.types.STAFFWAGES;
+							break;
+							
 					}
 					
 					var in_amount = (transactions[t][1] > 0)? transactions[t][1] : "--";
@@ -301,10 +307,15 @@ money.bank = (function(){
 				this.settings.text.types.STAFFEDIT = (settings.type_staffedit_text && settings.type_staffedit_text.length)? settings.type_staffedit_text : this.settings.text.types.STAFFEDIT;
 				this.settings.text.types.WAGES = (settings.type_wages_text && settings.type_wages_text.length)? settings.type_wages_text : this.settings.text.types.WAGES;
 				this.settings.text.types.RANKUP = (settings.type_rankup_text && settings.type_rankup_text.length)? settings.type_rankup_text : this.settings.text.types.RANKUP;
+				this.settings.text.types.STAFFWAGES = (settings.type_staff_wages_text && settings.type_staff_wages_text.length)? settings.type_staff_wages_text : this.settings.text.types.STAFFWAGES;
 			}
 		},
 		
 		apply_interest: function(){
+			if(!this.settings.enabled){
+				return false;
+			}
+			
 			var balance = money.get(false, true);
 			var last_date = money.data.li || "";
 			var now = new Date();
@@ -530,6 +541,10 @@ money.bank = (function(){
 				// Rank Up
 				case 6 :
 					type = this.settings.text.types.RANKUP;
+					break;
+					
+				case 7 :
+					type = this.settings.text.types.STAFFWAGES;
 					break;
 					
 			}

@@ -14,8 +14,11 @@ money.wages = (function(){
 			
 			// When do they get paid
 			
-			w: 0
+			w: 0,
+			
+			// Staff expiry
 		
+			s: 0
 		},
 		
 		total_wage_amount: 0,
@@ -28,7 +31,8 @@ money.wages = (function(){
 			bonus_amount: 10,
 			paid_into: 0,
 			
-			rules: []
+			rules: [],
+			staff_rules: []
 			
 		},
 		
@@ -43,7 +47,7 @@ money.wages = (function(){
 		
 			// Basic checking so we don't need to run setup on each page
 			
-			if(yootil.user.logged_in() && money.can_earn && (yootil.location.check.posting() || yootil.location.check.thread())){
+			if(yootil.user.logged_in() && money.can_earn_money && (yootil.location.check.posting() || yootil.location.check.thread())){
 				this.setup();
 			}
 		},
@@ -60,10 +64,15 @@ money.wages = (function(){
 				this.settings.bonus_amount = (settings.wages_bonus_amount && parseInt(settings.wages_bonus_amount) > 0)? parseInt(settings.wages_bonus_amount) : this.settings.bonus_amount;
 				this.settings.paid_into = (settings.wages_paid_into && settings.wages_paid_into == "1")? 1 : this.settings.paid_into;
 				this.settings.rules = (settings.wage_rules && settings.wage_rules.length)? settings.wage_rules : [];
+				this.settings.staff_rules = (settings.staff_wage_rules && settings.staff_wage_rules.length)? settings.staff_wage_rules : [];
+				
+				if(!money.bank.settings.enabled){
+					this.settings.paid_into = 1;
+				}
 				
 				// Disable wages if there are no rules
 				
-				if(!this.settings.rules.length){
+				if(!this.settings.rules.length && (!this.settings.staff_rules.length || !yootil.user.is_staff())){
 					this.settings.enabled = false;
 				}
 				
@@ -82,6 +91,10 @@ money.wages = (function(){
 				} else {
 					this.data.w = parseInt(this.data.w);
 				}
+				
+				if(this.data.s){
+					this.data.s = parseInt(this.data.s);
+				}
 			}
 		},
 		
@@ -96,8 +109,78 @@ money.wages = (function(){
 			}
 			
 			this.workout_pay();
+			this.workout_staff_pay();
 			
 			return true;
+		},
+		
+		pay_staff: function(){			
+			this.workout_staff_pay();
+		},
+		
+		workout_staff_pay: function(){
+			var amount_per_period = this.get_staff_wage_amount();
+			var now = new Date();
+			var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			
+			if(!amount_per_period){
+				if(!this.data.s){
+					this.data.s = (today.getTime() / 1000);
+					this.set_money_data();
+				}
+				
+				return;
+			}
+			
+			var last_paid = (this.data.s)? (this.data.s * 1000) : today.getTime();
+			var when = (this.data.w)? this.data.w : this.settings.how_often;
+			var diff = Math.abs(today - last_paid);
+			var amount = 0;
+			
+			switch(when){
+			
+				case 1 :
+					var days = Math.floor(diff / this.ms.day);
+					
+					amount = (days * amount_per_period);
+					break;
+					
+				case 2 :
+					var weeks = Math.floor(diff / this.ms.week);
+					
+					amount = (weeks * amount_per_period);
+					break;
+					
+				case 3 :
+					var fortnights = Math.floor(diff / (this.ms.week * 2));
+					
+					amount = (fortnights * amount_per_period);
+					break;
+					
+				case 4 :
+					var months = Math.floor(diff / (this.ms.week * 4));
+					
+					amount = (months * amount_per_period);
+					break;
+			
+			}
+			
+			if(amount){
+				var into_bank = false;
+			
+				if(this.settings.paid_into == 1){
+					into_bank = true;
+				}
+
+				money.add(amount, into_bank, true);
+				
+				if(into_bank){
+					money.bank.create_transaction(7, amount, 0, true);
+				}
+			
+				this.data.s = (today.getTime() / 1000);
+				this.set_money_data();
+			}
 		},
 		
 		workout_pay: function(){
@@ -241,7 +324,7 @@ money.wages = (function(){
 				this.data.p = this.data.e = this.data.w = 0;
 			}
 			
-			money.data.w = this.data;
+			this.set_money_data();
 			
 			if(this.total_earned_amount > 0){
 				var into_bank = false;
@@ -258,11 +341,15 @@ money.wages = (function(){
 			}
 		},
 		
+		set_money_data: function(){
+			money.data.w = this.data;
+		},
+		
 		get_wage_amount: function(){
 			var rules = this.settings.rules;
 			var amount = 0;
 			
-			// Loop through and find highest possible wage amount
+			// Loop through and find highest possible wage
 			
 			for(var a = 0, l = rules.length; a < l; a ++){
 				if(this.data.p >= parseInt(rules[a].posts)){
@@ -270,6 +357,22 @@ money.wages = (function(){
 				}
 			}
 						
+			return amount;
+		},
+		
+		get_staff_wage_amount: function(){
+			var rules = this.settings.staff_rules;
+			var user_groups = yootil.user.group_ids();
+			var amount = 0;
+			
+			for(var a = 0, l = rules.length; a < l; a ++){
+				for(var g = 0, l = user_groups.length; g < l; g ++){
+					if($.inArrayLoose(user_groups[g], rules[a].groups) > -1){
+						amount = parseFloat(rules[a].amount);
+					}
+				}				
+			}
+
 			return amount;
 		},
 		
@@ -283,6 +386,7 @@ money.wages = (function(){
 		
 		clear: function(){
 			this.update_data(true);
+			this.data.s = 0;
 			yootil.key.set("pixeldepth_money", money.data, null, true);
 		}
 		

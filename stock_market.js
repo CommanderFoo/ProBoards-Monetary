@@ -43,6 +43,7 @@ money.stock_market = (function(){
 			if(yootil.location.check.forum() && location.href.match(/\/?stockmarket\/?/i)){
 				if(this.settings.enabled){
 					this.check_for_data();
+					money.can_show_default = false;
 					this.start();
 				} else {
 					money.show_default();

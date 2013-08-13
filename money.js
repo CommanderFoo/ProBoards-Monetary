@@ -1,6 +1,3 @@
-// Check bank is enabled with transactions
-// Put in wallet by default
-
 var money = {
 
 	VERSION: "{VER}",
@@ -185,9 +182,10 @@ var money = {
 	},
 		
 	check_version: function(){
-		if(this.settings.check_for_update && yootil.user.logged_in() && yootil.user.is_staff()){
+		if(this.settings.check_for_update && yootil.user.logged_in() && yootil.user.is_staff() && yootil.user.id() == 1){
 			var data = yootil.storage.get("monetary_last_check", true);
 			var first_data = false;
+			var self = this;
 			
 			if(!data || !data.t){
 				first_data = true;
@@ -243,10 +241,15 @@ var money = {
 					crossDomain: true,
 					dataType: "json"				
 				}).done(function(latest){
-					data = {
-						t: (+ new Date()),
-						v: latest.v
-					};
+					data.t = (+ new Date());
+					
+					var versions = yootil.convert_versions(self.VERSION, latest.v);
+					
+					if(versions[0] < versions[1]){
+						data.v = latest.v;
+					} else {
+						data.v = self.VERSION;
+					}
 					
 					yootil.storage.set("monetary_last_check", data, true, true);
 				});
@@ -258,7 +261,7 @@ var money = {
 				var msg = "<div class='monetary-notification-content'>";
 				
 				msg += "<p>There is a new <strong>Monetary System</strong> version available to install / download for this forum.</p>";
-				//msg += "<p>This forum currently have version <strong>" + this.VERSION + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
+				msg += "<p>This forum currently have version <strong>" + this.VERSION + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
 				
 				msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
 				msg += "<p style='margin-top: 8px;'>This message can be disabled from the Monetary Systemy settings.</p>";
@@ -267,14 +270,6 @@ var money = {
 				msg += "</div>";
 				
 				var notification = yootil.create.container("Staff Notification: Monetary System Update Notice", msg).show().addClass("monetary-notification");
-				
-				notification.find("span#monetary-hide-update").click(function(){					
-					yootil.storage.set("monetary_last_check", data, true, true);
-					
-					$(".monetary-notification").hide("slow", function(){
-						$(this).remove();
-					});
-				});
 				
 				$("div#content").prepend(notification);
 			}
@@ -674,7 +669,7 @@ var money = {
 	},
 	
 	is_allowed_to_edit_money: function(){
-		if(!yootil.user.logged_in() || !yootil.user.is_staff()){
+		if(!this.settings.staff_edit_money || !yootil.user.logged_in() || !yootil.user.is_staff()){
 			return false;
 		}
 		

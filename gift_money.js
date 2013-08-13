@@ -26,22 +26,31 @@ money.gift_money = (function(){
 		
 			// Basic checking so we don't need to run setup on each page
 			
-			if(yootil.user.logged_in() && money.can_earn_money && location.href.match(/\?monetarygift=/i)){
+			if(yootil.user.logged_in() && money.can_earn_money){
 				this.setup();
 				
-				yootil.create.nav_branch(location.href, "Money Gift");
-				
-				if(!this.gift_money()){
-					proboards.alert("An Error Occurred", "Gift could not be found, or has already been collected.", {
-						modal: true,
-						resizable: false,
-						draggable: false
-					});
-					
+				if(!this.settings.enabled){
 					money.show_default();
+					return;
 				}
-			} else {
-				money.show_default();
+				
+				this.add_to_yootil_bar();
+				
+				if(location.href.match(/\?monetarygift=(.+?)$/i)){
+					var unsafe_code = decodeURIComponent(RegExp.$1);
+					
+					yootil.create.nav_branch(location.href, "Gift Money");
+					
+					if(!this.gift_money()){
+						var code_msg = "";
+						
+						if(unsafe_code && unsafe_code.length){
+							code_msg = " quoting the code \"<strong>" + yootil.html_encode(unsafe_code) + "</strong>\"";
+						}
+						
+						this.show_error("<p>The gift code you are trying to access either isn't for you, doesn't exist, or you have already accepted.</p><p>If you think this is an error, please contact a member of staff" + code_msg + ".");
+					}
+				}
 			}
 		},
 		
@@ -63,13 +72,18 @@ money.gift_money = (function(){
 					money.images.giftmoney = settings.gift_money_image;
 				}
 				
+				if(settings.gift_money_image_small && settings.gift_money_image_small.length){
+					money.images.giftmoneysmall = settings.gift_money_image_small;
+				}
+				
 				for(var c = 0, l = this.settings.codes.length; c < l; c ++){
 					this.lookup[this.settings.codes[c].unique_code.toLowerCase()] = {
 						code: this.settings.codes[c].unique_code.toLowerCase(),
 						amount: this.settings.codes[c].amount,
 						message: this.settings.codes[c].message,
 						members: this.settings.codes[c].members,
-						groups: this.settings.codes[c].groups
+						groups: this.settings.codes[c].groups,
+						show_icon: (this.settings.codes[c].show_gift_icon == "1")? true : false
 					};
 					
 					this.array_lookup.push(this.settings.codes[c].unique_code.toLowerCase());
@@ -82,6 +96,27 @@ money.gift_money = (function(){
 			return this;
 		},
 		
+		add_to_yootil_bar: function(){
+			for(var key in this.lookup){
+				if(this.lookup[key].show_icon){
+					if(!this.has_received(key) && this.allowed_gift(this.lookup[key])){
+						yootil.bar.add("/?monetarygift=" + key, money.images.giftmoneysmall, "Gift Money", "gift_" + key);
+					}
+				}
+			}
+		},
+		
+		show_error: function(msg){
+			var html = "";
+						
+			html += "<div class='monetary-gift-notice-icon'><img src='" + money.images.giftmoney + "' /></div>";
+			html += "<div class='monetary-gift-notice-content'>" + msg + "</div>";
+			
+			var container = yootil.create.container("An Error Has Occurred", html).show();
+			
+			container.appendTo("#content");
+		},
+		
 		gift_money: function(){
 			var code = this.get_gift_code();
 			var gift = this.valid_code(code);
@@ -92,10 +127,10 @@ money.gift_money = (function(){
 					var paid_where = (this.settings.paid_into == 1)? money.bank.settings.text.bank : money.settings.text.wallet;
 					
 					html += "<div class='monetary-gift-notice-icon'><img src='" + money.images.giftmoney + "' /></div>";
-					html += "<div class='monetary-gift-notice-content'><p>You have recieved a gift of <strong>" + money.settings.money_symbol + money.format(gift.amount) + "</strong> that will be paid into your " + paid_where + ".</p>";
+					html += "<div class='monetary-gift-notice-content'><p>You have recieved a gift of <strong>" + money.settings.money_symbol + yootil.number_format(money.format(gift.amount)) + "</strong> that will be paid into your " + paid_where + ".</p>";
 					
 					if(gift.message.length){
-						html += "<p>" + gift.message + "</p>";
+						html += "<p>" + gift.message.replace(/\n/g, "<br />") + "</p>";
 					}
 					
 					html += "<p>Do you want to accept this gift?  <button>Yes</button></p></div><br style='clear: both' />";
@@ -105,7 +140,14 @@ money.gift_money = (function(){
 					
 					container.find("button").click(function(){
 						if(self.collect_gift()){
-							console.log("YES");
+							var msg = "";
+							
+							msg += "<p>You have successfully received a gift of <strong>" + money.settings.money_symbol + yootil.number_format(money.format(gift.amount)) + "</strong>.</p>";
+							msg += "<p>This has been paid into your " + paid_where + ".</p>";
+							
+							$(".monetary-gift-notice-content").html(msg);
+
+							yootil.bar.remove("gift_" + gift.code);
 						} else {
 							proboards.alert("An Error Occurred", "Could not collect gift.", {
 								modal: true,
@@ -124,9 +166,30 @@ money.gift_money = (function(){
 			return false;
 		},
 		
-		collect_gift: function(){
-			if(this.current_code){
+		collect_gift: function(gift){
+			if(this.current_code && this.lookup[this.current_code]){
 				this.data.g.push(this.current_code);
+				
+				// Add money to wallet or bank
+				
+				var into_bank = false;
+				var amount = this.lookup[this.current_code].amount || 0;
+				
+				if(!amount){
+					return false;
+				}
+				
+				if(this.settings.paid_into == 1){
+					into_bank = true;
+				}
+
+				money.add(amount, into_bank, true);
+				
+				if(into_bank){
+					money.bank.create_transaction(8, amount, 0, true);
+				}
+				
+				this.remove_old_codes();
 				this.update_money_data();
 				this.save_money_data();
 				
@@ -141,7 +204,7 @@ money.gift_money = (function(){
 		},
 		
 		save_money_data: function(){
-			//yootil.key.set("pixeldepth_money", money.data, null, true);
+			yootil.key.set("pixeldepth_money", money.data, null, true);
 		},
 		
 		allowed_gift: function(gift){
@@ -207,15 +270,17 @@ money.gift_money = (function(){
 		// Remove old codes that are no longer used
 		
 		remove_old_codes: function(){
-			if(!this.codes.length){
+			if(!this.settings.codes.length){
 				this.data.g = [];
 				
 				return;
 			}
 			
-			for(var c = 0, l = this.data.g.length; c < l; c ++){
-				if(!this.lookup[this.data.g[c]]){
-					this.data.g.splice(c, 1); 
+			var len = this.data.g.length;
+			
+			while(len --){
+				if(!this.lookup[this.data.g[len]]){
+					this.data.g.splice(len, 1); 
 				}
 			}
 		},

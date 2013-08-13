@@ -29,7 +29,8 @@ money.bank = (function(){
 					STAFFEDIT: "STAFFEDIT",
 					WAGES: "WAGES",
 					RANKUP: "RANKUP",
-					STAFFWAGES: "STAFFWAGES"	
+					STAFFWAGES: "STAFFWAGES",
+					GIFTMONEY: "GIFTMONEY"
 			
 				}
 			}	
@@ -218,6 +219,10 @@ money.bank = (function(){
 							type = this.settings.text.types.STAFFWAGES;
 							break;
 							
+						case 8 :
+							type = this.settings.text.types.GIFTMONEY;
+							break;
+							
 					}
 					
 					var in_amount = (transactions[t][1] > 0)? transactions[t][1] : "--";
@@ -308,6 +313,7 @@ money.bank = (function(){
 				this.settings.text.types.WAGES = (settings.type_wages_text && settings.type_wages_text.length)? settings.type_wages_text : this.settings.text.types.WAGES;
 				this.settings.text.types.RANKUP = (settings.type_rankup_text && settings.type_rankup_text.length)? settings.type_rankup_text : this.settings.text.types.RANKUP;
 				this.settings.text.types.STAFFWAGES = (settings.type_staff_wages_text && settings.type_staff_wages_text.length)? settings.type_staff_wages_text : this.settings.text.types.STAFFWAGES;
+				this.settings.text.types.GIFTMONEY = (settings.type_gift_money_text && settings.type_gift_money_text.length)? settings.type_gift_money_text : this.settings.text.types.GIFTMONEY;
 			}
 		},
 		
@@ -545,6 +551,10 @@ money.bank = (function(){
 					
 				case 7 :
 					type = this.settings.text.types.STAFFWAGES;
+					break;
+					
+				case 8 :
+					type = this.settings.text.types.GIFTMONEY;
 					break;
 					
 			}

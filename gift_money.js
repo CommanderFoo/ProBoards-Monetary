@@ -83,7 +83,7 @@ money.gift_money = (function(){
 						message: this.settings.codes[c].message,
 						members: this.settings.codes[c].members,
 						groups: this.settings.codes[c].groups,
-						show_icon: (this.settings.codes[c].show_gift_icon == "1")? true : false
+						show_icon: (this.settings.codes[c].show_gift_icon && this.settings.codes[c].show_gift_icon == "1")? true : false
 					};
 					
 					this.array_lookup.push(this.settings.codes[c].unique_code.toLowerCase());

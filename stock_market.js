@@ -1,3 +1,5 @@
+// Refund disabled stock
+
 money.stock_market = (function(){
 
 	return {
@@ -33,16 +35,18 @@ money.stock_market = (function(){
 		
 		init: function(){
 			this.setup();
+			this.check_for_data();
 			
 			if(this.settings.enabled){
 				if(money.images.stock_market){
 					yootil.bar.add("/?stockmarket", money.images.stock_market, "Stock Market", "pdmsstock");
 				}
+			} else {
+				this.offer_full_refund();
 			}
 			
 			if(yootil.location.check.forum() && location.href.match(/\/?stockmarket\/?/i)){
 				if(this.settings.enabled){
-					this.check_for_data();
 					money.can_show_default = false;
 					this.start();
 				} else {
@@ -163,6 +167,50 @@ money.stock_market = (function(){
 		remove_from_data: function(stock_symbol){
 			if(this.has_invested(stock_symbol)){
 				delete this.invest_data[stock_symbol];
+			}
+		},
+		
+		offer_full_refund: function(){
+			var total_stocks = 0;
+			var total_value = 0;
+			
+			for(var stock in this.invest_data){
+				var amount = this.invest_amount(stock);
+				var bid = this.invest_data[stock].b;
+				var total_cost = (bid * amount);
+				
+				total_value += total_cost;
+				total_stocks ++;
+			}
+			
+			if(total_stocks && total_value){
+				var info = "";
+				var self = this;
+				
+				info += "Your investments are being refunded, as the";
+				info += " Stock Market is currently disabled.<br /><br />";
+				info += "Refund: " + money.settings.money_symbol + yootil.number_format(money.format(total_value, true));
+				
+				proboards.dialog("stock-refund-dialog", {
+					modal: true,
+					height: 220,
+					width: 320,
+					title: "Refunding All Stock",
+					html: info,
+					resizable: false,
+					draggable: false,
+					
+					buttons: {
+										
+						"Accept Refund": function(){
+							money.data.m += money.format(total_value);
+							self.invest_data = {};
+							self.save_investments();
+
+							$(this).dialog("close");
+						}
+					}
+				});
 			}
 		},
 		

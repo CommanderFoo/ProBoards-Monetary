@@ -366,9 +366,11 @@ money.wages = (function(){
 			var amount = 0;
 			
 			for(var a = 0, l = rules.length; a < l; a ++){
-				for(var g = 0, l = user_groups.length; g < l; g ++){
-					if($.inArrayLoose(user_groups[g], rules[a].groups) > -1){
-						amount = parseFloat(rules[a].amount);
+				if(rules[a].groups){
+					for(var g = 0, gl = user_groups.length; g < gl; g ++){
+						if($.inArrayLoose(user_groups[g], rules[a].groups) > -1){
+							amount = parseFloat(rules[a].amount);
+						}
 					}
 				}				
 			}

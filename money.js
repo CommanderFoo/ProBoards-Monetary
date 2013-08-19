@@ -118,7 +118,7 @@ var money = {
 			this.can_earn_money = this.can_earn();
 			
 			if(yootil.location.check.posting() || (yootil.location.check.thread() && this.settings.posting.earn_from_quick_reply)){				
-				if(this.can_earn_in_cat_board() && this.can_earn_money){
+				if(this.can_earn_money && this.can_earn_in_cat_board()){
 					this.bind_events();
 				}
 			}

@@ -171,6 +171,12 @@ money.stock_market = (function(){
 		},
 		
 		offer_full_refund: function(){
+			var show = (yootil.storage.get("monetary_stock_ignore_refund") == 1)? false : true;
+			
+			if(!show){
+				return;
+			}
+			
 			var total_stocks = 0;
 			var total_value = 0;
 			
@@ -187,7 +193,7 @@ money.stock_market = (function(){
 				var info = "";
 				var self = this;
 				
-				info += "Your investments are being refunded, as the";
+				info += "Your investments can be refunded, as the";
 				info += " Stock Market is currently disabled.<br /><br />";
 				info += "Refund: " + money.settings.money_symbol + yootil.number_format(money.format(total_value, true));
 				
@@ -201,7 +207,37 @@ money.stock_market = (function(){
 					draggable: false,
 					
 					buttons: {
-										
+																
+						"Ignore Refund": function(){
+							var self = this;
+							
+							proboards.dialog("stock-ignore-refund-dialog", {
+								modal: true,
+								height: 220,
+								width: 320,
+								title: "Ignore Refund",
+								html: "Are you sure you want to keep your current investments?<br /><br />You will no longer receive the refund message if you choose this option.",
+								resizable: false,
+								draggable: false,
+								
+								buttons: {
+															
+									"Ok": function(){
+										yootil.storage.set("monetary_stock_ignore_refund", 1, false, true);
+										$(this).dialog("close");
+										$(self).dialog("close");
+									},
+									
+									"Cancel": function(){
+										$(this).dialog("close");
+									}
+									
+								}
+								
+							});
+							
+						},
+						
 						"Accept Refund": function(){
 							money.data.m += money.format(total_value);
 							self.invest_data = {};

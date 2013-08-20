@@ -65,7 +65,7 @@ money.gift_money = (function(){
 				this.settings.codes = (settings.free_money_codes && settings.free_money_codes.length)? settings.free_money_codes : [];
 				
 				if(!money.bank.settings.enabled){
-					this.settings.paid_into = 1;
+					this.settings.paid_into = 0;
 				}
 				
 				if(settings.gift_money_image && settings.gift_money_image.length){

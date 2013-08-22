@@ -87,7 +87,9 @@ var money = {
 		
 		text: {
 		
-			wallet: "Wallet"
+			wallet: "Wallet",
+			money_column: "Money",
+			bank_column: "Bank Balance"
 		
 		}
 		
@@ -598,8 +600,10 @@ var money = {
 			
 			this.settings.show_in_members_list = (settings.show_in_members_list == "0")? false : this.settings.show_in_members_list;
 			this.settings.show_money_symbol_members = (settings.show_money_symbol_members == "0")? false : this.settings.show_money_symbol_members;
-			this.settings.member_list_text = (settings.member_list_text)? settings.member_list_text : ((settings.money_text.length)? settings.money_text : this.member_list_text);
 			this.settings.show_bank_balance_members = (settings.show_bank_balance_members == "1")? true : this.settings.show_bank_balance_members;
+			
+			this.settings.text.money_column = (settings.member_list_text && settings.member_list_text.length)? settings.member_list_text : ((settings.money_text && settings.money_text.length)? settings.money_text : this.settings.text.money_column);
+			this.settings.text.bank_column = (settings.bank_column_text && settings.bank_column_text.length)? settings.bank_column_text : this.settings.text.bank_column;
 			
 			this.settings.staff_edit_money = (settings.staff_edit_money == "0")? false : this.settings.staff_edit_money;
 			this.settings.show_edit_money_image = (settings.show_edit_money_image == "0")? false : this.settings.show_edit_money_image;
@@ -638,23 +642,35 @@ var money = {
 			
 			if(settings.categories_earn_amounts && settings.categories_earn_amounts.length){
 				for(var c = 0, cl = settings.categories_earn_amounts.length; c < cl; c ++){
-					this.settings.posting.amounts.categories[settings.categories_earn_amounts[c].category] = {
-						per_thread: this.format(settings.categories_earn_amounts[c].money_per_thread),
-						per_poll: this.format(settings.categories_earn_amounts[c].money_per_poll),
-						per_reply: this.format(settings.categories_earn_amounts[c].money_per_reply),
-						per_quick_reply: this.format(settings.categories_earn_amounts[c].money_per_quick_reply)
+					var cat_earn_amounts = settings.categories_earn_amounts[c];
+					
+					var cat_amounts = {
+						per_thread: this.format(cat_earn_amounts.money_per_thread),
+						per_poll: this.format(cat_earn_amounts.money_per_poll),
+						per_reply: this.format(cat_earn_amounts.money_per_reply),
+						per_quick_reply: this.format(cat_earn_amounts.money_per_quick_reply)
 					};
+					
+					for(var ci = 0, cil = cat_earn_amounts.category.length; ci < cil; ci ++){
+						this.settings.posting.amounts.categories[cat_earn_amounts.category[ci]] = cat_amounts;
+					}
 				}
 			}
 			
 			if(settings.boards_earn_amounts && settings.boards_earn_amounts.length){
 				for(var b = 0, bl = settings.boards_earn_amounts.length; b < bl; b ++){
-					this.settings.posting.amounts.boards[settings.boards_earn_amounts[b].board] = {
-						per_thread: this.format(settings.boards_earn_amounts[b].money_per_thread),
-						per_poll: this.format(settings.boards_earn_amounts[b].money_per_poll),
-						per_reply: this.format(settings.boards_earn_amounts[b].money_per_reply),
-						per_quick_reply: this.format(settings.boards_earn_amounts[b].money_per_quick_reply)
+					var board_earn_amounts = settings.boards_earn_amounts[b];
+					
+					var board_amounts = {
+						per_thread: this.format(board_earn_amounts.money_per_thread),
+						per_poll: this.format(board_earn_amounts.money_per_poll),
+						per_reply: this.format(board_earn_amounts.money_per_reply),
+						per_quick_reply: this.format(board_earn_amounts.money_per_quick_reply)
 					};
+					
+					for(var bi = 0, bil = board_earn_amounts.board.length; bi < bil; bi ++){
+						this.settings.posting.amounts.boards[board_earn_amounts.board[bi]] = board_amounts;
+					}
 				}	
 			}
 			
@@ -787,12 +803,12 @@ var money = {
 		var table = $("div.content.cap-bottom table.list");
 		
 		if(table.find("th.pd_money_th").length == 0){
-			$("<th class=\"pd_money_th\" style=\"width: 12%\">" + this.settings.member_list_text + "</th>").insertAfter(table.find("tr.head th.posts"));
+			$("<th class=\"pd_money_th\" style=\"width: 12%\">" + this.settings.text.money_column + "</th>").insertAfter(table.find("tr.head th.posts"));
 		}
 		
 		if(this.bank.settings.enabled && this.settings.show_bank_balance_members && yootil.user.is_staff()){
 			if(table.find("th.pd_money_bank_th").length == 0){
-				$("<th class=\"pd_money_bank_th\" style=\"width: 12%\">Bank Balance</th>").insertAfter(table.find("tr.head th.pd_money_th"));
+				$("<th class=\"pd_money_bank_th\" style=\"width: 12%\">" + this.settings.text.bank_column + "</th>").insertAfter(table.find("tr.head th.pd_money_th"));
 			}
 		}
 		

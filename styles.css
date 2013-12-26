@@ -313,9 +313,9 @@ span.stock-market-profit {
 
 /* END STOCK */
 
-/* GIFT NOTICED */
+/* GIFT NOTICED / DONATION NOTICE */
 
-div.monetary-gift-notice-icon {
+div.monetary-gift-notice-icon, div.monetary-donation-notice-icon {
 	
 	float: left; 
 	margin-right: 20px;
@@ -323,14 +323,14 @@ div.monetary-gift-notice-icon {
 	
 }
 
-div.monetary-gift-notice-content {
+div.monetary-gift-notice-content, div.monetary-donation-notice-content {
 	
 	float: left;
 	margin-top: 2px;
 
 }
 
-div.monetary-gift-notice-content p {
+div.monetary-gift-notice-content p, div.monetary-donation-notice-content p {
 
 	margin-top: 10px;
 

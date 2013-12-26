@@ -40,6 +40,7 @@ money.gift_money = (function(){
 					var unsafe_code = decodeURIComponent(RegExp.$1);
 					
 					yootil.create.nav_branch(location.href, "Gift Money");
+					yootil.create.page("?monetarygift", "Gift Money");
 					
 					if(!this.gift_money()){
 						var code_msg = "";

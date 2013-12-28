@@ -31,10 +31,6 @@ money.donation = (function(){
 					return;
 				}
 				
-				// Remove later
-				
-				//money.show_default();
-				
 				if(this.settings.show_profile_donation_button && yootil.location.check.profile_home() && yootil.page.member.id() != yootil.user.id()){
 					this.create_donation_button();
 				} else if(yootil.location.check.conversation_new_user()){

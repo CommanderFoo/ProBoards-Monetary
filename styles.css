@@ -10,7 +10,7 @@ img.money-symbol-image {
 div.monetary-notification {
 
 	display: block !important;
-	
+
 }
 
 div.monetary-notification-content p {
@@ -46,7 +46,7 @@ div#bank-overview-wrapper {
 div#bank-coin-image {
 
 	float: left;
-	
+
 }
 
 div#bank-overview-inner {
@@ -75,7 +75,7 @@ span#bank-overview-details-money {
 span#bank-overview-details-account-number, span#bank-overview-details-sort-code {
 
 	font-size: 9px;
-	
+
 }
 
 div#bank-controls {
@@ -88,7 +88,7 @@ div#bank-controls {
 div#bank-error {
 
 	height: 30px;
-	
+
 }
 
 div#bank-error span {
@@ -102,7 +102,7 @@ div#bank-error span {
 div#bank-controls-buttons-wrapper {
 
 	line-height: 24px;
-	
+
 }
 
 div#bank-controls-buttons-wrapper input {
@@ -114,12 +114,12 @@ div#bank-controls-buttons-wrapper input {
 
 div#bank-controls-buttons-wrapper a {
 
-	border-top-left-radius: 0px; 
+	border-top-left-radius: 0px;
 	border-bottom-left-radius: 0px;
 	margin-right: 50px;
 	position: relative;
 	left: -7px;
-	
+
 }
 
 table#bank-transaction-list {
@@ -146,21 +146,21 @@ tr.bank-transaction-list-row {
 
 tr#bank-transaction-list-headers-dotted {
 
-	border-top: 1px dotted;
+	border-top: 1px dashed;
 	height: 5px;
-	
+
 }
 
 tr.bank-transaction-list-spacer {
 
 	height: 5px;
-	
+
 }
 
 tr.bank-transaction-list-spacer td {
 
 	border-top: 1px solid;
-	
+
 }
 
 /* END BANK */
@@ -207,7 +207,7 @@ tr.stock-invest-content-headers th {
 div#stock-wrapper {
 
 	padding: 10px;
-	text-align: center; 
+	text-align: center;
 
 }
 
@@ -217,7 +217,7 @@ div#stock-content {
 	text-align: center;
 	margin: auto;
 	max-width: 908px;
-	
+
 }
 
 div#stock-content-strip {
@@ -239,8 +239,8 @@ div.stock-block {
 
 div.stock-block-header {
 
-	border-bottom: 2px solid; 
-	font-size: 18px; 
+	border-bottom: 2px solid;
+	font-size: 18px;
 	padding: 5px;
 
 }
@@ -267,7 +267,7 @@ table.stock-block-table-left, table.stock-block-table-right {
 table.stock-block-table-center {
 
 	width: 31%;
-	
+
 }
 
 td.stock-block-cell-right, td.stock-block-cell-left {
@@ -316,15 +316,15 @@ span.stock-market-profit {
 /* GIFT NOTICED / DONATION NOTICE */
 
 div.monetary-gift-notice-icon, div.monetary-donation-notice-icon {
-	
-	float: left; 
+
+	float: left;
 	margin-right: 20px;
 	margin-left: 10px;
-	
+
 }
 
 div.monetary-gift-notice-content, div.monetary-donation-notice-content {
-	
+
 	float: left;
 	margin-top: 2px;
 

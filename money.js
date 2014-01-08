@@ -152,10 +152,10 @@ var money = {
 	},
 
 	// Seems ProBoards now uses the JSON class (not sure how long), so we
-	// need to test old data to see if it's a string, as this will be doublestringified
+	// need to test old data to see if it's a string, as this will be double stringified
 
 	check_data: function(data){
-		if(typeof data == "string"){
+		if(typeof data == "string" && yootil.is_json(data)){
 			data = JSON.parse(data);
 		}
 

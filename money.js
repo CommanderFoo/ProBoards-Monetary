@@ -1,3 +1,5 @@
+// Fix permission system
+
 var money = {
 
 	VERSION: "{VER}",
@@ -417,13 +419,15 @@ var money = {
 			if(cat_id){
 				if($.inArrayLoose(cat_id, this.settings.no_earn_categories) > -1){
 					return false;
-				} else if(this.settings.no_earn_boards && this.settings.no_earn_boards.length){
-					var board_id = parseInt(yootil.page.board.id());
-
-					if(board_id && $.inArrayLoose(board_id, this.settings.no_earn_boards) > -1){
-						return false;
-					}
 				}
+			}
+		}
+
+		if(this.settings.no_earn_boards && this.settings.no_earn_boards.length){
+			var board_id = parseInt(yootil.page.board.id());
+
+			if(board_id && $.inArrayLoose(board_id, this.settings.no_earn_boards) > -1){
+				return false;
 			}
 		}
 
@@ -439,12 +443,14 @@ var money = {
 		// Check if in thread or posting, then check if thread is disabled
 		// from earning
 
-		if(yootil.location.check.thread() || yootil.location.check.posting()){
+		if((yootil.location.check.thread() || yootil.location.check.posting()) && this.settings.no_earn_threads.length){
 			var thread_id = parseInt(yootil.page.thread.id());
 
 			if(thread_id){
-				if(thread_id && $.inArrayLoose(thread_id, this.settings.no_earn_threads) > -1){
-					return false;
+				for(var i = 0, l = this.settings.no_earn_threads.length; i < l; i ++){
+					if(this.settings.no_earn_threads[i].thread_id == thread_id){
+						return false;
+					}
 				}
 			}
 		}

@@ -2,7 +2,9 @@ var money = {
 
 	VERSION: "{VER}",
 
-	required_yootil_version: "0.9.2",
+	// Force for latest released version
+
+	required_yootil_version: "0.9.3",
 
 	data: {
 
@@ -844,7 +846,7 @@ var money = {
 				}
 
 				var money_symbol = (self.settings.show_money_symbol_members)? self.settings.money_symbol : "";
-				var td = $("<td class=\"pd_money_" + user_id + "\">" + money_symbol + "<span class=\"pd_money_amount_" + user_id + "\">" + yootil.number_format(user_money) + "</span></td>");
+				var td = $("<td class=\"pd_money_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_money_amount_" + user_id + "\">" + yootil.number_format(user_money) + "</span></td>");
 
 				td.insertAfter($(this).find("td.posts"));
 

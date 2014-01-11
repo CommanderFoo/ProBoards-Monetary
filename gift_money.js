@@ -128,13 +128,15 @@ money.gift_money = (function(){
 					var paid_where = (this.settings.paid_into == 1)? money.bank.settings.text.bank : money.settings.text.wallet;
 
 					html += "<div class='monetary-gift-notice-icon'><img src='" + money.images.giftmoney + "' /></div>";
-					html += "<div class='monetary-gift-notice-content'><p>You have recieved a gift of <strong>" + money.settings.money_symbol + yootil.number_format(money.format(gift.amount)) + "</strong> that will be paid into your " + paid_where + ".</p>";
+					html += "<div class='monetary-gift-notice-content'><div class='monetary-gift-notice-content-top'><p>You have recieved a gift of <strong>" + money.settings.money_symbol + yootil.number_format(money.format(gift.amount)) + "</strong> that will be paid into your " + paid_where + ".</p>";
 
 					if(gift.message.length){
 						html += "<p>" + gift.message.replace(/\n/g, "<br />") + "</p>";
 					}
 
-					html += "<p>Do you want to accept this gift?  <button>Yes</button></p></div><br style='clear: both' />";
+					html+= "</div>";
+
+					html += "<p class='monetary-gift-notice-content-accept'>Do you want to accept this gift?  <button>Yes</button></p></div><br style='clear: both' />";
 
 					var container = yootil.create.container("You Have Received Some Money", html).show();
 					var self = this;
@@ -193,6 +195,8 @@ money.gift_money = (function(){
 				this.remove_old_codes();
 				this.update_money_data();
 				this.save_money_data();
+
+				money.sync.trigger();
 
 				return true;
 			}

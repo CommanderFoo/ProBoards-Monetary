@@ -89,9 +89,9 @@ money.bank = (function(){
 			var _top = ($.browser.msie)? "0" : "-2";
 
 			html += '<input type="text" value="' + money.format(0, true) + '" id="pd_money_withdraw">';
-			html += '<a id="pd_money_withdraw_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">' + this.settings.text.withdraw + '</a>';
+			html += ' <a id="pd_money_withdraw_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">' + this.settings.text.withdraw + '</a>';
 			html += '<input type="text" value="' + money.format(0, true) + '" id="pd_money_deposit">';
-			html += '<a id="pd_money_deposit_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">' + this.settings.text.deposit + '</a>';
+			html += ' <a id="pd_money_deposit_button" class="button" href="#" role="button" style="top: ' + _top + 'px;">' + this.settings.text.deposit + '</a>';
 			html += '</div>';
 
 			html += '</div>';
@@ -237,9 +237,9 @@ money.bank = (function(){
 					trans_html += '<td>' + yootil.number_format(money.format(balance, true)) + '</td>';
 					trans_html += '</tr>';
 
-					if(counter < (l - 1)){
-						trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
-					}
+					//if(counter < (l - 1)){
+						//trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
+					//}
 
 					counter ++;
 				}
@@ -248,7 +248,9 @@ money.bank = (function(){
 			trans_html += '</table>';
 
 			var self = this;
-			var trans = yootil.create.container("Recent " + this.settings.text.transactions + " <span id='bank-clear-transactions'>(Clear)</span>", trans_html).show().appendTo("#content");
+			var trans = yootil.create.container("Recent " + this.settings.text.transactions + " <span id='bank-clear-transactions'>(Clear)</span>", trans_html);
+
+			trans.show().appendTo("#content");
 
 			trans.find("#bank-clear-transactions").click(function(){
 				var no_transactions = $('<tr class="bank-transaction-list-row"><td><em>There are no ' + self.settings.text.transactions.toLowerCase() + ' to view.</td></tr>');

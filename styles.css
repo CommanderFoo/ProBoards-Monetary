@@ -109,6 +109,7 @@ div#bank-controls-buttons-wrapper input {
 
 	width: 100px;
 	border: 1px solid;
+	height: 19px;
 
 }
 
@@ -141,6 +142,13 @@ tr.bank-transaction-list-row {
 
 	font-size: 11px;
 	height: 25px;
+
+}
+
+tr.bank-transaction-list-row:hover {
+
+	color: #000000;
+	background-color: #f6f6f6;
 
 }
 

@@ -53,6 +53,13 @@ money.sync = (function(){
 
 			money.data = new_data;
 
+			// Handle gifts
+
+			if(location.href.match(/\?monetarygift=.+?$/i)){
+				$(".monetary-gift-notice-content-top").css("opacity", .3);
+				$(".monetary-gift-notice-content-accept").html("You have accepted this gift in another tab.");
+			}
+
 			var user_money = money.format(money.data.m, true);
 			var user_bank_money = money.format(money.data.b, true);
 
@@ -68,6 +75,14 @@ money.sync = (function(){
 				if(yootil.location.check.profile_home()){
 					$(".pd_bank_money_amount_" + user_id).text(yootil.number_format(user_bank_money));
 				}
+			}
+
+			// See if there is a wallet about
+
+			var wallet = $(".pd_money_wallet_amount");
+
+			if(wallet.length){
+				wallet.text(yootil.number_format(user_money));
 			}
 		},
 

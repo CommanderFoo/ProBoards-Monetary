@@ -1,8 +1,8 @@
-// Fix permission system
-
 var money = {
 
 	VERSION: "{VER}",
+
+	required_yootil_version: "0.9.2",
 
 	data: {
 
@@ -173,24 +173,41 @@ var money = {
 	},
 
 	check_yootil: function(){
-		if(typeof yootil == "undefined" && proboards.data && proboards.data("user") && proboards.data("user").id == 1){
-			var msg = "<div class='monetary-notification-content'>";
+		if(proboards.data && proboards.data("user") && proboards.data("user").id == 1){
+			var body = "";
+			var title = "";
 
-			msg += "<p>You do not have the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a> plugin installed.</p>";
-			msg += "<p>Without the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a>, the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> will not work.</p>";
+			if(typeof yootil == "undefined"){
+				title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Library Not Found</h2></div>";
+				body = "<p>You do not have the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a> plugin installed.</p>";
+				body += "<p>Without the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a>, the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> will not work.</p>";
+			} else {
+				var versions = yootil.convert_versions(yootil.VERSION, this.required_yootil_version);
 
-			msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/#plugindownload'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
+				if(versions[0] < versions[1]){
+					title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Library Needs Updating</h2></div>";
+					body += "<p>The <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> requires at least " + this.required_yootil_version + " of the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a>.</p>";
+				}
+			}
 
-			msg += "</div>";
+			if(title.length){
+				var msg = "<div class='monetary-notification-content'>";
 
-			var notification = "<div class=\"container monetary-yootil-notification\">";
+				msg += body;
 
-			notification += "<div class=\"title-bar\"><h2>Monetary System - Yootil Library Not Found</h2></div>";
-			notification += "<div class=\"content pad-all\">" + msg + "</div></div>";
+				msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/#plugindownload'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
 
-			$("div#content").prepend(notification);
+				msg += "</div>";
 
-			return false;
+				var notification = "<div class=\"container monetary-yootil-notification\">";
+
+				notification += title;
+				notification += "<div class=\"content pad-all\">" + msg + "</div></div>";
+
+				$("div#content").prepend(notification);
+
+				return false;
+			}
 		}
 
 		return true;
@@ -724,7 +741,7 @@ var money = {
 					draggable: false,
 					dialogClass: ("money_"+ bank_str + "dialog"),
 					open: function(){
-						var money_obj = self.check_data(yootil.key.value("pixeldepth_money", user_id));
+						var money_obj = (user_id == yootil.user.id())? self.data : self.check_data(yootil.key.value("pixeldepth_money", user_id));
 						var money = 0.00;
 						var key = (bank_edit)? "b" : "m";
 
@@ -744,7 +761,7 @@ var money = {
 						Update: function(){
 							var field = $(this).find("input[name=edit" + bank_str + "money]");
 							var value = self.format(field.val());
-							var money_obj = self.check_data(yootil.key.value("pixeldepth_money", user_id));
+							var money_obj = (user_id == yootil.user.id())? self.data : self.check_data(yootil.key.value("pixeldepth_money", user_id));
 							var money = 0.00;
 							var value_in = value_out = 0.00;
 							var key = (bank_edit)? "b" : "m";
@@ -778,9 +795,11 @@ var money = {
 
 								yootil.key.set("pixeldepth_money", money_obj, user_id);
 
-								var update_element = (update_selector)? update_selector : (".pd_" + bank_str + "money_value_" + user_id);
+								var update_element = (update_selector)? update_selector : (".pd_" + ((bank)? "" : "money_") + bank_str + "amount_" + user_id);
 
 								$(update_element).html(yootil.number_format(self.format(value, true)) + (edit_image || ""));
+
+								self.sync.trigger();
 							}
 
 							$(this).dialog("close");
@@ -825,7 +844,7 @@ var money = {
 				}
 
 				var money_symbol = (self.settings.show_money_symbol_members)? self.settings.money_symbol : "";
-				var td = $("<td class=\"pd_money_" + user_id + "\">" + money_symbol + "<span class=\"pd_money_value_" + user_id + "\">" + yootil.number_format(user_money) + "</span></td>");
+				var td = $("<td class=\"pd_money_" + user_id + "\">" + money_symbol + "<span class=\"pd_money_amount_" + user_id + "\">" + yootil.number_format(user_money) + "</span></td>");
 
 				td.insertAfter($(this).find("td.posts"));
 
@@ -836,7 +855,7 @@ var money = {
 						user_bank_money = self.format(user_data.b, true);
 					}
 
-					var td = $("<td class=\"pd_money_bank_" + user_id + "\">" + money_symbol + "<span class=\"pd_money_bank_value_" + user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>");
+					var td = $("<td class=\"pd_money_bank_" + user_id + "\">" + money_symbol + "<span class=\"pd_money_bank_amount_" + user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>");
 
 					td.insertAfter($(this).find("td.pd_money_" + user_id));
 				}
@@ -924,12 +943,12 @@ var money = {
 
 				if(row){
 					if(yootil.user.is_staff() && this.bank.settings.enabled){
-						var bank_money_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_bank_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_bank_money) + "</span>" + edit_image + "</td>", this.params.user_id, true);
+						var bank_money_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\"><span class=\"pd_bank_money_symbol\">" + money_symbol + "</span><span class=\"pd_bank_amount_" + this.params.user_id + "\">" + yootil.number_format(user_bank_money) + "</span>" + edit_image + "</td>", this.params.user_id, true);
 
 						$("<tr/>").html("<td>" + this.bank.settings.text.bank + " Balance" + this.settings.money_separator + "</td>").append(bank_money_td).insertAfter(row);
 					}
 
-					var money_td = this.bind_edit_dialog("<td class=\"pd_money_" + this.params.user_id + "\">" + money_symbol + "<span class=\"pd_money_value_" + this.params.user_id + "\">" + yootil.number_format(user_money) + "</span>" + edit_image + "</td>", this.params.user_id, false);
+					var money_td = this.bind_edit_dialog("<td class=\"pd_money_" + this.params.user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_money_amount_" + this.params.user_id + "\">" + yootil.number_format(user_money) + "</span>" + edit_image + "</td>", this.params.user_id, false);
 
 					$("<tr/>").html("<td>" + money_text + this.settings.money_separator + "</td>").append(money_td).insertAfter(row);
 				}

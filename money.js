@@ -801,7 +801,12 @@ var money = {
 
 								$(update_element).html(yootil.number_format(self.format(value, true)) + (edit_image || ""));
 
-								self.sync.trigger();
+								// Don't bother performing a sync if the user
+								// is editing someone else wallet or bank amounts
+
+								if(yootil.user.id() == user_id){
+									self.sync.trigger();
+								}
 							}
 
 							$(this).dialog("close");
@@ -857,7 +862,7 @@ var money = {
 						user_bank_money = self.format(user_data.b, true);
 					}
 
-					var td = $("<td class=\"pd_money_bank_" + user_id + "\">" + money_symbol + "<span class=\"pd_money_bank_amount_" + user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>");
+					var td = $("<td class=\"pd_bank_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_bank_amount_" + user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>");
 
 					td.insertAfter($(this).find("td.pd_money_" + user_id));
 				}

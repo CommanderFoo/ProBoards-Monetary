@@ -142,6 +142,10 @@ money.bank = (function(){
 					} else {
 						self.deposit(value);
 						input.val(money.format(0, true));
+
+						// Trigger syncing for other tabs
+
+						money.sync.trigger();
 					}
 				} else {
 					self.bank_error(self.settings.text.deposit + " value can't be less than " + money.format(self.settings.minimum_deposit, true) + ".");
@@ -151,7 +155,7 @@ money.bank = (function(){
 			});
 
 			container.find("a#pd_money_withdraw_button").click(function(){
-				var input = container.find("input#pd_money_withdraw")
+				var input = container.find("input#pd_money_withdraw");
 				var value = input.val();
 
 				if(parseFloat(value) >= money.format(self.settings.minimum_withdraw)){
@@ -162,6 +166,10 @@ money.bank = (function(){
 					} else {
 						self.withdraw(value);
 						input.val(money.format(0, true));
+
+						// Trigger syncing for other tabs
+
+						money.sync.trigger();
 					}
 				} else {
 					self.bank_error(self.settings.text.withdraw + " value can't be less than " + money.format(self.settings.minimum_withdraw, true) + ".");
@@ -256,7 +264,7 @@ money.bank = (function(){
 				var no_transactions = $('<tr class="bank-transaction-list-row"><td><em>There are no ' + self.settings.text.transactions.toLowerCase() + ' to view.</td></tr>');
 				var list = $("#bank-transaction-list");
 
-				list.find("tr").remove()
+				list.find("tr").remove();
 				list.append(no_transactions);
 				self.clear_transactions();
 			});
@@ -570,7 +578,7 @@ money.bank = (function(){
 			trans_html += '</tr>';
 
 			if($("#bank-transaction-list tr").length > 2){
-				trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
+				//trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
 			}
 
 			$(trans_html).hide().insertAfter($("#bank-transaction-list-headers-dotted")).show("fast").fadeIn(3000).css("display", "");

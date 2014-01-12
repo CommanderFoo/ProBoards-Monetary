@@ -303,6 +303,8 @@ money.stock_market = (function(){
 		save_investments: function(){
 			money.data.s = this.invest_data;
 			yootil.key.set("pixeldepth_money", money.data);
+
+			money.sync.trigger();
 		},
 
 		insert_invest_row: function(stock_id){
@@ -344,7 +346,7 @@ money.stock_market = (function(){
 
 			$("#stock-investments-table").find(".stock-sell-button[data-stock-id=" + this.escape_expression(stock_id) + "]").click(function(){
 				$.proxy(self.bind_sell_event, self)(this);
-			})
+			});
 
 			$("#stock-invest-row-" + this.escape_expression(stock_id)).show("normal");
 		},

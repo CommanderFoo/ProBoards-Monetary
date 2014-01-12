@@ -1,7 +1,3 @@
-// TODO:
-// Test without registering the class to see if sync calls throws errors
-// Retest again in all browsers due to a bug fix
-
 money.sync = (function(){
 
 	return {

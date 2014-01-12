@@ -1,4 +1,6 @@
-// Test without registering
+// TODO:
+// Test without registering the class to see if sync calls throws errors
+// Retest again in all browsers due to a bug fix
 
 money.sync = (function(){
 
@@ -58,14 +60,15 @@ money.sync = (function(){
 
 		// We also handle visual stuff, we don't have too but it's nice.
 
-		// Support could be added in for multiple instances of the stock market,
+		// Support has been added for multiple instances of the stock market,
 		// bank, and gift money.
 
 		sync_data: function(evt){
 			var old_data = evt.oldValue;
 			var new_data = evt.newValue;
 
-			// Stop here if there is no changes (strings)
+			// Stop here if there is no changes, the data is stringified (2 strings)
+			// This prevents changing the DOM for no reason
 
 			if(old_data == new_data){
 				return;
@@ -77,7 +80,7 @@ money.sync = (function(){
 				return;
 			}
 
-			// Straight up swap of new data
+			// Straight up swap of new data, we trust it.
 
 			money.data = new_data;
 
@@ -87,6 +90,8 @@ money.sync = (function(){
 				$(".monetary-gift-notice-content-top").css("opacity", .3);
 				$(".monetary-gift-notice-content-accept").html("You have accepted this gift in another tab / window.");
 			}
+
+			// Format new money changes
 
 			var user_money = money.format(money.data.m, true);
 			var user_bank_money = money.format(money.data.b, true);
@@ -116,6 +121,8 @@ money.sync = (function(){
 			// Lets see if it's the bank, if so update the balance.
 			// Don't bother with transactions, it's in the data, but
 			// no need to visually update it, for now.
+
+			// TODO: Maybe add in transactions updating.
 
 			if(yootil.location.check.forum() && location.href.match(/\/?bank\/?/i)){
 				$("#pd_money_bank_balance").text(yootil.number_format(user_bank_money));

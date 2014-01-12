@@ -1,3 +1,5 @@
+// Test without registering
+
 money.sync = (function(){
 
 	return {
@@ -6,6 +8,10 @@ money.sync = (function(){
 		// up to date data value, or things get messed up
 
 		init: function(){
+			if(!Modernizr.localstorage){
+				return;
+			}
+
 			yootil.storage.set("monetary_data_sync", money.data, true, true);
 
 			var self = this;
@@ -18,10 +24,6 @@ money.sync = (function(){
 		},
 
 		register: function(){
-			if(!Modernizr.localstorage){
-				return;
-			}
-
 			money.modules.push(this);
 			return this;
 		},
@@ -135,7 +137,11 @@ money.sync = (function(){
 		// Got to love IE, nothing but headaches and workarounds.
 
 		trigger: function(){
-			var old_name = (window.name && window.name != "tigger_caller")? window.name : "";
+			if(!Modernizr.localstorage){
+				return;
+			}
+
+			var old_name = (window.name && window.name != "trigger_caller")? window.name : "";
 
 			window.name = "trigger_caller";
 			yootil.storage.set("monetary_data_sync", money.data, true, true);

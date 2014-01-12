@@ -31,7 +31,7 @@ money.sync = (function(){
 		},
 
 		// Checks for the original storage event and makes sure we are
-		// using he correct key.
+		// using the correct key.
 
 		// Should not need domain checking
 

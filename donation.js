@@ -146,26 +146,82 @@ money.donation = (function(){
 		build_donation_html: function(){
 			var html = "";
 
-			var title = "<div>";
+			var title = "<div class='monetary-donation'>";
 
-            title += "<div style='float: left'>Sending Donation To: " + yootil.html_encode(this.donation_to.name) + "</div>";
-            title += "<div style='float: right' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>";
+			console.dir(this.donation_to);
 
-			html += "<div>";
-			html += "<div style='float: left; margin-left: 10px; margin-right: 20px;'><img src='" + money.images.giftmoney + "'></div>";
-			html += "<div style='float: left; margin-top: 10px;'>";
+			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to_url) + "' title='" + yootil.html_encode(this.donation_to.user_at) + "' class='" + yootil.html_encode(this.donation_to.groups) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
 
-			html += "<p style='margin-bottom: 10px;'><strong>Donation To:</strong>" + yootil.html_encode(this.donation_to.name) + "</p>";
-			html += "<p style='margin-bottom: 10px;'><strong>Donation Amount: " + money.settings.money_symbol + "</strong> <input type='text' style='width: 100px' /></p>";
+            title += "<div class='monetary-donation-sending-to-title'>Sending Donation To: " + yootil.html_encode(this.donation_to.name) + "</div>";
+            title += "<div class='monetary-donation-sending-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>";
+
+			html += "<div class='monetary-donation-form'>";
+			//html += "<div class='monetary-donation-gift-img'><img src='" + money.images.giftmoney + "'></div>";
+			html += "<div class='monetary-donation-avatar-img'><img title='" + yootil.html_encode(this.donation_to.user_at) + "' src='" + yootil.html_encode(this.donation_to.avatar) + "'></div>";
+			html += "<div class='monetary-donation-fields'>";
+
+			html += "<dl>";
+
+			html += "<dt><strong>Donation To:</strong></dt>";
+			html += "<dd>" + donation_to_user + "</dd>";
+
+			html += "<dt><strong>Donation Amount:</strong></dt>";
+			html += "<dd><input id='pd_donation_amount' type='text' value='0.00' /><span id='pd_donation_amount_error'></span></dd>";
+
+			html += "<dt><strong>Message:</strong></dt>";
+			html += "<dd><textarea name='pd_donation_message'></textarea></dd>";
+
+			html += "<dt class='monetary-donation-button'> </dt>";
+			html += "<dd class='monetary-donation-button'><button>Send Donation</button></dd>";
+
+			html += "</dl>";
 
 			html += "</div><br style='clear: both' />";
 			html += "</div>";
 
 			var container = yootil.create.container(title, html).show();
 
+			var self = this;
+
+			container.find("input#pd_donation_amount").focus(function(){
+				$(this).val("");
+			});
+
+			container.find("input#pd_donation_amount").blur(function(){
+				if(!$(this).val().length){
+					$(this).val(money.format(0, true));
+				}
+			});
+
+			container.find(".monetary-donation-button button").click(function(){
+				var donation_amount = $("input#pd_donation_amount").val();
+				var current_amount = money.get(false);
+
+				if(donation_amount > current_amount){
+					self.donation_error("Not enough money to cover donation.");
+				} else {
+					if(donation_amount <= 0){
+						self.donation_error("Amount must be above 0.00.");
+					} else {
+						console.log(donation_amount);
+					}
+				}
+			});
+
 			container.appendTo("#content").ready(function(){
                 console.log(1);
             });
+		},
+
+		donation_error: function(error){
+			var elem = $("span#pd_donation_amount_error");
+
+			if(elem.html() != error){
+				elem.stop(true, false);
+				elem.html(" " + error).fadeIn("slow").fadeTo(8000, 1).fadeOut("slow", function(){
+					elem.html("");
+				});
+			}
 		}
 
 	};

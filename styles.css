@@ -343,3 +343,93 @@ div.monetary-gift-notice-content p, div.monetary-donation-notice-content p {
 	margin-top: 10px;
 
 }
+
+/* DONATION */
+
+div.monetary-donation-sending-to-title {
+
+	float: left;
+
+}
+
+div.monetary-donation-sending-amount-title {
+
+	float: right;
+
+}
+
+div.monetary-donation-avatar-img {
+
+	float: left;
+	margin-left: 10px;
+	margin-right: 20px;
+	margin-top: 12px;
+
+}
+
+div.monetary-donation-fields {
+
+	float: left;
+	margin-top: 10px;
+
+}
+
+div.monetary-donation-fields dl {
+
+	width: 620px;
+
+}
+
+div.monetary-donation-fields dl dt {
+
+	float: left;
+	width: 160px;
+	text-align: right;
+	margin-right: 8px;
+
+}
+
+div.monetary-donation-fields dl dd {
+
+	margin-bottom: 10px;
+
+}
+
+div.monetary-donation-fields dl dt.monetary-donation-button {
+
+	margin-top: 20px;
+
+}
+
+div.monetary-donation-fields dl dd.monetary-donation-button {
+
+	margin-bottom: 10px;
+	margin-top: 20px;
+
+}
+
+div.monetary-donation-fields dl dd.monetary-donation-button button {
+
+	margin-left: 0px;
+
+}
+
+div.monetary-donation-fields dd input {
+
+	width: 100px;
+
+}
+
+div.monetary-donation-fields dd textarea {
+
+	width: 400px;
+	height: 100px;
+
+}
+
+div.monetary-donation-fields dd span#pd_donation_amount_error {
+
+	color: red;
+	font-size: 10px;
+
+}

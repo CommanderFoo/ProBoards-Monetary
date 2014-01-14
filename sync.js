@@ -83,8 +83,13 @@ money.sync = (function(){
 			// Handle gifts
 
 			if(location.href.match(/\?monetarygift=.+?$/i)){
-				$(".monetary-gift-notice-content-top").css("opacity", .3);
-				$(".monetary-gift-notice-content-accept").html("You have accepted this gift in another tab / window.");
+				var code = money.gift_money.get_gift_code();
+				var gift = money.gift_money.valid_code(code);
+
+				if(!gift || money.gift_money.has_received(code) || !money.gift_money.allowed_gift(gift)){
+					$(".monetary-gift-notice-content-top").css("opacity", .3);
+					$(".monetary-gift-notice-content-accept").html("You have accepted this gift in another tab / window.");
+				}
 			}
 
 			// Format new money changes

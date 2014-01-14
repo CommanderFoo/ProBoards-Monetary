@@ -9,7 +9,15 @@ money.donation = (function(){
 		settings: {
 
 			enabled: true,
-			show_profile_donation_button: true
+			show_profile_button: true,
+
+			minimum_donation: 0.01,
+			maximum_donation: 0,
+
+			text: {
+
+
+			}
 
 		},
 
@@ -31,7 +39,7 @@ money.donation = (function(){
 					return;
 				}
 
-				if(this.settings.show_profile_donation_button && yootil.location.check.profile_home() && yootil.page.member.id() != yootil.user.id()){
+				if(this.settings.show_profile_button && yootil.location.check.profile_home() && yootil.page.member.id() != yootil.user.id()){
 					this.create_donation_button();
 				} else if(yootil.location.check.conversation_new_user()){
 
@@ -48,11 +56,7 @@ money.donation = (function(){
 
 					$("#user-search-0").ready(function(){
 						if(what.fetch_donation_to()){
-							if(money.get() > 0){
-								what.build_donation_html();
-							} else {
-								what.show_error("<p>You do not have enough money in your " + money.settings.text.wallet + " to send a donation to <a href='" + yootil.html_encode(what.donation_to.url) + "' title='" + yootil.html_encode(what.donation_to.user_at) + "' class='" + yootil.html_encode(what.donation_to.groups) + "'>" + yootil.html_encode(what.donation_to.name) + "</a>.");
-							}
+							what.build_donation_html();
 						} else {
 							money.show_default();
 						}
@@ -79,6 +83,19 @@ money.donation = (function(){
 		setup: function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
+
+				this.settings.enabled = (settings.donations_enabled == "0")? false : this.settings.enabled;
+				this.settings.show_profile_button = (settings.show_profile_button == "0")? false : this.settings.show_profile_button;
+				this.settings.minimum_donation = money.format(settings.minimum_donation);
+				this.settings.maximum_donation = money.format(settings.maximum_donation);
+
+				if(this.settings.minimum_donation < 1){
+					if(!money.settings.decimal_money){
+						this.settings.minimum_donation = 1;
+					} else if(this.settings.minimum_donation <= 0){
+						this.settings.minimum_donation = 0.01;
+					}
+				}
 
 			}
 		},
@@ -148,8 +165,6 @@ money.donation = (function(){
 
 			var title = "<div class='monetary-donation'>";
 
-			console.dir(this.donation_to);
-
 			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to_url) + "' title='" + yootil.html_encode(this.donation_to.user_at) + "' class='" + yootil.html_encode(this.donation_to.groups) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
 
             title += "<div class='monetary-donation-sending-to-title'>Sending Donation To: " + yootil.html_encode(this.donation_to.name) + "</div>";
@@ -193,24 +208,30 @@ money.donation = (function(){
 				}
 			});
 
-			container.find(".monetary-donation-button button").click(function(){
-				var donation_amount = $("input#pd_donation_amount").val();
-				var current_amount = money.get(false);
+			container.find(".monetary-donation-button button").click($.proxy(this.send_donation_handler, this));
 
-				if(donation_amount > current_amount){
-					self.donation_error("Not enough money to cover donation.");
+			container.appendTo("#content").ready(function(){
+                //console.log(1);
+            });
+		},
+
+		send_donation_handler: function(){
+			var donation_amount = $("input#pd_donation_amount").val();
+			var current_amount = money.get(false);
+
+			if(donation_amount > current_amount){
+				this.donation_error("Not enough money to cover donation.");
+			} else {
+				if(donation_amount < this.settings.minimum_donation){
+					this.donation_error("Minimum donation amount is " + money.format(this.settings.minimum_donation, true) + ".");
 				} else {
-					if(donation_amount <= 0){
-						self.donation_error("Amount must be above 0.00.");
+					if(this.settings.maximum_donation && donation_amount > this.settings.maximum_donation){
+						this.donation_error("Maximum donation amount is " + money.format(this.settings.maximum_donation, true) + ".");
 					} else {
 						console.log(donation_amount);
 					}
 				}
-			});
-
-			container.appendTo("#content").ready(function(){
-                console.log(1);
-            });
+			}
 		},
 
 		donation_error: function(error){
@@ -218,7 +239,7 @@ money.donation = (function(){
 
 			if(elem.html() != error){
 				elem.stop(true, false);
-				elem.html(" " + error).fadeIn("slow").fadeTo(8000, 1).fadeOut("slow", function(){
+				elem.html(" " + error).fadeIn("slow").fadeTo(4000, 1).fadeOut("slow", function(){
 					elem.html("");
 				});
 			}

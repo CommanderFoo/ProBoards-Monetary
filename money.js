@@ -252,15 +252,15 @@ var money = {
 
 				case 8 :
 					check_ts = WEEK_2;
-					break
+					break;
 
 				case 9 :
 					check_ts = WEEK_3;
-					break
+					break;
 
 				case 10 :
 					check_ts = MONTH;
-					break
+					break;
 
 			}
 

@@ -291,7 +291,7 @@ money.bank = (function(){
 
 				// Protection incase admin makes a mistake
 
-				if(this.settings.minimum_deposit < 1 || this.settings.minimum_deposit < 0.01){
+				if(this.settings.minimum_deposit < 1){
 					if(!money.settings.decimal_money){
 						this.settings.minimum_deposit = 1;
 					} else if(this.settings.minimum_deposit <= 0){
@@ -299,7 +299,7 @@ money.bank = (function(){
 					}
 				}
 
-				if(this.settings.minimum_withdraw < 1 || this.settings.minimum_withdraw < 0.01){
+				if(this.settings.minimum_withdraw < 1){
 					if(!money.settings.decimal_money){
 						this.settings.minimum_withdraw = 1;
 					} else if(this.settings.minimum_withdraw <= 0){
@@ -414,7 +414,7 @@ money.bank = (function(){
 
 			if(elem.html() != error){
 				elem.stop(true, false);
-				elem.html(error).fadeIn("slow").fadeTo(8000, 1).fadeOut("slow", function(){
+				elem.html(error).fadeIn("slow").fadeTo(4000, 1).fadeOut("slow", function(){
 					elem.html("");
 				});
 			}

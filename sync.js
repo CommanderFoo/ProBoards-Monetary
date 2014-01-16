@@ -119,6 +119,12 @@ money.sync = (function(){
 				wallet.text(yootil.number_format(user_money));
 			}
 
+			var other_wallet = $(".money_wallet_amount");
+
+			if(other_wallet.length){
+				other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + money.get(true));
+			}
+
 			// Lets see if it's the bank, if so update the balance.
 			// Don't bother with transactions, it's in the data, but
 			// no need to visually update it, for now.

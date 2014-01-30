@@ -10,7 +10,7 @@ money.sync = (function(){
 				return;
 			}
 
-			yootil.storage.set("monetary_data_sync", money.data, true, true);
+			yootil.storage.set("monetary_data_sync", money.data(yootil.user.id()).get.data(), true, true);
 
 			var self = this;
 
@@ -78,7 +78,8 @@ money.sync = (function(){
 
 			// Straight up swap of new data, we trust it.
 
-			money.data = new_data;
+			//money.data = new_data;
+			money.data(yootil.user.id()).set.data(new_data);
 
 			// Handle gifts
 
@@ -94,8 +95,8 @@ money.sync = (function(){
 
 			// Format new money changes
 
-			var user_money = money.format(money.data.m, true);
-			var user_bank_money = money.format(money.data.b, true);
+			var user_money = money.data(yootil.user.id()).get.money(true);
+			var user_bank_money = money.data(yootil.user.id()).get.bank(true);
 
 			// Now lets see where we are, and attempt to update visuals
 
@@ -122,7 +123,7 @@ money.sync = (function(){
 			var other_wallet = $(".money_wallet_amount");
 
 			if(other_wallet.length){
-				other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + money.get(true));
+				other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + user_money);
 			}
 
 			// Lets see if it's the bank, if so update the balance.
@@ -158,7 +159,7 @@ money.sync = (function(){
 			var old_name = (window.name && window.name != "trigger_caller")? window.name : "";
 
 			window.name = "trigger_caller";
-			yootil.storage.set("monetary_data_sync", money.data, true, true);
+			yootil.storage.set("monetary_data_sync", money.data(yootil.user.id()).get.data(), true, true);
 			window.name = old_name;
 		}
 

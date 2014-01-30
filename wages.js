@@ -54,8 +54,6 @@ money.wages = (function(){
 
 		setup: function(){
 			if(money.plugin){
-				this.data = money.data.w || {};
-
 				var settings = money.plugin.settings;
 
 				this.settings.enabled = (settings.wages_enabled && settings.wages_enabled == "0")? false : this.settings.enabled;
@@ -76,25 +74,29 @@ money.wages = (function(){
 					this.settings.enabled = false;
 				}
 
-				if(!this.data.p){
-					this.data.p = 0;
+				var data = money.data(yootil.user.id()).get.wages();
+
+				if(!data.p){
+					data.p = 0;
 				} else {
-					this.data.p = parseInt(this.data.p);
+					data.p = parseInt(data.p);
 				}
 
-				if(this.data.e){
-					this.data.e = parseInt(this.data.e);
+				if(data.e){
+					data.e = parseInt(data.e);
 				}
 
-				if(!this.data.w){
-					this.data.w = parseInt(this.settings.how_often);
+				if(!data.w){
+					data.w = parseInt(this.settings.how_often);
 				} else {
-					this.data.w = parseInt(this.data.w);
+					data.w = parseInt(data.w);
 				}
 
-				if(this.data.s){
-					this.data.s = parseInt(this.data.s);
+				if(data.s){
+					data.s = parseInt(data.s);
 				}
+
+				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},
 
@@ -122,18 +124,19 @@ money.wages = (function(){
 			var amount_per_period = this.get_staff_wage_amount();
 			var now = new Date();
 			var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			var data = money.data(yootil.user.id()).get.wages();
 
 			if(!amount_per_period){
-				if(!this.data.s){
-					this.data.s = (today.getTime() / 1000);
-					this.set_money_data();
+				if(!data.s){
+					data.s = (today.getTime() / 1000);
+					money.data(yootil.user.id()).set.wages(data, true);
 				}
 
 				return;
 			}
 
-			var last_paid = (this.data.s)? (this.data.s * 1000) : today.getTime();
-			var when = (this.data.w)? this.data.w : this.settings.how_often;
+			var last_paid = (data.s)? (data.s * 1000) : today.getTime();
+			var when = (data.w)? data.w : this.settings.how_often;
 			var diff = Math.abs(today - last_paid);
 			var amount = 0;
 
@@ -172,23 +175,26 @@ money.wages = (function(){
 					into_bank = true;
 				}
 
-				money.add(amount, into_bank, true);
+				money.data(yootil.user.id()).increase[((into_bank)? "bank" : "money")](amount, true);
 
 				if(into_bank){
 					money.bank.create_transaction(7, amount, 0, true);
 				}
 
-				this.data.s = (today.getTime() / 1000);
-				this.set_money_data();
+				var data = money.data(yootil.user.id()).get.wages();
+
+				data.s = (today.getTime() / 1000);
+				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},
 
 		workout_pay: function(){
+			var data = money.data(yootil.user.id()).get.wages();
 			var now = new Date();
 			var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 			var wage_amount = 0;
 			var wage_bonus = 0;
-			var when = (this.data.w)? this.data.w : this.settings.how_often;
+			var when = (data.w)? data.w : this.settings.how_often;
 			var set_wage = false;
 
 			switch(when){
@@ -201,10 +207,10 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (this.data.e * 1000);
+					var expires = (data.e * 1000);
 
 					if(today.getTime() >= (expires - this.ms.day) && today.getTime() <= expires){
-						this.data.p ++;
+						data.p ++;
 					} else {
 						set_wage = true;
 					}
@@ -217,10 +223,10 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (this.data.e * 1000);
+					var expires = (data.e * 1000);
 
 					if(today.getTime() >= (expires - this.ms.week) && today.getTime() <= expires){
-						this.data.p ++;
+						data.p ++;
 					} else {
 						set_wage = true;
 					}
@@ -233,10 +239,10 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (this.data.e * 1000);
+					var expires = (data.e * 1000);
 
 					if(today.getTime() >= (expires - (this.ms.week * 2)) && today.getTime() <= expires){
-						this.data.p ++;
+						data.p ++;
 					} else {
 						set_wage = true;
 					}
@@ -249,12 +255,12 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (this.data.e * 1000);
+					var expires = (data.e * 1000);
 					var expires_date = new Date(expires);
 					var new_expires_ts = new Date(expires_date.getFullYear(), expires_date.getMonth() - 1, expires_date.getDate()).getTime();
 
 					if(today.getTime() >= new_expires_ts && today.getTime() <= expires){
-						this.data.p ++;
+						data.p ++;
 					} else {
 						set_wage = true;
 					}
@@ -279,6 +285,9 @@ money.wages = (function(){
 			}
 
 			this.total_earned_amount = (wage_amount + wage_bonus);
+
+			money.data(yootil.user.id()).set.wages(data, true);
+
 			this.update_data();
 		},
 
@@ -308,23 +317,32 @@ money.wages = (function(){
 			}
 
 			if(reset){
-				this.data.p = 0;
-				this.data.w = when;
+				var data = money.data(yootil.user.id()).get.wages();
+
+				data.p = 0;
+				data.w = when;
+
+				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},
 
 		set_expiry: function(todays_date, months, days, reset){
-			if(!this.data.e || !this.data.e.toString().length || typeof parseInt(this.data.e) != "number" || reset){
-				this.data.e = (new Date(todays_date.getFullYear(), todays_date.getMonth() + months, todays_date.getDate() + days) / 1000);
+			var data = money.data(yootil.user.id()).get.wages();
+
+			if(!data.e || !data.e.toString().length || typeof parseInt(data.e) != "number" || reset){
+				data.e = (new Date(todays_date.getFullYear(), todays_date.getMonth() + months, todays_date.getDate() + days) / 1000);
+				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},
 
 		update_data: function(reset){
+			var data = money.data(yootil.user.id()).get.wages();
+
 			if(reset){
-				this.data.p = this.data.e = this.data.w = 0;
+				data.p = data.e = data.w = 0;
 			}
 
-			this.set_money_data();
+			money.data(yootil.user.id()).set.wages(data, true);
 
 			if(this.total_earned_amount > 0){
 				var into_bank = false;
@@ -333,7 +351,7 @@ money.wages = (function(){
 					into_bank = true;
 				}
 
-				money.add(this.total_earned_amount, into_bank, true);
+				money.data(yootil.user.id()).increase[((into_bank)? "bank" : "money")](this.total_earned_amount, true);
 
 				if(into_bank){
 					money.bank.create_transaction(5, this.total_earned_amount, 0, true);
@@ -341,18 +359,15 @@ money.wages = (function(){
 			}
 		},
 
-		set_money_data: function(){
-			money.data.w = this.data;
-		},
-
 		get_wage_amount: function(){
+			var data = money.data(yootil.user.id()).get.wages();
 			var rules = this.settings.rules;
 			var amount = 0;
 
 			// Loop through and find highest possible wage
 
 			for(var a = 0, l = rules.length; a < l; a ++){
-				if(this.data.p >= parseInt(rules[a].posts)){
+				if(data.p >= parseInt(rules[a].posts)){
 					amount = parseFloat(rules[a].wage_amount);
 				}
 			}
@@ -379,17 +394,13 @@ money.wages = (function(){
 		},
 
 		get_wage_bonus: function(){
+			var data = money.data(yootil.user.id()).get.wages();
+
 			if(this.settings.bonuses_enabled){
-				return ((this.data.p * parseInt(this.settings.bonus_amount) / 100));
+				return ((data.p * parseInt(this.settings.bonus_amount) / 100));
 			}
 
 			return 0;
-		},
-
-		clear: function(){
-			this.update_data(true);
-			this.data.s = 0;
-			yootil.key.set("pixeldepth_money", money.data, null);
 		}
 
 	};

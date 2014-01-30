@@ -1,38 +1,14 @@
+// TODO: Gift money icon shown by default
+
 var money = {
 
 	VERSION: "{VER}",
 
+	KEY: "pixeldepth_money",
+
 	// Force for latest released version
 
 	required_yootil_version: "0.9.3",
-
-	data: {
-
-		// General money (aka wallet)
-
-		m: 0,
-
-		// Bank
-
-		b: 0,
-
-		// Last transactions
-
-		lt: [],
-
-		// Last interest date
-
-		li: "",
-
-		// Stock market
-
-		s: {},
-
-		// Wages
-
-		w: {}
-
-	},
 
 	plugin: null,
 	route: null,
@@ -109,6 +85,8 @@ var money = {
 
 	modules: [],
 
+	user_data_table: {},
+
 	init: function(){
 		$.support.cors = true;
 
@@ -116,6 +94,7 @@ var money = {
 			return;
 		}
 
+		this.setup_user_data_table();
 		this.setup();
 		this.check_version();
 
@@ -155,6 +134,20 @@ var money = {
 		}
 	},
 
+	setup_user_data_table: function(){
+		var all_data = proboards.plugin.keys.data[this.KEY];
+
+		for(var key in all_data){
+			var data = this.check_data(all_data[key]);
+
+			this.user_data_table[key] = new this.Data(key, data);
+		}
+	},
+
+	version: function(){
+		return this.VERSION;
+	},
+
 	// Seems ProBoards now uses the JSON class (not sure how long), so we
 	// need to test old data to see if it's a string, as this will be double stringified
 
@@ -170,7 +163,7 @@ var money = {
 		var wallet = $(".money_wallet_amount");
 
 		if(wallet.length){
-			wallet.html(this.settings.text.wallet + this.settings.money_separator + this.settings.money_symbol + this.get(true));
+			wallet.html(this.settings.text.wallet + this.settings.money_separator + this.settings.money_symbol + this.data(yootil.user.id()).get.money(true));
 		}
 	},
 
@@ -362,49 +355,14 @@ var money = {
 		this.can_earn_money = true;
 	},
 
-	get: function(format, bank){
-		var type = (bank)? this.data.b : this.data.m;
-		var amount = this.format(type, format || false);
+	data: function(user_id){
+		var user_data = this.user_data_table[((user_id)? user_id : yootil.user.id())];
 
-		if(format){
-			amount = yootil.number_format(amount);
+		if(!user_data){
+			user_data = new this.Data(user_id);
 		}
 
-		return amount;
-	},
-
-	subtract: function(value, bank, no_update){
-		var type = (bank)? "b" : "m";
-
-		this.data[type] -= this.format(value);
-
-		if(!no_update){
-			yootil.key.set("pixeldepth_money", this.data);
-		}
-	},
-
-	add: function(value, bank, no_update){
-		var type = (bank)? "b" : "m";
-
-		this.data[type] += this.format(value);
-
-		if(!no_update){
-			yootil.key.set("pixeldepth_money", this.data);
-		}
-	},
-
-	clear: function(bank, no_update){
-		var type = (bank)? "b" : "m";
-
-		this.data[type] = 0.00;
-
-		if(!no_update){
-			yootil.key.set("pixeldepth_money", this.data);
-		}
-	},
-
-	clear_all: function(){
-		yootil.key.set("pixeldepth_money", {});
+		return user_data;
 	},
 
 	can_earn: function(){
@@ -578,10 +536,10 @@ var money = {
 
 			if(money_to_add > 0 || interest_applied || wages_paid || rank_up_paid){
 				if(hooking){
-					this.data.m += this.format(money_to_add);
-					yootil.key.get_key("pixeldepth_money").set_on(event, null, this.data);
+					this.data(yootil.user.id()).increase.money(money_to_add, true);
+					yootil.key.get_key(this.KEY).set_on(event, null, this.data(yootil.user.id()).get.data());
 				} else {
-					this.add(money_to_add);
+					this.data(yootil.user.id()).increase.money(money_to_add);
 				}
 
 				return true;
@@ -592,15 +550,6 @@ var money = {
 	},
 
 	setup: function(){
-		if(yootil.key.has_value("pixeldepth_money")){
-			var data = this.check_data(yootil.key.value("pixeldepth_money"));
-
-			if(data){
-				this.data = (data && typeof data == "object")? data : this.data;
-				this.current = this.format(this.data.m);
-			}
-		}
-
 		this.route = (proboards.data("route") && proboards.data("route").name)? proboards.data("route").name.toLowerCase() : "";
 		this.params = (this.route && proboards.data("route").params)? proboards.data("route").params : "";
 		this.plugin = proboards.plugin.get("pixeldepth_monetary");
@@ -728,7 +677,7 @@ var money = {
 
 		element = $(element);
 
-		if(self.settings.staff_edit_money && yootil.key.write("pixeldepth_money", user_id) && yootil.user.is_staff() && (yootil.user.id() != user_id || yootil.user.id() == 1) && this.is_allowed_to_edit_money()){
+		if(self.settings.staff_edit_money && yootil.key.write(self.KEY, user_id) && yootil.user.is_staff() && (yootil.user.id() != user_id || yootil.user.id() == 1) && this.is_allowed_to_edit_money()){
 			var edit_element = "<div title='Edit " + title + "'><p>" + this.settings.money_symbol + ": <input type='text' style='width: 100px' name='edit" + bank_str + "money' /></p></div>";
 
 			element.click(function(event){
@@ -741,17 +690,12 @@ var money = {
 					width: 300,
 					resizable: false,
 					draggable: false,
-					dialogClass: ("money_"+ bank_str + "dialog"),
+					dialogClass: ("money_" + bank_str + "dialog"),
 					open: function(){
-						var money_obj = (user_id == yootil.user.id())? self.data : self.check_data(yootil.key.value("pixeldepth_money", user_id));
-						var money = 0.00;
-						var key = (bank_edit)? "b" : "m";
+						var key = (bank_edit)? "bank" : "money";
+						var money = self.data(user_id).get[key](true);
 
-						if(money_obj && money_obj[key]){
-							money = money_obj[key];
-						}
-
-						$(this).find("input[name=edit" + bank_str + "money]").val(self.format(money, true));
+						$(this).find("input[name=edit" + bank_str + "money]").val(money);
 					},
 
 					buttons: {
@@ -763,26 +707,12 @@ var money = {
 						Update: function(){
 							var field = $(this).find("input[name=edit" + bank_str + "money]");
 							var value = self.format(field.val());
-							var money_obj = (user_id == yootil.user.id())? self.data : self.check_data(yootil.key.value("pixeldepth_money", user_id));
-							var money = 0.00;
 							var value_in = value_out = 0.00;
-							var key = (bank_edit)? "b" : "m";
-
-							if(money_obj){
-								if(money_obj[key]){
-									money = self.format(money_obj[key]);
-								}
-							} else {
-								money_obj = {
-									m: 0,
-									b: 0,
-									lt: [],
-									li: ""
-								};
-							}
+							var key = (bank_edit)? "bank" : "money";
+							var money = self.data(user_id).get[key]();
 
 							if(value != money){
-								money_obj[key] = value;
+								self.data(user_id).set[key](value);
 
 								if(bank_edit){
 									if(value > money){
@@ -791,11 +721,11 @@ var money = {
 										value_out = (money - value);
 									}
 
-									transactions = self.bank.create_transaction(4, value_in, value_out, true, value, money_obj);
-									money_obj.lt = transactions;
+									transactions = self.bank.create_transaction(4, value_in, value_out, true, value, user_id);
+									self.data(user_id).set.transactions(transactions, true);
 								}
 
-								yootil.key.set("pixeldepth_money", money_obj, user_id);
+								self.data(user_id).update();
 
 								var update_element = (update_selector)? update_selector : (".pd_" + ((bank)? "" : "money_") + bank_str + "amount_" + user_id);
 
@@ -842,27 +772,16 @@ var money = {
 		table.find("tr.member[id=*member]").each(function(){
 			if(this.id.match(/^member\-(\d+)/i)){
 				var user_id = RegExp.$1;
-
-				var user_data = self.check_data(yootil.key.value("pixeldepth_money", user_id));
-				var user_money = 0;
-
-				if(user_data && user_data.m && user_data.m.toString().length){
-					user_money = self.format(user_data.m, true);
-				}
-
+				var user_money = self.data(user_id).get.money(true);
 				var money_symbol = (self.settings.show_money_symbol_members)? self.settings.money_symbol : "";
-				var td = $("<td class=\"pd_money_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_money_amount_" + user_id + "\">" + yootil.number_format(user_money) + "</span></td>");
+				var td = $("<td class=\"pd_money_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_money_amount_" + user_id + "\">" + user_money + "</span></td>");
 
 				td.insertAfter($(this).find("td.posts"));
 
 				if(self.bank.settings.enabled && self.settings.show_bank_balance_members && yootil.user.is_staff()){
 					var user_bank_money = 0;
-
-					if(user_data && user_data.b && user_data.b.toString().length){
-						user_bank_money = self.format(user_data.b, true);
-					}
-
-					var td = $("<td class=\"pd_bank_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_bank_amount_" + user_id + "\">" + yootil.number_format(user_bank_money) + "</span></td>");
+					var user_money = self.data(user_id).get.bank(true);
+					var td = $("<td class=\"pd_bank_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_bank_amount_" + user_id + "\">" + user_bank_money + "</span></td>");
 
 					td.insertAfter($(this).find("td.pd_money_" + user_id));
 				}
@@ -871,23 +790,12 @@ var money = {
 	},
 
 	show_in_profile: function(){
-		var user_data = this.check_data(yootil.key.value("pixeldepth_money", this.params.user_id));
-		var user_money = 0.00;
-		var user_bank_money = 0.00;
+		var user_money = this.data(this.params.user_id).get.money(true);
+		var user_bank_money = this.data(this.params.user_id).get.bank(true);
 		var edit_image = (this.settings.show_edit_money_image)? (" <img class='money-edit-image' src='" + this.images.edit_money + "' title='Edit' />") : "";
 
 		if(!this.is_allowed_to_edit_money()){
 			edit_image = "";
-		}
-
-		if(user_data){
-			if(user_data.m && user_data.m.toString().length){
-				user_money = this.format(user_data.m, true);
-			}
-
-			if(user_data.b && user_data.b.toString().length){
-				user_bank_money = this.format(user_data.b, true);
-			}
 		}
 
 		var money_symbol = (this.settings.show_money_symbol_profile)? this.settings.money_symbol : "";
@@ -912,7 +820,7 @@ var money = {
 			}
 
 			if(money_amount_custom.length){
-				money_amount_custom.append(yootil.number_format(user_money) + edit_image).addClass("pd_money_amount_" + this.params.user_id);
+				money_amount_custom.append(user_money + edit_image).addClass("pd_money_amount_" + this.params.user_id);
 
 				this.bind_edit_dialog(money_amount_custom, this.params.user_id, false, ".pd_money_amount_" + this.params.user_id, edit_image);
 			}
@@ -935,7 +843,7 @@ var money = {
 				}
 
 				if(bank_amount_custom.length){
-					bank_amount_custom.append(yootil.number_format(user_bank_money) + edit_image).addClass("pd_bank_amount_" + this.params.user_id);
+					bank_amount_custom.append(user_bank_money + edit_image).addClass("pd_bank_amount_" + this.params.user_id);
 
 					this.bind_edit_dialog(bank_amount_custom, this.params.user_id, true, ".pd_bank_amount_" + this.params.user_id, edit_image);
 				}
@@ -981,19 +889,9 @@ var money = {
 
 					if(user_id_match && user_id_match.length == 2){
 						var user_id = user_id_match[1];
-						var money = 0.00;
+						var money = self.data(user_id).get.money(true);
 						var money_text = (self.settings.show_money_text_mini)? self.settings.money_text : "";
 						var money_symbol = (self.settings.show_money_symbol_mini)? self.settings.money_symbol : "";
-
-						if(yootil.key.has_value("pixeldepth_money", user_id)){
-							var user_data = self.check_data(yootil.key.value("pixeldepth_money", user_id));
-
-							if(user_data){
-								money = self.format(user_data.m, true);
-							}
-						}
-
-						money = yootil.number_format(money);
 
 						if(money_text.toString().length){
 							money_text += self.settings.money_separator;

@@ -2,12 +2,6 @@ money.gift_money = (function(){
 
 	return {
 
-		data: {
-
-			g: []
-
-		},
-
 		settings: {
 
 			enabled: true,
@@ -39,7 +33,7 @@ money.gift_money = (function(){
 				if(location.href.match(/\?monetarygift=(.+?)$/i)){
 					var unsafe_code = decodeURIComponent(RegExp.$1);
 
-					yootil.create.nav_branch(location.href, "Gift Money");
+					yootil.create.nav_branch(yootil.html_encode(location.href), "Gift Money");
 					yootil.create.page("?monetarygift", "Gift Money");
 
 					if(!this.gift_money()){
@@ -57,8 +51,6 @@ money.gift_money = (function(){
 
 		setup: function(){
 			if(money.plugin){
-				this.data.g = money.data.g || [];
-
 				var settings = money.plugin.settings;
 
 				this.settings.enabled = (settings.free_money_enabled && settings.free_money_enabled == "0")? false : this.settings.enabled;
@@ -171,7 +163,7 @@ money.gift_money = (function(){
 
 		collect_gift: function(gift){
 			if(this.current_code && this.lookup[this.current_code]){
-				this.data.g.push(this.current_code);
+				money.data(yootil.user.id()).push.gift(this.current_code);
 
 				// Add money to wallet or bank
 
@@ -186,14 +178,13 @@ money.gift_money = (function(){
 					into_bank = true;
 				}
 
-				money.add(amount, into_bank, true);
+				money.data(yootil.user.id()).increase[((into_bank)? "bank" : "money")](amount, true);
 
 				if(into_bank){
 					money.bank.create_transaction(8, amount, 0, true);
 				}
 
 				this.remove_old_codes();
-				this.update_money_data();
 				this.save_money_data();
 
 				money.sync.trigger();
@@ -204,12 +195,8 @@ money.gift_money = (function(){
 			return false;
 		},
 
-		update_money_data: function(){
-			money.data.g = this.data.g;
-		},
-
 		save_money_data: function(){
-			yootil.key.set("pixeldepth_money", money.data);
+			money.data(yootil.user.id()).update();
 		},
 
 		allowed_gift: function(gift){
@@ -243,7 +230,7 @@ money.gift_money = (function(){
 		},
 
 		has_received: function(code){
-			if($.inArrayLoose(code, this.data.g) != -1){
+			if($.inArrayLoose(code, money.data(yootil.user.id()).get.gifts()) != -1){
 				return true;
 			}
 
@@ -276,23 +263,21 @@ money.gift_money = (function(){
 
 		remove_old_codes: function(){
 			if(!this.settings.codes.length){
-				this.data.g = [];
+				money.data(yootil.user.id()).clear.gifts();
 
 				return;
 			}
 
-			var len = this.data.g.length;
+			var gifts = money.data(yootil.user.id()).get.gifts();
+			var len = gifts.length;
 
 			while(len --){
-				if(!this.lookup[this.data.g[len]]){
-					this.data.g.splice(len, 1);
+				if(!this.lookup[gifts[len]]){
+					gifts.splice(len, 1);
 				}
 			}
-		},
 
-		clear_codes: function(){
-			this.data.g = money.data.g = [];
-			yootil.key.set("pixeldepth_money", money.data);
+			money.data(yootil.user.id()).set.gifts(gifts);
 		}
 
 	};

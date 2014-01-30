@@ -78,7 +78,7 @@ money.bank = (function(){
 			html += '<strong>' + this.settings.text.savings_account + '</strong><br />';
 			html += '<span id="bank-overview-details-account-number">' + this.settings.text.account_number + ': ' + account_number + '</span><br />';
 			html += '<span id="bank-overview-details-sort-code">' + this.settings.text.sort_code + ': ' + sort_code + '</span><br /><br />';
-			html += '<span id="bank-overview-details-money">' + money.settings.money_symbol + '<span id="pd_money_bank_balance">' + money.get(true, true) + '</span></span>';
+			html += '<span id="bank-overview-details-money">' + money.settings.money_symbol + '<span id="pd_money_bank_balance">' + money.data(yootil.user.id()).get.bank(true) + '</span></span>';
 			html += '</div>';
 
 			html += '<div id="bank-controls">';
@@ -104,7 +104,7 @@ money.bank = (function(){
 			var title = '<div>';
 
 			title += '<div style="float: left">' + this.settings.text.bank + ' (' + this.settings.text.interest_rate + ': ' + this.settings.interest.toString() + '%)</div>';
-			title += '<div style="float: right" id="pd_money_wallet">' + money.settings.text.wallet + ': ' + money.settings.money_symbol + '<span id="pd_money_wallet_amount">' + money.get(true) + '</span></div>';
+			title += '<div style="float: right" id="pd_money_wallet">' + money.settings.text.wallet + ': ' + money.settings.money_symbol + '<span id="pd_money_wallet_amount">' + money.data(yootil.user.id()).get.money(true) + '</span></div>';
 
 			title += '</div><br style="clear: both" />';
 
@@ -135,7 +135,7 @@ money.bank = (function(){
 				var value = input.val();
 
 				if(parseFloat(value) >= money.format(self.settings.minimum_deposit)){
-					var current_amount = money.get(false);
+					var current_amount = money.data(yootil.user.id()).get.money();
 
 					if(value > current_amount){
 						self.bank_error("You do not have enough to " + self.settings.text.deposit.toLowerCase() + " that amount.");
@@ -159,7 +159,7 @@ money.bank = (function(){
 				var value = input.val();
 
 				if(parseFloat(value) >= money.format(self.settings.minimum_withdraw)){
-					var current_amount = money.get(false, true);
+					var current_amount = money.data(yootil.user.id()).get.bank();
 
 					if(value > current_amount){
 						self.bank_error("You do not have enough in the " + self.settings.text.bank.toLowerCase() + " to " + self.settings.text.withdraw.toLowerCase() + " that amount.");
@@ -245,10 +245,6 @@ money.bank = (function(){
 					trans_html += '<td>' + yootil.number_format(money.format(balance, true)) + '</td>';
 					trans_html += '</tr>';
 
-					//if(counter < (l - 1)){
-						//trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
-					//}
-
 					counter ++;
 				}
 			}
@@ -278,8 +274,6 @@ money.bank = (function(){
 				this.settings.interest = (settings.interest_rate.toString().length)? settings.interest_rate : "1.00";
 				this.settings.minimum_deposit = money.format(settings.minimum_deposit);
 				this.settings.minimum_withdraw = money.format(settings.minimum_withdraw);
-
-				//this.settings.compact = (settings.bank_compact_layout && settings.bank_compact_layout == 1)? true : false;
 
 				if(settings.coin_image && settings.coin_image.length){
 					money.images.coins = settings.coin_image;
@@ -332,8 +326,9 @@ money.bank = (function(){
 				return false;
 			}
 
-			var balance = money.get(false, true);
-			var last_date = money.data.li || "";
+			var user_id = yootil.user.id();
+			var balance = money.data(user_id).get.bank();
+			var last_date = money.data(user_id).get.interest() || "";
 			var now = new Date();
 			var day = now.getDate();
 			var month = (now.getMonth() + 1);
@@ -345,10 +340,10 @@ money.bank = (function(){
 
 				var interest = ((parseFloat(balance) * parseFloat(this.settings.interest)) / 100);
 
-				money.data.li = today;
+				money.data(user_id).set.interest(today);
 
 				if(balance > 0 && interest > 0){
-					money.data.b = (parseFloat(balance) + parseFloat(interest.toFixed(2)));
+					money.data(user_id).increase.bank(parseFloat(interest.toFixed(2)));
 					this.create_transaction(3, interest, 0, true);
 
 					return true;
@@ -356,12 +351,6 @@ money.bank = (function(){
 			}
 
 			return false;
-		},
-
-		clear_last_interest: function(){
-			money.data.li = "";
-			yootil.key.set("pixeldepth_money", money.data);
-
 		},
 
 		format_transaction_date: function(date, format){
@@ -421,25 +410,29 @@ money.bank = (function(){
 		},
 
 		deposit: function(amount){
+			var user_id = yootil.user.id();
+
 			amount = money.format(amount);
 
-			money.subtract(amount);
-			money.add(amount, true);
+			money.data(user_id).decrease.money(amount);
+			money.data(user_id).increase.bank(amount);
 
-			$("#pd_money_wallet_amount").html(money.get(true));
-			$("#pd_money_bank_balance").html(money.get(true, true));
+			$("#pd_money_wallet_amount").html(money.data(user_id).get.money(true));
+			$("#pd_money_bank_balance").html(money.data(user_id).get.bank(true));
 
 			this.create_transaction(1, amount, 0);
 		},
 
 		withdraw: function(amount){
+			var user_id = yootil.user.id();
+
 			amount = money.format(amount);
 
-			money.add(amount);
-			money.subtract(amount, true);
+			money.data(user_id).decrease.bank(amount);
+			money.data(user_id).increase.money(amount);
 
-			$("#pd_money_wallet_amount").html(money.get(true));
-			$("#pd_money_bank_balance").html(money.get(true, true));
+			$("#pd_money_wallet_amount").html(money.data(user_id).get.money(true));
+			$("#pd_money_bank_balance").html(money.data(user_id).get.bank(true));
 
 			this.create_transaction(2, 0, amount);
 		},
@@ -466,20 +459,12 @@ money.bank = (function(){
 			return sort_code;
 		},
 
-		get_transactions: function(other_money_obj){
-			var lt = [];
-
-			var data = other_money_obj || money.data;
-
-			if(data.lt && data.lt.constructor == Array && data.lt.length){
-				lt = data.lt;
-			}
-
-			return lt;
+		get_transactions: function(user_id){
+			return money.data(user_id).get.transactions();
 		},
 
-		create_transaction: function(type, in_amount, out_amount, skip_key_update, force_previous_balance, other_money_obj){
-			var current_transactions = this.get_transactions(other_money_obj);
+		create_transaction: function(type, in_amount, out_amount, skip_key_update, force_previous_balance, user_id){
+			var current_transactions = this.get_transactions(user_id);
 			var now = +new Date();
 
 			in_amount = money.format(in_amount);
@@ -510,11 +495,7 @@ money.bank = (function(){
 				return new_transactions_list;
 			}
 
-			money.data.lt = new_transactions_list;
-
-			if(!skip_key_update){
-				yootil.key.set("pixeldepth_money", money.data);
-			}
+			money.data(user_id).set.transactions(new_transactions_list, skip_key_update);
 		},
 
 		add_new_transaction_row: function(type, in_amount, out_amount, now, balance){
@@ -577,20 +558,7 @@ money.bank = (function(){
 			trans_html += '<td>' + yootil.number_format(money.format(balance, true)) + '</td>';
 			trans_html += '</tr>';
 
-			if($("#bank-transaction-list tr").length > 2){
-				//trans_html += '<tr class="bank-transaction-list-spacer"><td colspan="5"> </td></tr>';
-			}
-
 			$(trans_html).hide().insertAfter($("#bank-transaction-list-headers-dotted")).show("fast").fadeIn(3000).css("display", "");
-		},
-
-		clear_transactions: function(){
-			money.data.lt = [];
-			yootil.key.set("pixeldepth_money", money.data);
-		},
-
-		clear_balance: function(){
-			money.clear(true);
 		}
 
 	};

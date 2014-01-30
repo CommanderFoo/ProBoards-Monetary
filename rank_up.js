@@ -2,12 +2,6 @@ money.rank_up = (function(){
 
 	return {
 
-		data: {
-
-			or: 0
-
-		},
-
 		settings: {
 
 			enabled: true,
@@ -17,6 +11,9 @@ money.rank_up = (function(){
 		},
 
 		init: function(){
+			var rank = money.data(yootil.user.id()).get.rank();
+
+			money.data(yootil.user.id()).set.rank(rank || yootil.user.rank().id, true);
 
 			// Basic checking so we don't need to run setup on each page
 
@@ -27,8 +24,6 @@ money.rank_up = (function(){
 
 		setup: function(){
 			if(money.plugin){
-				this.data.or = money.data.or || yootil.user.rank().id;
-
 				var settings = money.plugin.settings;
 
 				this.settings.enabled = (settings.rank_up_enabled && settings.rank_up_enabled == "0")? false : this.settings.enabled;
@@ -49,13 +44,10 @@ money.rank_up = (function(){
 		pay: function(){
 			if(this.has_ranked_up()){
 				this.update_rank();
-				this.update_data();
 				this.workout_pay();
 
 				return true;
 			} else if(this.no_rank()){
-				this.update_data();
-
 				return true;
 			}
 
@@ -69,7 +61,7 @@ money.rank_up = (function(){
 				into_bank = true;
 			}
 
-			money.add(this.settings.amount, into_bank, true);
+			money.data(yootil.user.id()).increase[((into_bank)? "bank" : "money")](this.settings.amount, true);
 
 			if(into_bank){
 				money.bank.create_transaction(6, this.settings.amount, 0, true);
@@ -77,7 +69,7 @@ money.rank_up = (function(){
 		},
 
 		no_rank: function(){
-			if(!money.data.or){
+			if(!money.data(yootil.user.id()).get.rank()){
 				return true;
 			}
 
@@ -87,7 +79,7 @@ money.rank_up = (function(){
 		has_ranked_up: function(){
 			var current_rank = yootil.user.rank().id;
 
-			if(this.data.or < current_rank){
+			if(money.data(yootil.user.id()).get.rank() < current_rank){
 				return true;
 			}
 
@@ -95,17 +87,7 @@ money.rank_up = (function(){
 		},
 
 		update_rank: function(){
-			this.data.or = yootil.user.rank().id;
-		},
-
-		update_data: function(){
-			money.data.or = this.data.or;
-		},
-
-		clear_rank: function(){
-			this.data = {};
-			delete money.data.or;
-			yootil.key.set("pixeldepth_money", money.data);
+			money.data(yootil.user.id()).set.rank(yootil.user.rank().id, true);
 		}
 
 	};

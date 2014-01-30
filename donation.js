@@ -2,10 +2,6 @@ money.donation = (function(){
 
 	return {
 
-		data: {
-
-		},
-
 		settings: {
 
 			enabled: true,
@@ -39,36 +35,38 @@ money.donation = (function(){
 					return;
 				}
 
-				if(this.settings.show_profile_button && yootil.location.check.profile_home() && yootil.page.member.id() != yootil.user.id()){
-					this.create_donation_button();
-				} else if(yootil.location.check.conversation_new_user()){
+				if(yootil.location.check.profile_home() && yootil.page.member.id() != yootil.user.id()){
+					if(location.href.match(/\?monetarydonation/i)){
+						var id = parseInt(yootil.page.member.id());
 
-					// Prevent draft dialog from popping up
+						yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation"), "Send Donation");
+						yootil.create.nav_branch(yootil.html_encode(location.href), "Send Donation");
 
-					proboards.autosave.options.noDialog = true;
-
-					yootil.create.page("?monetarydonation", "Send Donation");
-
-					this.correct_doc_title();
-					this.replace_nav_branch();
-
-					var what = this;
-
-					$("#user-search-0").ready(function(){
-						if(what.fetch_donation_to()){
-							what.build_donation_html();
-						} else {
-							money.show_default();
-						}
-					});
-				} else if(yootil.location.check.message_thread()){
-					this.parse_donation_message();
+						this.collect_donation_to_details();
+						this.build_donation_html();
+					} else if(this.settings.show_profile_button){
+						this.create_donation_button();
+					}
 				}
 			}
 		},
 
-		correct_doc_title: function(){
-			document.title = document.title.replace(/^.+?\| /, "");
+		collect_donation_to_details: function(){
+			var member_avatar = $(".avatar-wrapper.avatar-2:first img:first").attr("src");
+			var member_name = yootil.page.member.name();
+			var member_url = yootil.page.member.url();
+			var member_id = yootil.page.member.id();
+			var member_money = money.get(true, false, member_id);
+
+			this.donation_to = {
+
+				name: member_name,
+				url: member_url,
+				avatar: member_avatar,
+				user_id: member_id,
+				money: member_money
+
+			};
 		},
 
 		show_error: function(msg){
@@ -107,38 +105,6 @@ money.donation = (function(){
 			return this;
 		},
 
-		// Here we handle getting the details from the micro profile.
-		// If there is no micro profiles, then we show the form as normal.
-		// If there is multiple micro profiles, show the form as normal.
-
-		fetch_donation_to: function(){
-			var search_wrapper = $("#user-search-0");
-			var micros = search_wrapper.find(".user-search-selection div.micro-profile");
-
-			if(micros.length == 1){
-				var name = micros.find("div.info span.name a.user-link");
-				var avatar = micros.find("div.avatar div.avatar-wrapper img");
-				var to_id = (name.attr("href").match(/user\/(\d+)\/?$/i))? RegExp.$1 : 0;
-
-				this.donation_to = {
-
-					name: name.text(),
-					url: name.attr("href"),
-					groups: name.attr("class"),
-					avatar: avatar.attr("src"),
-					user_at: name.attr("title"),
-					user_id: parseInt(to_id)
-
-				};
-
-				if(this.donation_to.name.length && this.donation_to.url.length){
-					return true;
-				}
-			}
-
-			return false;
-		},
-
 		create_donation_button: function(){
 
 			// Let's see if the send message button exists, if so, clone it, and insert
@@ -148,35 +114,26 @@ money.donation = (function(){
 
 			if(send_button.length){
 				var clone = send_button.clone();
+				var id = parseInt(yootil.page.member.id());
 
-				clone.attr("href", clone.attr("href") + "/?monetarydonation").text("Send Donation");
+				clone.attr("href", "/user/" + id + "?monetarydonation").text("Send Donation");
 				clone.insertAfter(send_button);
 			}
 		},
 
-		// Move to Yootil at some point
-
-		replace_nav_branch: function(){
-			var branch = $(".nav-tree-wrapper a[href='/conversation/new'] span");
-
-			if(branch.length){
-				branch.text("Send Donation");
-			}
-		},
 
 		build_donation_html: function(){
 			var html = "";
 
 			var title = "<div class='monetary-donation'>";
 
-			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "' title='" + yootil.html_encode(this.donation_to.user_at) + "' class='" + yootil.html_encode(this.donation_to.groups) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
+			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
 
             title += "<div class='monetary-donation-sending-to-title'>Sending Donation To: " + yootil.html_encode(this.donation_to.name) + "</div>";
-            title += "<div class='monetary-donation-sending-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.get(true) + "</span></div>";
+            title += "<div class='monetary-donation-sending-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.data(yootil.user.id()).get.money(true) + "</span></div>";
 
 			html += "<div class='monetary-donation-form'>";
-			//html += "<div class='monetary-donation-gift-img'><img src='" + money.images.giftmoney + "'></div>";
-			html += "<div class='monetary-donation-avatar-img'><img title='" + yootil.html_encode(this.donation_to.user_at) + "' src='" + yootil.html_encode(this.donation_to.avatar) + "'></div>";
+			html += "<div class='monetary-donation-avatar-img'><img title='" + yootil.html_encode(this.donation_to.name) + "' src='" + yootil.html_encode(this.donation_to.avatar) + "'><p class='monetary-donation-to-current-amount'>" + money.settings.money_symbol + yootil.html_encode(this.donation_to.money) + "</p></div>";
 			html += "<div class='monetary-donation-fields'>";
 
 			html += "<dl>";
@@ -219,7 +176,7 @@ money.donation = (function(){
 		send_donation_handler: function(){
 			var donation_amount = $("input#pd_donation_amount").val();
 			var message = $("textarea#pd_donation_message").val();
-			var current_amount = money.get(false);
+			var current_amount = money.data(yootil.user.id()).get.money();
 
 			if(donation_amount > current_amount){
 				this.donation_error("Not enough money to cover donation.");
@@ -230,22 +187,7 @@ money.donation = (function(){
 					if(this.settings.maximum_donation && donation_amount > this.settings.maximum_donation){
 						this.donation_error("Maximum donation amount is " + money.format(this.settings.maximum_donation, true) + ".");
 					} else {
-						var the_form = yootil.form.conversation_new_form();
-						var area = the_form.find("textarea[name=message]");
-						var content = area.wysiwyg("getContent");
-
-						var msg = "This message was generated by the Montary System.\n\n";
-
-						msg += "[div title='Donation Amount'][b]Donation Amount: [/b]" + donation_amount + "[/div]\n";
-						msg += "[div title='Donation Message'][b]Message: [/b]\n\n" + message + "[/div]\n\n";
-						msg += "[div title='pd_monetary_donation_id_" + (~(this.donation_to.user_id + yootil.user.id()) << 2) + "'] [/div]";
-
-						area.wysiwyg("setContent", msg);
-						the_form.find("input[name=subject]").val("Donation of " + money.settings.money_symbol + yootil.html_encode(donation_amount) + " from " + yootil.html_encode(yootil.user.name()));
-
-						// TODO: Deduct from data the amount of the donation
-
-						the_form.trigger("submit");
+						console.log("yo");
 					}
 				}
 			}
@@ -259,24 +201,6 @@ money.donation = (function(){
 				elem.html(" " + error).fadeIn("slow").fadeTo(4000, 1).fadeOut("slow", function(){
 					elem.html("");
 				});
-			}
-		},
-
-		parse_donation_message: function(){
-			var messages = $(".messages");
-
-			if(messages.length && messages.find(".title-bar h1:contains('Donation of')")){
-			 	var first_message = messages.find(".message.first");
-			 	var mini_profile = first_message.find(".mini-profile");
-			 	var message = first_message.find(".content .message");
-				var donation_id = message.find("div[title^='pd_monetary_donation_id_']");
-
-				// Check to see if this is a valid donation message before
-				// hiding the containers
-
-				if(donation_id && donation_id.length){
-					//$("#content > *").hide();
-				}
 			}
 		}
 

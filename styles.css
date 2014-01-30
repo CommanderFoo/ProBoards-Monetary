@@ -432,3 +432,10 @@ div.monetary-donation-fields dd span#pd_donation_amount_error {
 	color: red;
 
 }
+
+p.monetary-donation-to-current-amount {
+
+	font-size: 11px;
+	text-align: center;
+
+}

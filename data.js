@@ -70,7 +70,7 @@ money.Data = (function(){
 		this.data.w = (typeof this.data.w == "object" && this.data.w.constructor == Object)? this.data.w : {};
 		this.data.g = (typeof this.data.g == "object" && this.data.lt.constructor == Array)? this.data.g : [];
 		this.data.or = (typeof this.data.or == "number")? this.data.or : 0;
-		this.data.f = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
+		this.data.d = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
 
 		this.update = function(skip_update){
 			if(!skip_update){

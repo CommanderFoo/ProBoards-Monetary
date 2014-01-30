@@ -17,6 +17,9 @@ money.donation = (function(){
 
 		},
 
+		page_timer: 0,
+		PAGE_TIME_EXPIRY: 45,
+
 		donation_to: {
 
 			name: "",
@@ -35,20 +38,97 @@ money.donation = (function(){
 					return;
 				}
 
-				if(yootil.location.check.profile_home() && yootil.page.member.id() != yootil.user.id()){
-					if(location.href.match(/\?monetarydonation/i)){
+				if(yootil.location.check.profile_home()){
+					if(location.href.match(/\?monetarydonation&view=(\d+)/i) && RegExp.$1 && parseInt(RegExp.$1) >= 1 && parseInt(RegExp.$1) <= 3){
 						var id = parseInt(yootil.page.member.id());
+						var view = parseInt(RegExp.$1);
 
-						yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation"), "Send Donation");
-						yootil.create.nav_branch(yootil.html_encode(location.href), "Send Donation");
+						switch(view){
 
-						this.collect_donation_to_details();
-						this.build_donation_html();
-					} else if(this.settings.show_profile_button){
+							// Sending
+
+							case 1:
+								if(yootil.page.member.id() != yootil.user.id()){
+									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=1"), "Send Donation");
+									yootil.create.nav_branch(yootil.html_encode(location.href), "Send Donation");
+
+									this.collect_donation_to_details();
+									this.build_send_donation_html();
+									this.monitor_time_on_page();
+								} else {
+									money.show_default();
+								}
+
+								break;
+
+							// View received donation list
+
+							case 2:
+								yootil.create.page(new RegExp("\\/user\\/" + yootil.user.id() + "\\?monetarydonation&view=2"), "Received Donations");
+								yootil.create.nav_branch(yootil.html_encode(location.href), "Received Donations");
+
+								this.build_received_donations_html();
+
+								break;
+
+							// Viewing a donation
+							// All donations have to be accepted
+
+							case 3:
+								if(yootil.page.member.id() != yootil.user.id()){
+									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=3"), "Viewing Donation");
+									yootil.create.nav_branch(yootil.html_encode(location.href), "Viewing Donation");
+
+									this.collect_donation_from_details();
+									this.build_view_donation_html();
+									this.monitor_time_on_page();
+								} else {
+									money.show_default();
+								}
+
+								break;
+
+						}
+					} else if(yootil.page.member.id() != yootil.user.id() && this.settings.show_profile_button){
 						this.create_donation_button();
 					}
 				}
 			}
+		},
+
+		monitor_time_on_page: function(){
+			var self = this;
+			var interval;
+
+			interval = setInterval(function(){
+				if(self.page_timer >= self.PAGE_TIME_EXPIRY){
+					$(".monetary-donation-form").css("opacity", .3);
+					$(".monetary-donation-fields input").attr("disabled", true);
+					$(".monetary-donation-fields textarea").attr("disabled", true);
+					$("dd.monetary-donation-button button").css("visibility", "hidden");
+
+					$("#monetary-donation-page-expiry").html("Page Expires In: expired");
+
+					proboards.alert("Page Expired", "This page has expired, please refresh if you want to send this member a donation.", {
+						modal: true,
+						height: 180,
+						resizable: false,
+						draggable: false
+					});
+
+					clearInterval(interval);
+
+					return;
+				}
+
+				self.page_timer ++;
+
+				var time_left = self.PAGE_TIME_EXPIRY - self.page_timer;
+
+				time_left = (time_left < 0)? 0 : time_left;
+
+				$("#monetary-donation-page-expiry").html("Page Expires In: " + time_left + " second" + ((time_left == 1)? "" : "s"));
+			}, 1000);
 		},
 
 		collect_donation_to_details: function(){
@@ -56,7 +136,7 @@ money.donation = (function(){
 			var member_name = yootil.page.member.name();
 			var member_url = yootil.page.member.url();
 			var member_id = yootil.page.member.id();
-			var member_money = money.get(true, false, member_id);
+			var member_money = money.data(member_id).get.money(true);
 
 			this.donation_to = {
 
@@ -67,6 +147,12 @@ money.donation = (function(){
 				money: member_money
 
 			};
+		},
+
+		// This is the same method as above, just renamed to prevent confusion
+
+		collect_donation_from_details: function(){
+			this.collect_donation_to_details();
 		},
 
 		show_error: function(msg){
@@ -116,20 +202,20 @@ money.donation = (function(){
 				var clone = send_button.clone();
 				var id = parseInt(yootil.page.member.id());
 
-				clone.attr("href", "/user/" + id + "?monetarydonation").text("Send Donation");
+				clone.attr("href", "/user/" + id + "?monetarydonation&view=1").text("Send Donation");
 				clone.insertAfter(send_button);
 			}
 		},
 
 
-		build_donation_html: function(){
+		build_send_donation_html: function(){
 			var html = "";
 
 			var title = "<div class='monetary-donation'>";
 
 			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
 
-            title += "<div class='monetary-donation-sending-to-title'>Sending Donation To: " + yootil.html_encode(this.donation_to.name) + "</div>";
+            title += "<div class='monetary-donation-sending-to-title'>Sending Donation - <span id='monetary-donation-page-expiry'>Page Expires In: " + this.PAGE_TIME_EXPIRY + " seconds</span></div>";
             title += "<div class='monetary-donation-sending-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + money.data(yootil.user.id()).get.money(true) + "</span></div>";
 
 			html += "<div class='monetary-donation-form'>";
@@ -170,6 +256,18 @@ money.donation = (function(){
 			});
 
 			container.find(".monetary-donation-button button").click($.proxy(this.send_donation_handler, this));
+			container.appendTo("#content");
+		},
+
+		build_received_donations_html: function(){
+			var container = yootil.create.container("Donation List", "Hi").show();
+
+			container.appendTo("#content");
+		},
+
+		build_view_donation_html: function(){
+			var container = yootil.create.container("View Donation", "Hi").show();
+
 			container.appendTo("#content");
 		},
 

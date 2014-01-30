@@ -2,7 +2,6 @@ money.Data = (function(){
 
 	function Data(user_id, data){
 		this.user_id = user_id;
-
 		this.data = data || {
 
 			// General money (aka wallet)
@@ -53,7 +52,11 @@ money.Data = (function(){
 
 			// Old rank
 
-			or: 0
+			or: 0,
+
+			// Donations
+
+			d: []
 
 		};
 
@@ -67,6 +70,7 @@ money.Data = (function(){
 		this.data.w = (typeof this.data.w == "object" && this.data.w.constructor == Object)? this.data.w : {};
 		this.data.g = (typeof this.data.g == "object" && this.data.lt.constructor == Array)? this.data.g : [];
 		this.data.or = (typeof this.data.or == "number")? this.data.or : 0;
+		this.data.f = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
 
 		this.update = function(skip_update){
 			if(!skip_update){
@@ -80,6 +84,10 @@ money.Data = (function(){
 
 			data: function(){
 				return self.data;
+			},
+
+			pushed: function(){
+				return self.pushed_data;
 			},
 
 			money: function(format){
@@ -124,6 +132,10 @@ money.Data = (function(){
 
 			rank: function(){
 				return self.data.or;
+			},
+
+			donations: function(){
+				return self.data.d;
 			}
 
 		};
@@ -201,6 +213,11 @@ money.Data = (function(){
 			data: function(data, skip_update){
 				self.data = data;
 				self.update(skip_update);
+			},
+
+			donations: function(donations, skip_update){
+				self.data.d = donations;
+				self.update(skip_update);
 			}
 
 		};
@@ -215,6 +232,45 @@ money.Data = (function(){
 			investmemts: function(skip_update){
 				self.data.s = {};
 				self.update(skip_update);
+			},
+
+			wages: function(skip_update){
+				self.data.w = {};
+				self.update(skip_update);
+			},
+
+			bank: function(skip_update){
+				self.data.b = 0;
+				self.update(skip_update);
+			},
+
+			money: function(skip_update){
+				self.data.m = 0;
+				self.update(skip_update);
+			},
+
+			transactions: function(skip_update){
+				self.data.lt = [];
+				self.update(skip_update);
+			},
+
+			interest: function(skip_update){
+				self.data.li = "";
+				self.update(skip_update);
+			},
+
+			rank: function(skip_update){
+				self.data.or = 0;
+				self.update(skip_update);
+			},
+
+			data: function(skip_update){
+				self.data = {};
+				self.update(skip_update);
+			},
+
+			donations: function(skip_update){
+				self.data.d = [];
 			}
 
 		};

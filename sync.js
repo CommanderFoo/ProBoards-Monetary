@@ -79,7 +79,7 @@ money.sync = (function(){
 			// Straight up swap of new data, we trust it.
 
 			//money.data = new_data;
-			money.data(yootil.user.id()).set.data(new_data);
+			money.data(yootil.user.id()).set.data(new_data, true);
 
 			// Handle gifts
 
@@ -129,8 +129,6 @@ money.sync = (function(){
 			// Lets see if it's the bank, if so update the balance.
 			// Don't bother with transactions, it's in the data, but
 			// no need to visually update it, for now.
-
-			// TODO: Maybe add in transactions updating.
 
 			if(yootil.location.check.forum() && location.href.match(/\/?bank\/?/i)){
 				$("#pd_money_bank_balance").text(yootil.number_format(user_bank_money));

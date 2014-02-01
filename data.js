@@ -307,6 +307,10 @@ money.Data = (function(){
 			* opts {
 			* 	to: (Data object),
 			* 	amount: (Integer / Float),
+			* 	message: {
+			* 		text: (String),
+			* 		len: (Integer)
+			* 	},
 			* 	from: {
 			* 		id: (Integer),
 			* 		name: (String)
@@ -317,11 +321,21 @@ money.Data = (function(){
 			send: function(opts, skip_update){
 				if(opts){
 					if(opts.to && opts.amount && parseFloat(opts.amount) > 0 && opts.from && opts.from.id && parseInt(opts.from.id) > 0 && opts.from.name && opts.from.name.length){
-						opts.ts = (+ new Date() / 1000);
+						var the_donation = {
+
+							t: (+ new Date() / 1000),
+							a: money.format(opts.amount),
+							f: [opts.from.id, opts.from.name]
+
+						};
+
+						if(opts.message && opts.message.text && opts.message.text.length){
+							the_donation.m = opts.message.text.substr(0, ((opts.message.len)? opts.message.len : 50));
+						}
 
 						// Push donation to the array (note:  this is on the receivers object)
 
-						opts.to.donation.push(opts);
+						opts.to.donation.push(the_donation);
 
 						// Remove donation amount
 

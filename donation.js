@@ -305,8 +305,14 @@ money.donation = (function(){
 					} else {
 						var the_donation = {
 
-							to: money.data(yootil.member.id()),
+							to: money.data(yootil.page.member.id()),
 							amount: donation_amount,
+
+							message: {
+								text: message,
+								len: this.settings.message_max_len
+							},
+
 							from: {
 								id: yootil.user.id(),
 								name: yootil.user.name()

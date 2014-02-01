@@ -404,7 +404,6 @@ div.monetary-donation-fields dl dt.monetary-donation-button {
 div.monetary-donation-fields dl dd.monetary-donation-button {
 
 	margin-bottom: 10px;
-	margin-top: 20px;
 
 }
 
@@ -437,5 +436,15 @@ p.monetary-donation-to-current-amount {
 
 	font-size: 11px;
 	text-align: center;
+
+}
+
+span.monetary-donation-message-chars-remain {
+
+	font-size: 10px;
+	position: relative;
+	top: -20px;
+	left: 430px;
+	opacity: 0.4;
 
 }

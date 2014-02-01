@@ -60,6 +60,8 @@ money.Data = (function(){
 
 		};
 
+		this.error = "";
+
 		// Basic validation of data
 
 		this.data.m = (typeof this.data.m == "number")? this.data.m : 0;
@@ -74,6 +76,17 @@ money.Data = (function(){
 
 		this.update = function(skip_update){
 			if(!skip_update){
+
+				// Lets put in a length check on the data so we can get a reason why
+				// the data was not updated.
+
+				if(JSON.stringify(this.data).length > proboards.data("plugin_max_key_length")){
+					this.error = "Data length has gone over it's limit of " + proboards.data("plugin_max_key_length");
+				}
+
+				// No need to stop update if limit has been reached, ProBoards should handle this
+				// for us and stop the update of the key.
+
 				yootil.key.set(money.KEY, this.data, this.user_id);
 			}
 		};
@@ -81,6 +94,10 @@ money.Data = (function(){
 		var self = this;
 
 		this.get = {
+
+			error: function(){
+				return this.error;
+			},
 
 			data: function(){
 				return self.data;
@@ -280,6 +297,45 @@ money.Data = (function(){
 			gift: function(code, skip_update){
 				self.data.g.push(code);
 				self.update(skip_update);
+			}
+
+		};
+
+		this.donation = {
+
+			/*
+			* opts {
+			* 	to: (Data object),
+			* 	amount: (Integer / Float),
+			* 	from: {
+			* 		id: (Integer),
+			* 		name: (String)
+			*	}
+			* }
+			*/
+
+			send: function(opts, skip_update){
+				if(opts){
+					if(opts.to && opts.amount && parseFloat(opts.amount) > 0 && opts.from && opts.from.id && parseInt(opts.from.id) > 0 && opts.from.name && opts.from.name.length){
+						opts.ts = (+ new Date() / 1000);
+
+						// Push donation to the array (note:  this is on the receivers object)
+
+						opts.to.donation.push(opts);
+
+						// Remove donation amount
+
+						self.decrease.money(opts.amount, skip_update);
+
+						return true;
+					}
+				}
+
+				return false;
+			},
+
+			push: function(donation){
+				self.data.d.push(donation);
 			}
 
 		};

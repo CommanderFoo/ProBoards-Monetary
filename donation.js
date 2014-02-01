@@ -10,6 +10,10 @@ money.donation = (function(){
 			minimum_donation: 0.01,
 			maximum_donation: 0,
 
+			page_timer_enabled: false,
+
+			message_max_len: 50,
+
 			text: {
 
 
@@ -54,7 +58,10 @@ money.donation = (function(){
 
 									this.collect_donation_to_details();
 									this.build_send_donation_html();
-									this.monitor_time_on_page();
+
+									if(this.settings.page_timer_enabled){
+										this.monitor_time_on_page();
+									}
 								} else {
 									money.show_default();
 								}
@@ -231,7 +238,8 @@ money.donation = (function(){
 			html += "<dd><input id='pd_donation_amount' type='text' value='0.00' /><span id='pd_donation_amount_error'></span></dd>";
 
 			html += "<dt><strong>Message:</strong></dt>";
-			html += "<dd><textarea name='pd_donation_message' id='pd_donation_message'></textarea></dd>";
+			html += "<dd><textarea name='pd_donation_message' id='pd_donation_message'></textarea>";
+			html += "<span class='monetary-donation-message-chars-remain'>Characters Remaining: <span id='monatary-donation-chars-remain'>" + this.settings.message_max_len + "</span></dd>";
 
 			html += "<dt class='monetary-donation-button'> </dt>";
 			html += "<dd class='monetary-donation-button'><button>Send Donation</button></dd>";
@@ -257,6 +265,16 @@ money.donation = (function(){
 
 			container.find(".monetary-donation-button button").click($.proxy(this.send_donation_handler, this));
 			container.appendTo("#content");
+
+			var msg_len_handler = function(){
+			    var len = this.value.length;
+			    var remain = (self.settings.message_max_len - this.value.length);
+
+			    remain = (remain < 0)? 0 : remain;
+			    $("#monatary-donation-chars-remain").html(remain);
+			};
+
+			$("#pd_donation_message").bind("keyup keydown",  msg_len_handler);
 		},
 
 		build_received_donations_html: function(){
@@ -285,7 +303,22 @@ money.donation = (function(){
 					if(this.settings.maximum_donation && donation_amount > this.settings.maximum_donation){
 						this.donation_error("Maximum donation amount is " + money.format(this.settings.maximum_donation, true) + ".");
 					} else {
-						console.log("yo");
+						var the_donation = {
+
+							to: money.data(yootil.member.id()),
+							amount: donation_amount,
+							from: {
+								id: yootil.user.id(),
+								name: yootil.user.name()
+							}
+
+						};
+
+						if(money.data(yootil.user.id()).donation.send(the_donation)){
+							console.log("Yay");
+						} else {
+							console.log("Nay");
+						}
 					}
 				}
 			}

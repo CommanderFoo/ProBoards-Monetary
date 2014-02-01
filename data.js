@@ -330,12 +330,13 @@ money.Data = (function(){
 						};
 
 						if(opts.message && opts.message.text && opts.message.text.length){
-							the_donation.m = opts.message.text.substr(0, ((opts.message.len)? opts.message.len : 50));
+							the_donation.m = opts.message.text.substr(0, ((opts.message.len)? opts.message.len : 50)).replace(/\n|\r/g, "[br]");
 						}
 
 						// Push donation to the array (note:  this is on the receivers object)
 
 						opts.to.donation.push(the_donation);
+						opts.to.update();
 
 						// Remove donation amount
 

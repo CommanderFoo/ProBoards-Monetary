@@ -322,12 +322,19 @@ money.donation = (function(){
 
 						if(money.data(yootil.user.id()).donation.send(the_donation)){
 							console.log("Yay");
+
+							this.update_wallet();
+							money.sync.trigger();
 						} else {
 							console.log("Nay");
 						}
 					}
 				}
 			}
+		},
+
+		update_wallet: function(){
+			$("#pd_money_wallet_amount").html(money.data(yootil.user.id()).get.money(true));
 		},
 
 		donation_error: function(error){

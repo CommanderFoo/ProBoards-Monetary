@@ -666,7 +666,7 @@ var money = {
 			return false;
 		}
 
-		return true;
+		return false;
 	},
 
 	bind_edit_dialog: function(element, user_id, bank, update_selector, edit_image){
@@ -794,7 +794,7 @@ var money = {
 		var user_bank_money = this.data(this.params.user_id).get.bank(true);
 		var edit_image = (this.settings.show_edit_money_image)? (" <img class='money-edit-image' src='" + this.images.edit_money + "' title='Edit' />") : "";
 
-		if(!this.is_allowed_to_edit_money()){
+		if(!this.is_allowed_to_edit_money() || (this.params.user_id == yootil.user.id() && yootil.user.id() != 1)){
 			edit_image = "";
 		}
 

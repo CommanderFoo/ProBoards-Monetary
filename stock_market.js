@@ -1,5 +1,3 @@
-// Refund disabled stock
-
 money.stock_market = (function(){
 
 	return {

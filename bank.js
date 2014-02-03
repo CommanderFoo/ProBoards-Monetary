@@ -134,21 +134,25 @@ money.bank = (function(){
 				var input = container.find("input#pd_money_deposit");
 				var value = input.val();
 
-				if(parseFloat(value) >= money.format(self.settings.minimum_deposit)){
-					var current_amount = money.data(yootil.user.id()).get.money();
-
-					if(value > current_amount){
-						self.bank_error("You do not have enough to " + self.settings.text.deposit.toLowerCase() + " that amount.");
-					} else {
-						self.deposit(value);
-						input.val(money.format(0, true));
-
-						// Trigger syncing for other tabs
-
-						money.sync.trigger();
-					}
+				if(!value.match(/^\d+(\.\d{1,2})?$/)){
+					self.bank_error(self.settings.text.deposit + " value must be a number (i.e 56, or 56.22).");
 				} else {
-					self.bank_error(self.settings.text.deposit + " value can't be less than " + money.format(self.settings.minimum_deposit, true) + ".");
+					if(parseFloat(value) >= money.format(self.settings.minimum_deposit)){
+						var current_amount = money.data(yootil.user.id()).get.money();
+
+						if(value > current_amount){
+							self.bank_error("You do not have enough to " + self.settings.text.deposit.toLowerCase() + " that amount.");
+						} else {
+							self.deposit(value);
+							input.val(money.format(0, true));
+
+							// Trigger syncing for other tabs
+
+							money.sync.trigger();
+						}
+					} else {
+						self.bank_error(self.settings.text.deposit + " value can't be less than " + money.format(self.settings.minimum_deposit, true) + ".");
+					}
 				}
 
 				return false;
@@ -158,21 +162,25 @@ money.bank = (function(){
 				var input = container.find("input#pd_money_withdraw");
 				var value = input.val();
 
-				if(parseFloat(value) >= money.format(self.settings.minimum_withdraw)){
-					var current_amount = money.data(yootil.user.id()).get.bank();
-
-					if(value > current_amount){
-						self.bank_error("You do not have enough in the " + self.settings.text.bank.toLowerCase() + " to " + self.settings.text.withdraw.toLowerCase() + " that amount.");
-					} else {
-						self.withdraw(value);
-						input.val(money.format(0, true));
-
-						// Trigger syncing for other tabs
-
-						money.sync.trigger();
-					}
+				if(!value.match(/^\d+(\.\d{1,2})?$/)){
+					self.bank_error(self.settings.text.withdraw + " value must be a number (i.e 56, or 56.22).");
 				} else {
-					self.bank_error(self.settings.text.withdraw + " value can't be less than " + money.format(self.settings.minimum_withdraw, true) + ".");
+					if(parseFloat(value) >= money.format(self.settings.minimum_withdraw)){
+						var current_amount = money.data(yootil.user.id()).get.bank();
+
+						if(value > current_amount){
+							self.bank_error("You do not have enough in the " + self.settings.text.bank.toLowerCase() + " to " + self.settings.text.withdraw.toLowerCase() + " that amount.");
+						} else {
+							self.withdraw(value);
+							input.val(money.format(0, true));
+
+							// Trigger syncing for other tabs
+
+							money.sync.trigger();
+						}
+					} else {
+						self.bank_error(self.settings.text.withdraw + " value can't be less than " + money.format(self.settings.minimum_withdraw, true) + ".");
+					}
 				}
 
 				return false;

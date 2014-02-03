@@ -239,7 +239,7 @@ money.donation = (function(){
 
 			html += "<dt><strong>Message:</strong></dt>";
 			html += "<dd><textarea name='pd_donation_message' id='pd_donation_message'></textarea>";
-			html += "<span class='monetary-donation-message-chars-remain'>Characters Remaining: <span id='monatary-donation-chars-remain'>" + this.settings.message_max_len + "</span></dd>";
+			html += "<span style='display: none' class='monetary-donation-message-chars-remain'>Characters Remaining: <span id='monatary-donation-chars-remain'>" + this.settings.message_max_len + "</span></dd>";
 
 			html += "<dt class='monetary-donation-button'> </dt>";
 			html += "<dd class='monetary-donation-button'><button>Send Donation</button></dd>";
@@ -263,6 +263,7 @@ money.donation = (function(){
 				}
 			});
 
+			container.find(".monetary-donation-message-chars-remain").show();
 			container.find(".monetary-donation-button button").click($.proxy(this.send_donation_handler, this));
 			container.appendTo("#content");
 
@@ -278,7 +279,21 @@ money.donation = (function(){
 		},
 
 		build_received_donations_html: function(){
-			var container = yootil.create.container("Donation List", "Hi").show();
+			var html = "";
+
+			html = "<table class='list'>";
+			html += "<thead><tr class='head'><th class='main'>Donation Amount</th><th>Donation From</th>";
+			html += "<th>Date Sent</th></tr></thead>";
+			html += "<tbody class='list-content'>";
+			html += "<tr class='item conversation first'><td>222</td><td>fdsfas</td><td>fdsfds fdsf</td></tr>";
+			html += "<tr class='item conversation first'><td>33</td><td>fd sfasfsd</td><td>fdsfds fdsf</td></tr>";
+			html += "<tr class='item conversation first'><td>22332</td><td>fd safasf</td><td>fdsfds fdsf</td></tr>";
+			html += "<tr class='item conversation first'><td>2232</td><td>fa asd</td><td>fdsfds fdsf</td></tr>";
+			html += "<tr class='item conversation first'><td>1</td><td>f dsafasfdsf</td><td>fdsfds fdsf</td></tr>";
+			html += "<tr class='item conversation first'><td>4</td><td>df safas</td><td>fdsfds fdsf</td></tr>";
+			html += "</tbody></table>";
+
+			var container = yootil.create.container("Donations Received", html).show();
 
 			container.appendTo("#content");
 		},
@@ -303,6 +318,8 @@ money.donation = (function(){
 					if(this.settings.maximum_donation && donation_amount > this.settings.maximum_donation){
 						this.donation_error("Maximum donation amount is " + money.format(this.settings.maximum_donation, true) + ".");
 					} else {
+						$(".monetary-donation-button button").attr("disabled", true);
+
 						var the_donation = {
 
 							to: money.data(yootil.page.member.id()),
@@ -321,12 +338,19 @@ money.donation = (function(){
 						};
 
 						if(money.data(yootil.user.id()).donation.send(the_donation)){
-							console.log("Yay");
-
 							this.update_wallet();
 							money.sync.trigger();
+
+							$("#monetary-donation-page-expiry").html("Sent");
+
+							var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
+
+							$(".monetary-donation-avatar-img").html("<img src='" + money.images.info + "' />");
+							$(".monetary-donation-fields").html("<div style='margin-left: 5px; margin-top: 10px'>Donation successfully sent.<br /><br />If the recipient does not accept your donation, you will be notified and refunded.</div>");
 						} else {
-							console.log("Nay");
+							$("#monetary-donation-page-expiry").html("Error");
+							$(".monetary-donation-avatar-img").html("<img src='" + money.images.info + "' />");
+							$(".monetary-donation-fields").html("<div style='margin-left: 5px; margin-top: 10px'>An error has occurred.<br /><br />If you continue to get this message, please contact a member of staff.</div>");
 						}
 					}
 				}

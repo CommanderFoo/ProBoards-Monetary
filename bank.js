@@ -78,7 +78,7 @@ money.bank = (function(){
 			html += '<strong>' + this.settings.text.savings_account + '</strong><br />';
 			html += '<span id="bank-overview-details-account-number">' + this.settings.text.account_number + ': ' + account_number + '</span><br />';
 			html += '<span id="bank-overview-details-sort-code">' + this.settings.text.sort_code + ': ' + sort_code + '</span><br /><br />';
-			html += '<span id="bank-overview-details-money">' + money.settings.money_symbol + '<span id="pd_money_bank_balance">' + money.data(yootil.user.id()).get.bank(true) + '</span></span>';
+			html += '<span id="bank-overview-details-money">' + money.settings.money_symbol + '<span id="pd_money_bank_balance">' + yootil.html_encode(money.data(yootil.user.id()).get.bank(true)) + '</span></span>';
 			html += '</div>';
 
 			html += '<div id="bank-controls">';
@@ -104,7 +104,7 @@ money.bank = (function(){
 			var title = '<div>';
 
 			title += '<div style="float: left">' + this.settings.text.bank + ' (' + this.settings.text.interest_rate + ': ' + this.settings.interest.toString() + '%)</div>';
-			title += '<div style="float: right" id="pd_money_wallet">' + money.settings.text.wallet + ': ' + money.settings.money_symbol + '<span id="pd_money_wallet_amount">' + money.data(yootil.user.id()).get.money(true) + '</span></div>';
+			title += '<div style="float: right" id="pd_money_wallet">' + money.settings.text.wallet + ': ' + money.settings.money_symbol + '<span id="pd_money_wallet_amount">' + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + '</span></div>';
 
 			title += '</div><br style="clear: both" />';
 
@@ -248,9 +248,9 @@ money.bank = (function(){
 					trans_html += '<tr class="bank-transaction-list-row">';
 					trans_html += '<td>' + date_str + '</td>';
 					trans_html += '<td>' + type + '</td>';
-					trans_html += '<td>' + yootil.number_format(money.format(in_amount, true)) + '</td>';
-					trans_html += '<td>' + yootil.number_format(money.format(out_amount, true)) + '</td>';
-					trans_html += '<td>' + yootil.number_format(money.format(balance, true)) + '</td>';
+					trans_html += '<td>' + yootil.html_encode(yootil.number_format(money.format(in_amount, true))) + '</td>';
+					trans_html += '<td>' + yootil.html_encode(yootil.number_format(money.format(out_amount, true))) + '</td>';
+					trans_html += '<td>' + yootil.html_encode(yootil.number_format(money.format(balance, true))) + '</td>';
 					trans_html += '</tr>';
 
 					counter ++;
@@ -425,8 +425,8 @@ money.bank = (function(){
 			money.data(user_id).decrease.money(amount);
 			money.data(user_id).increase.bank(amount);
 
-			$("#pd_money_wallet_amount").html(money.data(user_id).get.money(true));
-			$("#pd_money_bank_balance").html(money.data(user_id).get.bank(true));
+			$("#pd_money_wallet_amount").html(yootil.html_encode(money.data(user_id).get.money(true)));
+			$("#pd_money_bank_balance").html(yootil.html_encode(money.data(user_id).get.bank(true)));
 
 			this.create_transaction(1, amount, 0);
 		},
@@ -439,8 +439,8 @@ money.bank = (function(){
 			money.data(user_id).decrease.bank(amount);
 			money.data(user_id).increase.money(amount);
 
-			$("#pd_money_wallet_amount").html(money.data(user_id).get.money(true));
-			$("#pd_money_bank_balance").html(money.data(user_id).get.bank(true));
+			$("#pd_money_wallet_amount").html(yootil.html_encode(money.data(user_id).get.money(true)));
+			$("#pd_money_bank_balance").html(yootil.html_encode(money.data(user_id).get.bank(true)));
 
 			this.create_transaction(2, 0, amount);
 		},
@@ -559,11 +559,11 @@ money.bank = (function(){
 			}
 
 			trans_html += '<tr class="bank-transaction-list-row">';
-			trans_html += '<td>' + date_str + '</td>';
+			trans_html += '<td>' + yootil.html_encode(date_str) + '</td>';
 			trans_html += '<td>' + trans_type + '</td>';
-			trans_html += '<td>' + yootil.number_format(money.format(in_amount, true)) + '</td>';
-			trans_html += '<td>' + yootil.number_format(money.format(out_amount, true)) + '</td>';
-			trans_html += '<td>' + yootil.number_format(money.format(balance, true)) + '</td>';
+			trans_html += '<td>' + yootil.html_encode(yootil.number_format(money.format(in_amount, true))) + '</td>';
+			trans_html += '<td>' + yootil.html_encode(yootil.number_format(money.format(out_amount, true))) + '</td>';
+			trans_html += '<td>' + yootil.html_encode(yootil.number_format(money.format(balance, true))) + '</td>';
 			trans_html += '</tr>';
 
 			$(trans_html).hide().insertAfter($("#bank-transaction-list-headers-dotted")).show("fast").fadeIn(3000).css("display", "");

@@ -141,7 +141,7 @@ tr#bank-transaction-list-headers th {
 tr.bank-transaction-list-row {
 
 	font-size: 11px;
-	height: 25px;
+	height: 40px;
 
 }
 
@@ -446,5 +446,70 @@ span.monetary-donation-message-chars-remain {
 	top: -20px;
 	left: 420px;
 	opacity: 0.4;
+
+}
+
+
+div.monetary-donation-tip-holder div.monetary-donation-tip-number {
+
+	background-color: #FFFFFF;
+	border-radius: 5px;
+	box-shadow: 2px 2px 2px #333333;
+	color: #000000;
+	font: 0.8em/0.8em "Trebuchet MS",Verdana,Arial;
+	height: 0.8em;
+	padding: 3px 7px 2px;
+	text-shadow: none;
+
+}
+
+
+div.monetary-donation-tip-holder {
+
+	display: inline-block;
+	position: absolute;
+	right: -4px;
+	top: -10px;
+
+}
+
+
+div.monetary-donation-tip-holder span.monetary-donation-tip {
+
+	border-left: 4px solid rgba(0, 0, 0, 0);
+	border-right: 4px solid rgba(0, 0, 0, 0);
+	border-top: 4px solid #FFFFFF;
+	left: 6px;
+	position: absolute;
+
+}
+
+table.monetary-donation-received-list .monetary-donation-amount {
+
+	width: 20%;
+
+}
+
+table.monetary-donation-received-list .monetary-donation-from {
+
+	width: 25%;
+
+}
+
+table.monetary-donation-received-list .monetary-donation-date {
+
+	width: 30%;
+
+}
+
+table.monetary-donation-received-list .monetary-donation-icon {
+
+	width: 55px;
+
+}
+
+table.monetary-donation-received-list .monetary-donation-button {
+
+	text-align: right;
 
 }

@@ -120,7 +120,7 @@ money.gift_money = (function(){
 					var paid_where = (this.settings.paid_into == 1)? money.bank.settings.text.bank : money.settings.text.wallet;
 
 					html += "<div class='monetary-gift-notice-icon'><img src='" + money.images.giftmoney + "' /></div>";
-					html += "<div class='monetary-gift-notice-content'><div class='monetary-gift-notice-content-top'><p>You have recieved a gift of <strong>" + money.settings.money_symbol + yootil.number_format(money.format(gift.amount)) + "</strong> that will be paid into your " + paid_where + ".</p>";
+					html += "<div class='monetary-gift-notice-content'><div class='monetary-gift-notice-content-top'><p>You have recieved a gift of <strong>" + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(gift.amount))) + "</strong> that will be paid into your " + paid_where + ".</p>";
 
 					if(gift.message.length){
 						html += "<p>" + gift.message.replace(/\n/g, "<br />") + "</p>";
@@ -137,7 +137,7 @@ money.gift_money = (function(){
 						if(self.collect_gift()){
 							var msg = "";
 
-							msg += "<p>You have successfully received a gift of <strong>" + money.settings.money_symbol + yootil.number_format(money.format(gift.amount)) + "</strong>.</p>";
+							msg += "<p>You have successfully received a gift of <strong>" + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(gift.amount))) + "</strong>.</p>";
 							msg += "<p>This has been paid into your " + paid_where + ".</p>";
 
 							$(".monetary-gift-notice-content").html(msg);

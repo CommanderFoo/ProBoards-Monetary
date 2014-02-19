@@ -123,7 +123,7 @@ money.sync = (function(){
 			var other_wallet = $(".money_wallet_amount");
 
 			if(other_wallet.length){
-				other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + user_money);
+				other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + yootil.html_encode(user_money));
 			}
 
 			// Lets see if it's the bank, if so update the balance.

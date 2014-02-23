@@ -372,10 +372,11 @@ money.Data = (function(){
 			},
 
 			send_rejected: function(don, skip_update, opts){
-				if(don.a && don.t && don.f){
+				if(don.a && don.r && don.f && don.t){
 					var reject = {
 
 						a: don.a,
+						r: don.r,
 						t: don.t
 
 					};
@@ -388,20 +389,65 @@ money.Data = (function(){
 				}
 			},
 
-			accept: function(donation_id, amount, skip_update, opts){
-				if(self.data.d[donation_id]){
-					self.data.d.splice(donation_id, 1);
+			// Returns -1 if not exists
+
+			exists: function(id, return_donation){
+				if(id){
+					for(var d = 0, l = self.data.d.length; d < l; d ++){
+						var donation_id = self.data.d[d].t + "" + self.data.d[d].f[0];
+
+						if(donation_id == id){
+							return (return_donation)? self.data.d[d] : d;
+						}
+					}
 				}
 
-				self.increase.money(amount, skip_update, opts);
+				return -1;
 			},
 
-			reject: function(donation_id, donation, skip_update, opts){
-				if(self.data.d[donation_id]){
-					//self.data.d.splice(donation_id, 1);
+			reject_exists: function(id, return_donation){
+				if(id){
+					for(var d = 0, l = self.data.rd.length; d < l; d ++){
+						var donation_id = self.data.rd[d].t + "" + self.data.rd[d].r[0];
+
+						if(donation_id == id){
+							return (return_donation)? self.data.rd[d] : d;
+						}
+					}
 				}
 
-				self.donation.send_rejected(donation, skip_update, opts);
+				return -1;
+			},
+
+			accept: function(donation, skip_update, opts){
+				var index = self.donation.exists(donation.t + "" + donation.f[0]);
+
+				if(index > -1){
+					self.data.d.splice(index, 1);
+					self.increase.money(donation.a, skip_update, opts);
+				}
+			},
+
+			reject: function(donation, skip_update, opts){
+				var index = self.donation.exists(donation.t + "" + donation.f);
+
+				if(index > -1){
+					self.data.d.splice(index, 1);
+					self.donation.send_rejected(donation, skip_update, opts);
+				}
+			},
+
+			accept_reject: function(donation, skip_update, opts){
+				var index = self.donation.reject_exists(donation.t + "" + donation.r[0]);
+
+				if(index> -1){
+					self.data.rd.splice(index, 1);
+					self.increase.money(donation.a, skip_update, opts);
+
+					return true;
+				}
+
+				return false;
 			},
 
 			push: function(donation){

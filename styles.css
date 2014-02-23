@@ -346,13 +346,13 @@ div.monetary-gift-notice-content p, div.monetary-donation-notice-content p {
 
 /* DONATION */
 
-div.monetary-donation-sending-to-title {
+div.monetary-donation-sending-to-title, div.monetary-donation-viewing-title {
 
 	float: left;
 
 }
 
-div.monetary-donation-sending-amount-title {
+div.monetary-donation-sending-amount-title, div.monetary-donation-receiving-amount-title {
 
 	float: right;
 

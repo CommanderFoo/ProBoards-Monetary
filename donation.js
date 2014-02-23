@@ -1,3 +1,9 @@
+// TODO:
+// - Syncing (also check if multiple same donations are open
+// - Plugin settings
+// - Text replacements
+// - Testing
+
 money.donation = (function(){
 
 	return {
@@ -23,6 +29,7 @@ money.donation = (function(){
 
 		page_timer: 0,
 		PAGE_TIME_EXPIRY: 45,
+		interval: 0,
 
 		donation_to: {
 
@@ -66,6 +73,8 @@ money.donation = (function(){
 					});
 				}
 
+				this.check_rejected_donations();
+
 				if(yootil.location.check.profile_home()){
 					if(location.href.match(/\?monetarydonation&view=(\d+)/i) && RegExp.$1 && parseInt(RegExp.$1) >= 1 && parseInt(RegExp.$1) <= 3){
 						var id = parseInt(yootil.page.member.id());
@@ -106,10 +115,10 @@ money.donation = (function(){
 							// All donations have to be accepted
 
 							case 3:
-								var don_id = (location.href.match(/view=3&id=(\d+)/))? RegExp.$1 : -1;
+								var don_id = (location.href.match(/view=3&id=([\d\.]+)/))? RegExp.$1 : -1;
 
 								if(don_id){
-									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=3&id=\\d+"), "Viewing Donation");
+									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=3&id=[\\d\\.]+"), "Viewing Donation");
 
 									this.build_view_donation_html(don_id);
 								} else {
@@ -132,11 +141,63 @@ money.donation = (function(){
 			return donations.length;
 		},
 
+		// Do one notification per page load if there are multiple rejects
+
+		check_rejected_donations: function(){
+			var rejected = money.data(yootil.user.id()).get.rejected_donations();
+
+			if(rejected.length){
+				var reject = rejected[0];
+				var donation_id = reject.t + "" + reject.r[0];
+				var content = "Your donation of " + money.settings.money_symbol + money.format(reject.a, true) + " to <a href='/user/" + yootil.html_encode(reject.r[0]) + "'>" + yootil.html_encode(reject.r[1]) + "</a> was rejected.";
+
+				proboards.dialog("montary-donation-reject-" + r, {
+					modal: true,
+					height: 160,
+					resizable: false,
+					draggable: false,
+					title: "Donation Rejected",
+					html: content,
+					buttons: {
+						"Place In Wallet": function(){
+							var ok = money.data(yootil.user.id()).donation.accept_reject(reject);
+
+							// Lets look for any wallets or amounts on the page and update
+
+							if(ok){
+								var user_money = money.data(yootil.user.id()).get.money(true);
+								var user_money_display = $(".pd_money_amount_" + yootil.user.id());
+
+								if(user_money_display.length){
+									user_money_display.text(yootil.number_format(user_money));
+								}
+
+								// Now wallet
+
+								var wallet = $("#pd_money_wallet_amount");
+
+								if(wallet.length){
+									wallet.text(yootil.number_format(user_money));
+								}
+
+								var other_wallet = $(".money_wallet_amount");
+
+								if(other_wallet.length){
+									other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + yootil.html_encode(user_money));
+								}
+							}
+
+							$(this).dialog("close");
+						}
+					}
+				});
+			}
+		},
+
 		monitor_time_on_page: function(){
 			var self = this;
-			var interval;
 
-			interval = setInterval(function(){
+			this.interval = setInterval(function(){
 				if(self.page_timer >= self.PAGE_TIME_EXPIRY){
 					$(".monetary-donation-form").css("opacity", .3);
 					$(".monetary-donation-fields input").attr("disabled", true);
@@ -152,7 +213,7 @@ money.donation = (function(){
 						draggable: false
 					});
 
-					clearInterval(interval);
+					clearInterval(self.interval);
 
 					return;
 				}
@@ -165,6 +226,11 @@ money.donation = (function(){
 
 				$("#monetary-donation-page-expiry").html("Page Expires In: " + time_left + " second" + ((time_left == 1)? "" : "s"));
 			}, 1000);
+		},
+
+		cancel_expiration: function(){
+			$(".monetary-donation-sending-to-title").html("Donation Sent");
+			clearInterval(this.interval);
 		},
 
 		collect_donation_to_details: function(from){
@@ -344,38 +410,42 @@ money.donation = (function(){
 			var days = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"];
 			var time_24 = (yootil.user.time_format() == "12hr")? false : true;
 
-			for(var d = 0, l = donations.length; d < l; d ++){
-				var amount = money.format(donations[d].a, true);
-				var date = new Date(donations[d].t * 1000);
-				var day = date.getDate() || 1;
-				var month = months[date.getMonth()];
-				var year = date.getFullYear();
-				var hours = date.getHours();
-				var mins = date.getMinutes();
-				var date_str = days[date.getDay()] + " " + day + "<sup>" + this.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
-				var am_pm = "";
+			if(donations.length){
+				for(var d = 0, l = donations.length; d < l; d ++){
+					var amount = money.format(donations[d].a, true);
+					var date = new Date(donations[d].t * 1000);
+					var day = date.getDate() || 1;
+					var month = months[date.getMonth()];
+					var year = date.getFullYear();
+					var hours = date.getHours();
+					var mins = date.getMinutes();
+					var date_str = days[date.getDay()] + " " + day + "<sup>" + this.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
+					var am_pm = "";
 
-				mins = (mins < 10)? "0" + mins : mins;
+					mins = (mins < 10)? "0" + mins : mins;
 
-				if(!time_24){
-					am_pm = (hours > 11)? "pm" : "am";
-					hours = hours % 12;
-					hours = (hours)? hours : 12;
+					if(!time_24){
+						am_pm = (hours > 11)? "pm" : "am";
+						hours = hours % 12;
+						hours = (hours)? hours : 12;
+					}
+
+					date_str += hours + ":" + mins + am_pm;
+
+					klass = (counter == 0)? " first" : ((counter == (l - 1))? " last" : "");
+
+					html += "<tr class='item conversation" + klass + "' data-donation-from='" + yootil.html_encode(donations[d].f[0]) + "'>";
+					html += "<td><img src='" + money.images.donate_big + "' alt='Donation' title='Donation' /></td>";
+					html += "<td>" + money.settings.money_symbol + yootil.html_encode(amount) + "</td>";
+					html += "<td><a href='/user/" + yootil.html_encode(donations[d].f[0]) + "'>" + yootil.html_encode(donations[d].f[1]) + "</a></td>";
+					html += "<td>" + date_str + "</td>";
+					html += "<td class='monetary-donation-button'><button data-donation-id='" + yootil.html_encode(donations[d].t) + "" + yootil.html_encode(donations[d].f[0]) + "'>View Donation</button></td>";
+					html += "</tr>";
+
+					counter ++;
 				}
-
-				date_str += hours + ":" + mins + am_pm;
-
-				klass = (counter == 0)? " first" : ((counter == (l - 1))? " last" : "");
-
-				html += "<tr class='item conversation" + klass + "' data-donation-from='" + yootil.html_encode(donations[d].f[0]) + "'>";
-				html += "<td><img src='" + money.images.donate_big + "' alt='Donation' title='Donation' /></td>";
-				html += "<td>" + money.settings.money_symbol + yootil.html_encode(amount) + "</td>";
-				html += "<td><a href='/user/" + yootil.html_encode(donations[d].f[0]) + "'>" + yootil.html_encode(donations[d].f[1]) + "</a></td>";
-				html += "<td>" + date_str + "</td>";
-				html += "<td class='monetary-donation-button'><button id='monetary-donation-" + d + "'>View Donation</button></td>";
-				html += "</tr>";
-
-				counter ++;
+			} else {
+				html += "<tr class='item conversation last'><td colspan='5'><em>You have not received any donations.</em></td></tr>";
 			}
 
 			html += "</tbody></table>";
@@ -390,12 +460,10 @@ money.donation = (function(){
 
 			container.find("div.pad-all").removeClass("pad-all").addClass("cap-bottom");
 			container.find(".monetary-donation-button button").click(function(){
-				var id = $(this).attr("id");
+				var id = $(this).attr("data-donation-id");
 				var from = $(this).parent().parent().attr("data-donation-from");
 
-				if(id.match(/(\d+)$/)){
-					location.href = "/user/" + from + "?monetarydonation&view=3&id=" + RegExp.$1;
-				}
+				location.href = "/user/" + from + "?monetarydonation&view=3&id=" + id;
 			});
 
 			container.appendTo("#content");
@@ -411,11 +479,24 @@ money.donation = (function(){
 			return "----";
 		},
 
-		build_view_donation_html: function(donation_id){
+		fetch_donation: function(id){
 			var donations = money.data(yootil.user.id()).get.donations();
-			var the_donation = donations[donation_id];
 
-			if(donation_id && donations.length && the_donation && yootil.page.member.id() == the_donation.f[0]){
+			for(var d = 0, l = donations.length; d < l; d ++){
+				var don_id = donations[d].t + "" + donations[d].f[0];
+
+				if(don_id == id){
+					return donations[d];
+				}
+			}
+
+			return null;
+		},
+
+		build_view_donation_html: function(donation_id){
+			var the_donation = this.fetch_donation(donation_id);
+
+			if(the_donation && yootil.page.member.id() == the_donation.f[0]){
 				the_donation.id = donation_id;
 
 				yootil.create.nav_branch("/user/" + yootil.html_encode(the_donation.f[0]) + "?monetarydonation&view=3&id=" + yootil.html_encode(donation_id), "Viewing Donation");
@@ -452,7 +533,8 @@ money.donation = (function(){
 				html += "</div><br style='clear: both' />";
 				html += "</div>";
 
-				var title = "Viewing Donation - <span id='monetary-donation-page-expiry'>Page Expires In: " + this.PAGE_TIME_EXPIRY + " seconds</span>";
+				var title = "<div class='monetary-donation-viewing-title'>Viewing Donation - <span id='monetary-donation-page-expiry'>Page Expires In: " + this.PAGE_TIME_EXPIRY + " seconds</span></div>";
+				title += "<div class='monetary-donation-receiving-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + "</span></div>";
 
 				var container = yootil.create.container(title, html).show();
 
@@ -470,9 +552,10 @@ money.donation = (function(){
 		},
 
 		accept_donation: function(donation){
-			money.data(yootil.user.id()).donation.accept(donation.id, donation.a, false, {
+			money.data(yootil.user.id()).donation.accept(donation, false, {
 				complete: function(){
 					location.href = "/user/" + yootil.user.id() + "?monetarydonation&view=2";
+					money.sync.trigger();
 				}
 			});
 		},
@@ -480,13 +563,15 @@ money.donation = (function(){
 		reject_donation: function(donation){
 			var reject_donation = {
 				a: donation.a,
-				t: [yootil.user.id(), yootil.user.name()],
-				f: donation.f[0]
+				r: [yootil.user.id(), yootil.user.name()],
+				f: donation.f[0],
+				t: donation.t
 			};
 
-			money.data(yootil.user.id()).donation.reject(donation.id, reject_donation, false, {
+			money.data(yootil.user.id()).donation.reject(reject_donation, false, {
 				complete: function(){
 					location.href = "/user/" + yootil.user.id() + "?monetarydonation&view=2";
+					money.sync.trigger();
 				}
 			});
 		},
@@ -525,6 +610,7 @@ money.donation = (function(){
 						};
 
 						if(money.data(yootil.user.id()).donation.send(the_donation)){
+							this.cancel_expiration();
 							this.update_wallet();
 							money.sync.trigger();
 

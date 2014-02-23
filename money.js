@@ -693,7 +693,7 @@ var money = {
 					dialogClass: ("money_" + bank_str + "dialog"),
 					open: function(){
 						var key = (bank_edit)? "bank" : "money";
-						var money = self.data(user_id).get[key](true);
+						var money = self.data(user_id).get[key]();
 
 						$(this).find("input[name=edit" + bank_str + "money]").val(yootil.html_encode(money));
 					},

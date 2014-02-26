@@ -609,6 +609,7 @@ var money = {
 
 		if(!user_data){
 			user_data = new this.Data(user_id);
+			this.user_data_table[user_id] = user_data;
 		}
 
 		return user_data;
@@ -907,7 +908,7 @@ var money = {
 			this.settings.money_separator += (settings.separator_space && settings.separator_space == "0")? "" : " ";
 
 			if(settings.money_symbol_image && settings.money_symbol_image.length){
-				this.settings.money_symbol = "<img class='money-symbol-image' src='" + settings.money_symbol_image + "' />";
+				this.settings.money_symbol = "<img class='money-sym-img' src='" + settings.money_symbol_image + "' />";
 			}
 
 			this.settings.decimal_money = (settings.decimal_money == "0")? false : this.settings.decimal_money;
@@ -1114,14 +1115,14 @@ var money = {
 			if(this.id.match(/^member\-(\d+)/i)){
 				var user_id = RegExp.$1;
 				var user_money = self.data(user_id).get.money(true);
-				var money_symbol = (self.settings.show_money_symbol_members)? self.settings.money_symbol : "";
-				var td = $("<td class=\"pd_money_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_money_amount_" + user_id + "\">" + yootil.html_encode(user_money) + "</span></td>");
+				var money_sym = (self.settings.show_money_symbol_members)? self.settings.money_symbol : "";
+				var td = $("<td class=\"pd_money_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_sym + "</span><span class=\"pd_money_amount_" + user_id + "\">" + yootil.html_encode(user_money) + "</span></td>");
 
 				td.insertAfter($(this).find("td.posts"));
 
 				if(self.bank.settings.enabled && self.settings.show_bank_balance_members && yootil.user.is_staff()){
-					var user_bank_money = self.data(user_id).get.bank(true);
-					var td = $("<td class=\"pd_bank_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_bank_amount_" + user_id + "\">" + yootil.html_encode(user_bank_money) + "</span></td>");
+					var user_bank = self.data(user_id).get.bank(true);
+					var td = $("<td class=\"pd_bank_" + user_id + "\"><span class=\"pd_money_symbol\">" + money_sym + "</span><span class=\"pd_bank_amount_" + user_id + "\">" + yootil.html_encode(user_bank) + "</span></td>");
 
 					td.insertAfter($(this).find("td.pd_money_" + user_id));
 				}
@@ -1149,63 +1150,63 @@ var money = {
 		var using_custom = false;
 
 		var container = $("div.container.show-user");
-		var money_text_custom = container.find(".money_text");
-		var money_symbol_custom = container.find(".money_symbol");
-		var money_amount_custom = container.find(".money_amount");
+		var money_text_cust = container.find(".money_text");
+		var money_symbol_cust = container.find(".money_symbol");
+		var money_amount_cust = container.find(".money_amount");
 
-		if(money_text_custom.length || money_symbol_custom.length || money_amount_custom.length){
+		if(money_text_cust.length || money_symbol_cust.length || money_amount_cust.length){
 			using_custom = true;
 
-			if(money_text_custom.length){
-				money_text_custom.append(money_text + this.settings.money_separator).addClass("pd_money_text_" + this.params.user_id);
+			if(money_text_cust.length){
+				money_text_cust.append(money_text + this.settings.money_separator).addClass("pd_money_text_" + this.params.user_id);
 			}
 
-			if(money_symbol_custom.length){
-				money_symbol_custom.append(money_symbol).addClass("pd_money_symbol_" + this.params.user_id);
+			if(money_symbol_cust.length){
+				money_symbol_cust.append(money_symbol).addClass("pd_money_symbol_" + this.params.user_id);
 			}
 
-			if(money_amount_custom.length){
-				money_amount_custom.append(user_money + edit_image).addClass("pd_money_amount_" + this.params.user_id);
+			if(money_amount_cust.length){
+				money_amount_cust.append(user_money + edit_image).addClass("pd_money_amount_" + this.params.user_id);
 
-				this.bind_edit_dialog(money_amount_custom, this.params.user_id, false, ".pd_money_amount_" + this.params.user_id, edit_image);
+				this.bind_edit_dialog(money_amount_cust, this.params.user_id, false, ".pd_money_amount_" + this.params.user_id, edit_image);
 			}
 		}
 
 		if(yootil.user.is_staff() && this.bank.settings.enabled){
-			var bank_text_custom = container.find(".bank_text");
-			var bank_symbol_custom = container.find(".bank_symbol");
-			var bank_amount_custom = container.find(".bank_amount");
+			var bank_text_cust = container.find(".bank_text");
+			var bank_symbol_cust = container.find(".bank_symbol");
+			var bank_amount_cust = container.find(".bank_amount");
 
-			if(money_text_custom.length || money_symbol_custom.length || money_amount_custom.length){
+			if(money_text_cust.length || money_symbol_cust.length || money_amount_cust.length){
 				using_custom = true;
 
-				if(bank_text_custom.length){
-					bank_text_custom.append(this.bank.settings.text.bank + " Balance" + this.settings.money_separator).addClass("pd_bank_text_" + this.params.user_id);
+				if(bank_text_cust.length){
+					bank_text_cust.append(this.bank.settings.text.bank + " Balance" + this.settings.money_separator).addClass("pd_bank_text_" + this.params.user_id);
 				}
 
-				if(bank_symbol_custom.length){
-					bank_symbol_custom.append(money_symbol).addClass("pd_bank_symbol_" + this.params.user_id);
+				if(bank_symbol_cust.length){
+					bank_symbol_cust.append(money_symbol).addClass("pd_bank_symbol_" + this.params.user_id);
 				}
 
-				if(bank_amount_custom.length){
-					bank_amount_custom.append(user_bank_money + edit_image).addClass("pd_bank_amount_" + this.params.user_id);
+				if(bank_amount_cust.length){
+					bank_amount_cust.append(user_bank_money + edit_image).addClass("pd_bank_amount_" + this.params.user_id);
 
-					this.bind_edit_dialog(bank_amount_custom, this.params.user_id, true, ".pd_bank_amount_" + this.params.user_id, edit_image);
+					this.bind_edit_dialog(bank_amount_cust, this.params.user_id, true, ".pd_bank_amount_" + this.params.user_id, edit_image);
 				}
 			}
 		}
 
 		if(!using_custom){
-			var post_heading = $("div.content-box.center-col td.headings:contains(Posts)");
+			var post_head = $("div.content-box.center-col td.headings:contains(Posts)");
 
-			if(post_heading.length){
-				var row = post_heading.parent();
+			if(post_head.length){
+				var row = post_head.parent();
 
 				if(row){
 					if(yootil.user.is_staff() && this.bank.settings.enabled){
-						var bank_money_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\"><span class=\"pd_bank_money_symbol\">" + money_symbol + "</span><span class=\"pd_bank_amount_" + this.params.user_id + "\">" + yootil.html_encode(yootil.number_format(user_bank_money)) + "</span>" + edit_image + "</td>", this.params.user_id, true);
+						var bank_td = this.bind_edit_dialog("<td class=\"pd_bank_money_" + this.params.user_id + "\"><span class=\"pd_bank_money_symbol\">" + money_symbol + "</span><span class=\"pd_bank_amount_" + this.params.user_id + "\">" + yootil.html_encode(yootil.number_format(user_bank_money)) + "</span>" + edit_image + "</td>", this.params.user_id, true);
 
-						$("<tr/>").html("<td>" + this.bank.settings.text.bank + " Balance" + this.settings.money_separator + "</td>").append(bank_money_td).insertAfter(row);
+						$("<tr/>").html("<td>" + this.bank.settings.text.bank + " Balance" + this.settings.money_separator + "</td>").append(bank_td).insertAfter(row);
 					}
 
 					var money_td = this.bind_edit_dialog("<td class=\"pd_money_" + this.params.user_id + "\"><span class=\"pd_money_symbol\">" + money_symbol + "</span><span class=\"pd_money_amount_" + this.params.user_id + "\">" + yootil.html_encode(yootil.number_format(user_money)) + "</span>" + edit_image + "</td>", this.params.user_id, false);
@@ -1247,34 +1248,34 @@ var money = {
 							money_text += self.settings.money_separator;
 						}
 
-						var money_text_custom = $(this).find(".money_text");
-						var money_symbol_custom = $(this).find(".money_symbol");
-						var money_amount_custom = $(this).find(".money_amount");
+						var money_text_cust = $(this).find(".money_text");
+						var money_symbol_cust = $(this).find(".money_symbol");
+						var money_amount_cust = $(this).find(".money_amount");
 
-						if(money_text_custom.length || money_symbol_custom.length || money_amount_custom.length){
-							if(money_text_custom.length){
-								money_text_custom.append(money_text).addClass("pd_money_text_" + user_id);
+						if(money_text_cust.length || money_symbol_cust.length || money_amount_cust.length){
+							if(money_text_cust.length){
+								money_text_cust.append(money_text).addClass("pd_money_text_" + user_id);
 							}
 
-							if(money_symbol_custom.length){
-								money_symbol_custom.append(money_symbol).addClass("pd_money_symbol_" + user_id);
+							if(money_symbol_cust.length){
+								money_symbol_cust.append(money_symbol).addClass("pd_money_symbol_" + user_id);
 							}
 
-							if(money_amount_custom.length){
-								money_amount_custom.append(money).addClass("pd_money_amount_" + user_id);
+							if(money_amount_cust.length){
+								money_amount_cust.append(money).addClass("pd_money_amount_" + user_id);
 							}
 						} else {
 							var info = $(this).find("div.info");
 
 							if(info && info.length){
-								var info_div = info.get(0);
-								var money_str_html = "";
+								var div = info.get(0);
+								var str = "";
 
-								money_str_html += "<span class=\"pd_money_text_" + user_id + "\">" + money_text + "</span>";
-								money_str_html += "<span class=\"pd_money_symbol_" + user_id + "\">" + money_symbol + "</span>";
-								money_str_html += "<span class=\"pd_money_amount_" + user_id + "\">" + yootil.html_encode(money) + "</span><br />";
+								str += "<span class=\"pd_money_text_" + user_id + "\">" + money_text + "</span>";
+								str += "<span class=\"pd_money_symbol_" + user_id + "\">" + money_symbol + "</span>";
+								str += "<span class=\"pd_money_amount_" + user_id + "\">" + yootil.html_encode(money) + "</span><br />";
 
-								$(info_div).prepend(money_str_html);
+								$(div).prepend(str);
 							}
 						}
 					}

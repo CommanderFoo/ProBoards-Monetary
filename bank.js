@@ -358,7 +358,7 @@ money.bank = (function(){
 
 				var interest = ((parseFloat(balance) * parseFloat(this.settings.interest)) / 100);
 
-				money.data(user_id).set.interest(today);
+				money.data(user_id).set.interest(today, true);
 
 				if(balance > 0 && interest > 0){
 					money.data(user_id).increase.bank(parseFloat(interest.toFixed(2)));

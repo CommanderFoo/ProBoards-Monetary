@@ -1,7 +1,3 @@
-if(typeof PD_DEBUG === "undefined"){
-	PD_DEBUG = true;
-}
-
 if(typeof pixeldepth == "undefined"){
 	pixeldepth = {};
 }

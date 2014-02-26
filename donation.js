@@ -1,9 +1,3 @@
-// TODO:
-// - Syncing (also check if multiple same donations are open
-// - Plugin settings
-// - Text replacements
-// - Testing
-
 money.donation = (function(){
 
 	return {
@@ -22,6 +16,8 @@ money.donation = (function(){
 
 			text: {
 
+				donation: "Donation",
+				donations: "Donations"
 
 			}
 
@@ -62,7 +58,7 @@ money.donation = (function(){
 				var total_donations = self.get_total_donations();
 
 				if(total_donations){
-					yootil.bar.add("/user/" + yootil.user.id() + "?monetarydonation&view=2", money.images.donate, "Donations", "pdmsdonate");
+					yootil.bar.add("/user/" + yootil.user.id() + "?monetarydonation&view=2", money.images.donate, this.settings.text.donations, "pdmsdonate");
 
 					$("#yootil-bar").ready(function(){
 						var bar_link = $("#yootil-bar a[href*=monetarydonation\\&view\\=2]");
@@ -86,8 +82,8 @@ money.donation = (function(){
 
 							case 1:
 								if(yootil.page.member.id() != yootil.user.id()){
-									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=1"), "Send Donation");
-									yootil.create.nav_branch(yootil.html_encode(location.href), "Send Donation");
+									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=1"), "Send " + this.settings.text.donation);
+									yootil.create.nav_branch("/user/" + id + "?monetarydonation&view=1", "Send " + this.settings.text.donation);
 
 									this.collect_donation_to_details();
 									this.build_send_donation_html();
@@ -104,8 +100,8 @@ money.donation = (function(){
 							// View received donation list
 
 							case 2:
-								yootil.create.page(new RegExp("\\/user\\/" + yootil.user.id() + "\\?monetarydonation&view=2"), "Received Donations");
-								yootil.create.nav_branch(yootil.html_encode(location.href), "Received Donations");
+								yootil.create.page(new RegExp("\\/user\\/" + yootil.user.id() + "\\?monetarydonation&view=2"), "Received " + this.settings.text.donations);
+								yootil.create.nav_branch("/user/" + yootil.user.id() + "?monetarydonation&view=2", "Received " + this.settings.text.donations);
 
 								this.build_received_donations_html();
 
@@ -118,7 +114,7 @@ money.donation = (function(){
 								var don_id = (location.href.match(/view=3&id=([\d\.]+)/))? RegExp.$1 : -1;
 
 								if(don_id){
-									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=3&id=[\\d\\.]+"), "Viewing Donation");
+									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=3&id=[\\d\\.]+"), "Viewing " + this.settings.text.donation);
 
 									this.build_view_donation_html(don_id);
 								} else {
@@ -149,14 +145,14 @@ money.donation = (function(){
 			if(rejected.length){
 				var reject = rejected[0];
 				var donation_id = reject.t + "" + reject.r[0];
-				var content = "Your donation of " + money.settings.money_symbol + money.format(reject.a, true) + " to <a href='/user/" + yootil.html_encode(reject.r[0]) + "'>" + yootil.html_encode(reject.r[1]) + "</a> was rejected.";
+				var content = "Your " + this.settings.text.donation.toLowerCase() + " of " + money.settings.money_symbol + money.format(reject.a, true) + " to <a href='/user/" + yootil.html_encode(reject.r[0]) + "'>" + yootil.html_encode(reject.r[1]) + "</a> was rejected.";
 
 				proboards.dialog("montary-donation-reject-" + r, {
 					modal: true,
 					height: 160,
 					resizable: false,
 					draggable: false,
-					title: "Donation Rejected",
+					title: (this.settings.text.donation + " Rejected"),
 					html: content,
 					buttons: {
 						"Place In Wallet": function(){
@@ -229,12 +225,12 @@ money.donation = (function(){
 		},
 
 		cancel_expiration: function(){
-			$(".monetary-donation-sending-to-title").html("Donation Sent");
+			$(".monetary-donation-sending-to-title").html(this.settings.text.donation + " Sent");
 			clearInterval(this.interval);
 		},
 
 		collect_donation_to_details: function(from){
-			var member_avatar = $(".avatar-wrapper.avatar-2:first img:first").attr("src");
+			var member_avatar = $(".avatar-wrapper:first img:first").attr("src");
 			var member_name = yootil.page.member.name();
 			var member_url = yootil.page.member.url();
 			var member_id = yootil.page.member.id();
@@ -286,6 +282,13 @@ money.donation = (function(){
 					}
 				}
 
+				this.settings.text.donation = (settings.donation_text && settings.donation_text.length)? settings.donation_text : this.settings.text.donation;
+				this.settings.text.donations = this.settings.text.donation;
+
+				if(!this.settings.text.donations.match(/s$/)){
+					this.settings.text.donations += "s";
+				}
+
 			}
 		},
 
@@ -305,7 +308,7 @@ money.donation = (function(){
 				var clone = send_button.clone();
 				var id = parseInt(yootil.page.member.id());
 
-				clone.attr("href", "/user/" + id + "?monetarydonation&view=1").text("Send Donation");
+				clone.attr("href", "/user/" + id + "?monetarydonation&view=1").text("Send " + this.settings.text.donation);
 				clone.insertAfter(send_button);
 			}
 		},
@@ -318,7 +321,7 @@ money.donation = (function(){
 
 			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
 
-            title += "<div class='monetary-donation-sending-to-title'>Sending Donation - <span id='monetary-donation-page-expiry'>Page Expires In: " + this.PAGE_TIME_EXPIRY + " seconds</span></div>";
+            title += "<div class='monetary-donation-sending-to-title'>Sending " + this.settings.text.donation + " - <span id='monetary-donation-page-expiry'>Page Expires In: " + this.PAGE_TIME_EXPIRY + " seconds</span></div>";
             title += "<div class='monetary-donation-sending-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + "</span></div>";
 
 			html += "<div class='monetary-donation-form'>";
@@ -327,10 +330,10 @@ money.donation = (function(){
 
 			html += "<dl>";
 
-			html += "<dt><strong>Donation To:</strong></dt>";
+			html += "<dt><strong>" + this.settings.text.donation + " To:</strong></dt>";
 			html += "<dd>" + donation_to_user + "</dd>";
 
-			html += "<dt><strong>Donation Amount:</strong></dt>";
+			html += "<dt><strong>" + this.settings.text.donation + " Amount:</strong></dt>";
 			html += "<dd><input id='pd_donation_amount' type='text' value='0.00' /><span id='pd_donation_amount_error'></span></dd>";
 
 			html += "<dt><strong>Message:</strong></dt>";
@@ -338,7 +341,7 @@ money.donation = (function(){
 			html += "<span style='display: none' class='monetary-donation-message-chars-remain'>Characters Remaining: <span id='monatary-donation-chars-remain'>" + this.settings.message_max_len + "</span></dd>";
 
 			html += "<dt class='monetary-donation-button'> </dt>";
-			html += "<dd class='monetary-donation-button'><button>Send Donation</button></dd>";
+			html += "<dd class='monetary-donation-button'><button>Send " + this.settings.text.donation + "</button></dd>";
 
 			html += "</dl>";
 
@@ -399,8 +402,8 @@ money.donation = (function(){
 			html = "<table class='monetary-donation-received-list list'>";
 			html += "<thead><tr class='head'>";
 			html += "<th class='monetary-donation-icon'> </th>";
-			html += "<th class='main monetary-donation-amount'>Donation Amount</th>";
-			html += "<th class='monetary-donation-from'>Donation From</th>";
+			html += "<th class='main monetary-donation-amount'>" + this.settings.text.donation + " Amount</th>";
+			html += "<th class='monetary-donation-from'>" + this.settings.text.donation + " From</th>";
 			html += "<th class='monetary-donation-date'>Date Sent</th>";
 			html += "<th></th></tr></thead>";
 			html += "<tbody class='list-content'>";
@@ -435,17 +438,17 @@ money.donation = (function(){
 					klass = (counter == 0)? " first" : ((counter == (l - 1))? " last" : "");
 
 					html += "<tr class='item conversation" + klass + "' data-donation-from='" + yootil.html_encode(donations[d].f[0]) + "'>";
-					html += "<td><img src='" + money.images.donate_big + "' alt='Donation' title='Donation' /></td>";
+					html += "<td><img src='" + money.images.donate_big + "' alt='" + this.settings.text.donation + "' title='" + this.settings.text.donations + "' /></td>";
 					html += "<td>" + money.settings.money_symbol + yootil.html_encode(amount) + "</td>";
 					html += "<td><a href='/user/" + yootil.html_encode(donations[d].f[0]) + "'>" + yootil.html_encode(donations[d].f[1]) + "</a></td>";
 					html += "<td>" + date_str + "</td>";
-					html += "<td class='monetary-donation-button'><button data-donation-id='" + yootil.html_encode(donations[d].t) + "" + yootil.html_encode(donations[d].f[0]) + "'>View Donation</button></td>";
+					html += "<td class='monetary-donation-button'><button data-donation-id='" + yootil.html_encode(donations[d].t) + "" + yootil.html_encode(donations[d].f[0]) + "'>View " + this.settings.text.donation + "</button></td>";
 					html += "</tr>";
 
 					counter ++;
 				}
 			} else {
-				html += "<tr class='item conversation last'><td colspan='5'><em>You have not received any donations.</em></td></tr>";
+				html += "<tr class='item conversation last'><td colspan='5'><em>You have not received any " + this.settings.text.donations.toLowerCase() + ".</em></td></tr>";
 			}
 
 			html += "</tbody></table>";
@@ -495,11 +498,12 @@ money.donation = (function(){
 
 		build_view_donation_html: function(donation_id){
 			var the_donation = this.fetch_donation(donation_id);
+			var member_id = (yootil.page.member.id())? yootil.page.member.id() : location.href.match(/\/user\/(\d+)/i)[1];
 
-			if(the_donation && yootil.page.member.id() == the_donation.f[0]){
+			if(the_donation && member_id == the_donation.f[0]){
 				the_donation.id = donation_id;
 
-				yootil.create.nav_branch("/user/" + yootil.html_encode(the_donation.f[0]) + "?monetarydonation&view=3&id=" + yootil.html_encode(donation_id), "Viewing Donation");
+				yootil.create.nav_branch("/user/" + yootil.html_encode(the_donation.f[0]) + "?monetarydonation&view=3&id=" + yootil.html_encode(donation_id), "Viewing " + this.settings.text.donation);
 
 				this.collect_donation_from_details();
 
@@ -513,10 +517,10 @@ money.donation = (function(){
 
 				html += "<dl>";
 
-				html += "<dt><strong>Donation From:</strong></dt>";
+				html += "<dt><strong>" + this.settings.text.donation + " From:</strong></dt>";
 				html += "<dd>" + donation_from_user + "</dd>";
 
-				html += "<dt><strong>Donation Amount:</strong></dt>";
+				html += "<dt><strong>" + this.settings.text.donation + " Amount:</strong></dt>";
 				html += "<dd>" + money.settings.money_symbol + yootil.html_encode(money.format(the_donation.a, true)) + "</dd>";
 
 				html += "<dt><strong>Message:</strong></dt>";
@@ -526,7 +530,7 @@ money.donation = (function(){
 				html += "<dd style='clear: both'> </dd>";
 
 				html += "<dt class='monetary-donation-button'> </dt>";
-				html += "<dd class='monetary-donation-button'><button id='monetary-donation-accept'>Accept Donation</button> <button id='monetary-donation-reject'>Reject Donation</button></dd>";
+				html += "<dd class='monetary-donation-button'><button id='monetary-donation-accept'>Accept " + this.settings.text.donation + "</button> <button id='monetary-donation-reject'>Reject " + this.settings.text.donation + "</button></dd>";
 
 				html += "</dl>";
 
@@ -547,7 +551,7 @@ money.donation = (function(){
 					this.monitor_time_on_page();
 				}
 			} else {
-				this.show_error("Donation could not be found.<br /><br />If you continue to experience this error, please contact a member of staff.");
+				this.show_error(this.settings.text.donation + " could not be found.<br /><br />If you continue to experience this error, please contact a member of staff.");
 			}
 		},
 
@@ -581,14 +585,16 @@ money.donation = (function(){
 			var message = $("textarea#pd_donation_message").val();
 			var current_amount = money.data(yootil.user.id()).get.money();
 
-			if(donation_amount > current_amount){
-				this.donation_error("Not enough money to cover donation.");
+			if(!donation_amount.match(/^\d+(\.\d{1,2})?$/)){
+				this.donation_error(this.settings.text.donation + " amount must be a number.");
+			} else if(donation_amount > current_amount){
+				this.donation_error("Not enough money to cover " + this.settings.text.donation.toLowerCase() + ".");
 			} else {
 				if(donation_amount < this.settings.minimum_donation){
-					this.donation_error("Minimum donation amount is " + money.format(this.settings.minimum_donation, true) + ".");
+					this.donation_error("Minimum " + this.settings.text.donation.toLowerCase() + " amount is " + money.format(this.settings.minimum_donation, true) + ".");
 				} else {
 					if(this.settings.maximum_donation && donation_amount > this.settings.maximum_donation){
-						this.donation_error("Maximum donation amount is " + money.format(this.settings.maximum_donation, true) + ".");
+						this.donation_error("Maximum " + this.settings.text.donation.toLowerCase() + " amount is " + money.format(this.settings.maximum_donation, true) + ".");
 					} else {
 						$(".monetary-donation-button button").attr("disabled", true);
 
@@ -619,7 +625,7 @@ money.donation = (function(){
 							var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "'>" + yootil.html_encode(this.donation_to.name) + "</a>";
 
 							$(".monetary-donation-avatar-img").html("<img src='" + money.images.info + "' />");
-							$(".monetary-donation-fields").html("<div style='margin-left: 5px; margin-top: 10px'>Donation successfully sent.<br /><br />If the recipient does not accept your donation, you will be notified and refunded.</div>");
+							$(".monetary-donation-fields").html("<div style='margin-left: 5px; margin-top: 10px'>" + this.settings.text.donation + " successfully sent.<br /><br />If the recipient does not accept your " + this.settings.text.donation.toLowerCase() + ", you will be notified and refunded.</div>");
 						} else {
 							$("#monetary-donation-page-expiry").html("Error");
 							$(".monetary-donation-avatar-img").html("<img src='" + money.images.info + "' />");

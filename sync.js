@@ -40,9 +40,8 @@ money.sync = (function(){
 				// getting synced, there is no need, as it acts as the
 				// master of the data.
 
-				var name = window.name || "";
-
-				if(name == "trigger_caller"){
+				if(money.trigger_caller){
+					monye.trigger_caller = false;
 					return;
 				}
 
@@ -90,6 +89,21 @@ money.sync = (function(){
 				if(!gift || money.gift_money.has_received(code) || !money.gift_money.allowed_gift(gift)){
 					$(".monetary-gift-notice-content-top").css("opacity", .3);
 					$(".monetary-gift-notice-content-accept").html("You have accepted this gift in another tab / window.");
+				}
+			}
+
+			// Handle donations, make sure the user isn't trying to
+			// accept the same donation multiple times
+
+			if(location.href.match(/\?monetarydonation&view=3&id=([\d\.]+)/i)){
+				var don_id = RegExp.$1;
+				var the_donation = money.donation.fetch_donation(don_id);
+
+				if(!the_donation){
+					clearInterval(money.donation.interval);
+					$(".monetary-donation-form").css("opacity", .3);
+					$(".monetary-donation-button").hide();
+					proboards.alert("An Error Has Occurred", "This " + money.donation.settings.text.donation.toLowerCase() + " no longer exists.");
 				}
 			}
 
@@ -154,11 +168,8 @@ money.sync = (function(){
 				return;
 			}
 
-			var old_name = (window.name && window.name != "trigger_caller")? window.name : "";
-
-			window.name = "trigger_caller";
+			money.trigger_caller = true;
 			yootil.storage.set("monetary_data_sync", money.data(yootil.user.id()).get.data(), true, true);
-			window.name = old_name;
 		}
 
 	};

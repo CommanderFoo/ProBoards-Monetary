@@ -79,7 +79,7 @@ money.Data = (function(){
 		this.data.d = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
 		this.data.rd = (typeof this.data.rd == "object" && this.data.rd.constructor == Array)? this.data.rd : [];
 
-		this.update = function(skip_update, options){
+		this.update = function(skip_update, options, sync){
 			if(!skip_update){
 
 				// Lets put in a length check on the data so we can get a reason why
@@ -99,6 +99,10 @@ money.Data = (function(){
 
 				if(key_obj){
 					key_obj.set(this.user_id, this.data, options);
+
+					if(sync){
+						money.sync.trigger();
+					}
 				}
 			}
 		};
@@ -129,10 +133,10 @@ money.Data = (function(){
 				return amount;
 			},
 
-			bank: function(format){
-				var amount = money.format(self.data.b, format || false);
+			bank: function(string){
+				var amount = money.format(self.data.b, string || false);
 
-				if(format){
+				if(string){
 					amount = yootil.number_format(amount);
 				}
 
@@ -175,150 +179,150 @@ money.Data = (function(){
 
 		this.decrease = {
 
-			money: function(amount, skip_update, opts){
+			money: function(amount, skip_update, opts, sync){
 				self.data.m -= money.format(amount);
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			bank: function(amount, skip_update, opts){
+			bank: function(amount, skip_update, opts, sync){
 				self.data.b -= money.format(amount);
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			}
 
 		};
 
 		this.increase = {
 
-			money: function(amount, skip_update, opts){
+			money: function(amount, skip_update, opts, sync){
 				self.data.m += money.format(amount);
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			bank: function(amount, skip_update, opts){
+			bank: function(amount, skip_update, opts, sync){
 				self.data.b += money.format(amount);
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			}
 
 		};
 
 		this.set = {
 
-			money: function(amount, skip_update, opts){
+			money: function(amount, skip_update, opts, sync){
 				self.data.m = money.format(amount);
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			bank: function(amount, skip_update, opts){
+			bank: function(amount, skip_update, opts, sync){
 				self.data.b = money.format(amount);
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			transactions: function(transactions, skip_update, opts){
+			transactions: function(transactions, skip_update, opts, sync){
 				self.data.lt = transactions;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			gifts: function(gifts, skip_update, opts){
+			gifts: function(gifts, skip_update, opts, sync){
 				self.data.g = gifts;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			rank: function(rank, skip_update, opts){
+			rank: function(rank, skip_update, opts, sync){
 				self.data.or = rank;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			investments: function(investments, skip_update, opts){
+			investments: function(investments, skip_update, opts, sync){
 				self.data.s = investments;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			interest: function(interest, skip_update, opts){
+			interest: function(interest, skip_update, opts, sync){
 				self.data.li = interest;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			wages: function(wages, skip_update, opts){
+			wages: function(wages, skip_update, opts, sync){
 				self.data.w = wages;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			data: function(data, skip_update, opts){
+			data: function(data, skip_update, opts, sync){
 				self.data = data;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			donations: function(donations, skip_update, opts){
+			donations: function(donations, skip_update, opts, sync){
 				self.data.d = donations;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			}
 
 		};
 
 		this.clear = {
 
-			gifts: function(skip_update, opts){
+			gifts: function(skip_update, opts, sync){
 				self.data.g = [];
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			investmemts: function(skip_update, opts){
+			investmemts: function(skip_update, opts, sync){
 				self.data.s = {};
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			wages: function(skip_update, opts){
+			wages: function(skip_update, opts, sync){
 				self.data.w = {};
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			bank: function(skip_update, opts){
+			bank: function(skip_update, opts, sync){
 				self.data.b = 0;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			money: function(skip_update, opts){
+			money: function(skip_update, opts, sync){
 				self.data.m = 0;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			transactions: function(skip_update, opts){
+			transactions: function(skip_update, opts, sync){
 				self.data.lt = [];
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			interest: function(skip_update, opts){
+			interest: function(skip_update, opts, sync){
 				self.data.li = "";
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			rank: function(skip_update, opts){
+			rank: function(skip_update, opts, sync){
 				self.data.or = 0;
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			data: function(skip_update, opts){
+			data: function(skip_update, opts, sync){
 				self.data = {};
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			donations: function(skip_update, opts){
+			donations: function(skip_update, opts, sync){
 				self.data.d = [];
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			},
 
-			rejected_donations: function(skip_update, opts){
+			rejected_donations: function(skip_update, opts, sync){
 				self.data.rd = [];
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			}
 
 		};
 
 		this.push = {
 
-			gift: function(code, skip_update, opts){
+			gift: function(code, skip_update, opts, sync){
 				self.data.g.push(code);
-				self.update(skip_update, opts);
+				self.update(skip_update, opts, sync);
 			}
 
 		};
@@ -340,7 +344,7 @@ money.Data = (function(){
 			* }
 			*/
 
-			send: function(don, skip_update, opts){
+			send: function(don, skip_update, opts, sync){
 				if(don){
 					if(don.to && don.amount && parseFloat(don.amount) > 0 && don.from && don.from.id && parseInt(don.from.id) > 0 && don.from.name && don.from.name.length){
 						var the_donation = {
@@ -362,7 +366,7 @@ money.Data = (function(){
 
 						// Remove donation amount
 
-						self.decrease.money(don.amount, skip_update, opts);
+						self.decrease.money(don.amount, skip_update, opts, sync);
 
 						return true;
 					}
@@ -371,7 +375,7 @@ money.Data = (function(){
 				return false;
 			},
 
-			send_rejected: function(don, skip_update, opts){
+			send_rejected: function(don, skip_update, opts, sync){
 				if(don.a && don.r && don.f && don.t){
 					var reject = {
 
@@ -385,7 +389,7 @@ money.Data = (function(){
 
 					money.data(don.f).donation.push_reject(reject);
 					money.data(don.f).update(skip_update);
-					self.update(skip_update, opts);
+					self.update(skip_update, opts, sync);
 				}
 			},
 
@@ -419,30 +423,30 @@ money.Data = (function(){
 				return -1;
 			},
 
-			accept: function(donation, skip_update, opts){
+			accept: function(donation, skip_update, opts, sync){
 				var index = self.donation.exists(donation.t + "" + donation.f[0]);
 
 				if(index > -1){
 					self.data.d.splice(index, 1);
-					self.increase.money(donation.a, skip_update, opts);
+					self.increase.money(donation.a, skip_update, opts, sync);
 				}
 			},
 
-			reject: function(donation, skip_update, opts){
+			reject: function(donation, skip_update, opts, sync){
 				var index = self.donation.exists(donation.t + "" + donation.f);
 
 				if(index > -1){
 					self.data.d.splice(index, 1);
-					self.donation.send_rejected(donation, skip_update, opts);
+					self.donation.send_rejected(donation, skip_update, opts, sync);
 				}
 			},
 
-			accept_reject: function(donation, skip_update, opts){
+			accept_reject: function(donation, skip_update, opts, sync){
 				var index = self.donation.reject_exists(donation.t + "" + donation.r[0]);
 
 				if(index> -1){
 					self.data.rd.splice(index, 1);
-					self.increase.money(donation.a, skip_update, opts);
+					self.increase.money(donation.a, skip_update, opts, sync);
 
 					return true;
 				}

@@ -1,3 +1,5 @@
+// TODO: Gift money icon shown by default
+
 money.gift_money = (function(){
 
 	return {
@@ -76,7 +78,7 @@ money.gift_money = (function(){
 						message: this.settings.codes[c].message,
 						members: this.settings.codes[c].members,
 						groups: this.settings.codes[c].groups,
-						show_icon: (this.settings.codes[c].show_gift_icon && this.settings.codes[c].show_gift_icon == "1")? true : false
+						show_icon: (this.settings.codes[c].show_gift_icon && this.settings.codes[c].show_gift_icon == "0")? false : true
 					};
 
 					this.array_lookup.push(this.settings.codes[c].unique_code.toLowerCase());

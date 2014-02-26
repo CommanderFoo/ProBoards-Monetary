@@ -982,6 +982,8 @@ var money = {
 			}
 
 			return false;
+		} else if(yootil.user.id() == 1){
+			return true;
 		}
 
 		return false;

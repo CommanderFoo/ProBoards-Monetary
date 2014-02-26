@@ -1,3 +1,13 @@
+/**
+* Namespace: money.bank
+*
+* 	Allows members to store money in the bank, deposit, withdraw, and earn interest.
+*
+*	Git - https://github.com/pixelDepth/monetarysystem/
+*
+*	Forum Topic - http://support.proboards.com/thread/429762/
+*/
+
 money.bank = (function(){
 
 	return {

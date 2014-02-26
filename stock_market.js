@@ -1,3 +1,13 @@
+/**
+* Namespace: money.stock_market
+*
+* 	Allows members buy and sell stocks to try and make a nice profit.
+*
+*	Git - https://github.com/pixelDepth/monetarysystem/
+*
+*	Forum Topic - http://support.proboards.com/thread/429762/
+*/
+
 money.stock_market = (function(){
 
 	return {

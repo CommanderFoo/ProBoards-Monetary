@@ -1,68 +1,137 @@
+/**
+* Namespace: money.Data
+*
+* 	Wrapper class around the users data that gets instantiated for each users data on the page.
+*
+*	Git - https://github.com/pixelDepth/monetarysystem/
+*
+*	Forum Topic - http://support.proboards.com/thread/429762/
+*/
+
 money.Data = (function(){
+
+	/**
+	* Method: Data
+	* 	The constructor.
+	*
+	* Parameters:
+	* 	user_id - *integer*
+	* 	data - *object* This is the data that comes from the key for the user.
+	*
+	* Returns:
+	*	*object*
+	*/
 
 	function Data(user_id, data){
 		this.user_id = user_id;
 		this.data = data || {
 
-			// General money (aka wallet)
+			/**
+			* Property: data.m
+			* 	General money (aka wallet)
+			*/
 
 			m: 0,
 
-			// Bank
+			/**
+			* Property: data.b
+			* 	Bank money
+			*/
 
 			b: 0,
 
-			// Last transactions
+			/**
+			* Property: data.lt
+			* 	Last bank transactions
+			*/
 
 			lt: [],
 
-			// Last interest date
+			/**
+			* Property: data.li
+			* 	Timestamp of last time interest was given
+			*/
 
 			li: "",
 
-			// Stock market
+			/**
+			* Property: data.s
+			* 	Stock market data
+			*/
 
 			s: {},
 
-			// Wages
+			/**
+			* Property: data.w
+			* 	Wages
+			*/
 
 			w: {
 
-				// Posts
+				/**
+				* Property: data.w.p
+				* 	Posts
+				*/
 
 				p: 0,
 
-				// Timestamp expiry
+				/**
+				* Property: data.w.e
+				* 	Timestamp expiry
+				*/
 
 				e: 0,
 
-				// When do they get paid
+				/**
+				* Property: data.w.w
+				* 	When are they paid
+				*/
 
 				w: 0,
 
-				// Staff expiry
+				/**
+				* Property: data.w.s
+				* 	Staff expiry timestamp
+				*/
 
 				s: 0
 
 			},
 
-			// Gift codes
+			/**
+			* Property: data.g
+			* 	Gift codes
+			*/
 
 			g: [],
 
-			// Old rank
+			/**
+			* Property: data.or
+			* 	Old rank
+			*/
 
 			or: 0,
 
-			// Donations
+			/**
+			* Property: data.d
+			* 	Donations received
+			*/
 
 			d: [],
 
-			// Rejected donations
+			/**
+			* Property: data.rd
+			* 	Rejected donations
+			*/
 
 			rd: []
 
 		};
+
+		/**
+		* Property: error
+		* 	Holds the last error.  This isn't used much.
+		*/
 
 		this.error = "";
 
@@ -78,6 +147,16 @@ money.Data = (function(){
 		this.data.or = (typeof this.data.or == "number")? this.data.or : 0;
 		this.data.d = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
 		this.data.rd = (typeof this.data.rd == "object" && this.data.rd.constructor == Array)? this.data.rd : [];
+
+		/**
+		* Method: update
+		* 	Updates the key data, however you can avoid an actual AJAX request if needed.  Usually this is called internally.
+		*
+		* Parameters:
+		* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+		* 	options - *object* ProBoards key options that get passed on to the set method.
+		*	sync - *boolean* To sync up data across tabs / windows, pass true.
+		*/
 
 		this.update = function(skip_update, options, sync){
 			if(!skip_update){
@@ -111,9 +190,25 @@ money.Data = (function(){
 
 		this.get = {
 
+			/**
+			* Method: get.error
+			* 	Gets the last error stored in the error property.
+			*
+			* Returns:
+			* 	*string*
+			*/
+
 			error: function(){
 				return this.error;
 			},
+
+			/**
+			* Method: get.data
+			* 	Gets the internal data object for this user.
+			*
+			* Returns:
+			* 	*object*
+			*/
 
 			data: function(){
 				return self.data;
@@ -122,6 +217,20 @@ money.Data = (function(){
 			pushed: function(){
 				return self.pushed_data;
 			},
+
+			/**
+			* Method: get.money
+			* 	Gets the uses money from the data object
+			*
+			* Parameters:
+			* 	string - *boolean* Pass true to have a string returned back
+			*
+			* Returns:
+			* 	*integer* / *string*
+			*
+			* Examples:
+			* 	pixeldepth.monetary.data(yootil.user.id()).get.money();
+			*/
 
 			money: function(string){
 				var amount = money.format(self.data.m, string || false);
@@ -133,6 +242,20 @@ money.Data = (function(){
 				return amount;
 			},
 
+			/**
+			* Method: get.bank
+			* 	Gets the uses bank money from the data object
+			*
+			* Parameters:
+			* 	string - *boolean* Pass true to have a string returned back
+			*
+			* Returns:
+			* 	*integer* / *string*
+			*
+			* Examples:
+			* 	pixeldepth.monetary.data(yootil.user.id()).get.bank();
+			*/
+
 			bank: function(string){
 				var amount = money.format(self.data.b, string || false);
 
@@ -143,33 +266,97 @@ money.Data = (function(){
 				return amount;
 			},
 
+			/**
+			* Method: get.transactions
+			* 	Gets the uses bank transactions from the data object
+			*
+			* Returns:
+			* 	*array*
+			*/
+
 			transactions: function(){
 				return self.data.lt;
 			},
+
+			/**
+			* Method: get.investments
+			* 	Gets the uses stock investments from the data object
+			*
+			* Returns:
+			* 	*object*
+			*/
 
 			investments: function(){
 				return self.data.s;
 			},
 
+			/**
+			* Method: get.interest
+			* 	Gets the last interest timestamp
+			*
+			* Returns:
+			* 	*string* / *integer*
+			*/
+
 			interest: function(){
 				return self.data.li;
 			},
+
+			/**
+			* Method: get.wages
+			* 	Gets the wages object from the data object
+			*
+			* Returns:
+			* 	*object*
+			*/
 
 			wages: function(){
 				return self.data.w;
 			},
 
+			/**
+			* Method: get.gifts
+			* 	Gets the users gift codes they have accepted, these get deleted over time.
+			*
+			* Returns:
+			* 	*array*
+			*/
+
 			gifts: function(){
 				return self.data.g;
 			},
+
+			/**
+			* Method: get.rank
+			* 	Gets the last rank recorded
+			*
+			* Returns:
+			* 	*integer*
+			*/
 
 			rank: function(){
 				return self.data.or;
 			},
 
+			/**
+			* Method: get.donations
+			* 	Gets donations sent to this user
+			*
+			* Returns:
+			* 	*array*
+			*/
+
 			donations: function(){
 				return self.data.d;
 			},
+
+			/**
+			* Method: get.rejected_donations
+			* 	Gets the rejcted donations for this user
+			*
+			* Returns:
+			* 	*array*
+			*/
 
 			rejected_donations: function(){
 				return self.data.rd;
@@ -179,10 +366,38 @@ money.Data = (function(){
 
 		this.decrease = {
 
+			/**
+			* Method: decrease.money
+			* 	Decreases the uses money by the amount passed in.
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be deducted
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*
+			* Examples:
+			* 	pixeldepth.monetary.data(yootil.user.id()).decrease.money(100);
+			*/
+
 			money: function(amount, skip_update, opts, sync){
 				self.data.m -= money.format(amount);
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: decrease.bank
+			* 	Decreases the uses money in the bank by the amount passed in.
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be deducted
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*
+			* Examples:
+			* 	pixeldepth.monetary.data(yootil.user.id()).decrease.bank(100);
+			*/
 
 			bank: function(amount, skip_update, opts, sync){
 				self.data.b -= money.format(amount);
@@ -193,10 +408,38 @@ money.Data = (function(){
 
 		this.increase = {
 
+			/**
+			* Method: increase.money
+			* 	Increases the uses money by the amount passed in.
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be added
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*
+			* Examples:
+			* 	pixeldepth.monetary.data(yootil.user.id()).increase.money(100);
+			*/
+
 			money: function(amount, skip_update, opts, sync){
 				self.data.m += money.format(amount);
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: increase.bank
+			* 	Increases the uses bank money by the amount passed in.
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be added
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*
+			* Examples:
+			* 	pixeldepth.monetary.data(yootil.user.id()).increase.bank(100);
+			*/
 
 			bank: function(amount, skip_update, opts, sync){
 				self.data.b += money.format(amount);
@@ -207,50 +450,160 @@ money.Data = (function(){
 
 		this.set = {
 
+			/**
+			* Method: set.money
+			* 	Sets the users money to the amount passed in
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to set the money to.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			money: function(amount, skip_update, opts, sync){
 				self.data.m = money.format(amount);
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: set.bank
+			* 	Sets the users bank money to the amount passed in
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to set the money to.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			bank: function(amount, skip_update, opts, sync){
 				self.data.b = money.format(amount);
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: set.transactions
+			* 	Sets the users bank transactions
+			*
+			* Parameters:
+			* 	transactions - *array* The transactions to be set
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			transactions: function(transactions, skip_update, opts, sync){
 				self.data.lt = transactions;
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: set.gifts
+			* 	Sets the users gifts
+			*
+			* Parameters:
+			* 	gifts - *array* The gifts you want to set.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			gifts: function(gifts, skip_update, opts, sync){
 				self.data.g = gifts;
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: set.rank
+			* 	Sets the users rank
+			*
+			* Parameters:
+			* 	rank - *integer* The rank, usually the uses current rank.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			rank: function(rank, skip_update, opts, sync){
 				self.data.or = rank;
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: set.investments
+			* 	Sets the users stock investments
+			*
+			* Parameters:
+			* 	investments - *object* The sock investments
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			investments: function(investments, skip_update, opts, sync){
 				self.data.s = investments;
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: set.interest
+			* 	Sets the users last interest timestamp
+			*
+			* Parameters:
+			* 	interest - *integer* Must be Timestamp / 1000 as it gets converted when used
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			interest: function(interest, skip_update, opts, sync){
 				self.data.li = interest;
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: set.wages
+			* 	Sets the users wages
+			*
+			* Parameters:
+			* 	wages - *object* The wage object
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			wages: function(wages, skip_update, opts, sync){
 				self.data.w = wages;
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: set.data
+			* 	Sets the users data
+			*
+			* Parameters:
+			* 	data - *object* The data for this user if you need to replace it completely.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			data: function(data, skip_update, opts, sync){
 				self.data = data;
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: set.donations
+			* 	Sets the users data
+			*
+			* Parameters:
+			* 	donations - *array* Donations for this user.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			donations: function(donations, skip_update, opts, sync){
 				self.data.d = donations;
@@ -261,55 +614,165 @@ money.Data = (function(){
 
 		this.clear = {
 
+			/**
+			* Method: clear.gifts
+			* 	Clear the users gifts array
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			gifts: function(skip_update, opts, sync){
 				self.data.g = [];
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: clear.investmemts
+			* 	Clear the users investmemts object
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			investmemts: function(skip_update, opts, sync){
 				self.data.s = {};
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: clear.wages
+			* 	Clear the users wages object
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			wages: function(skip_update, opts, sync){
 				self.data.w = {};
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: clear.bank
+			* 	Clear the users bank amount
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			bank: function(skip_update, opts, sync){
 				self.data.b = 0;
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: clear.money
+			* 	Clear the users money amount (aka wallet)
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			money: function(skip_update, opts, sync){
 				self.data.m = 0;
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: clear.transactions
+			* 	Clear the users transactions array
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			transactions: function(skip_update, opts, sync){
 				self.data.lt = [];
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: clear.interest
+			* 	Clear the users last interest timestamp
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			interest: function(skip_update, opts, sync){
 				self.data.li = "";
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: clear.rank
+			* 	Clear the users old rank
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			rank: function(skip_update, opts, sync){
 				self.data.or = 0;
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: clear.data
+			* 	Clear the users data object
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			data: function(skip_update, opts, sync){
 				self.data = {};
 				self.update(skip_update, opts, sync);
 			},
 
+			/**
+			* Method: clear.donations
+			* 	Clear the users donations array
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			donations: function(skip_update, opts, sync){
 				self.data.d = [];
 				self.update(skip_update, opts, sync);
 			},
+
+			/**
+			* Method: clear.rejected_donations
+			* 	Clear the users rejected_donations array
+			*
+			* Parameters:
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
 
 			rejected_donations: function(skip_update, opts, sync){
 				self.data.rd = [];
@@ -320,6 +783,17 @@ money.Data = (function(){
 
 		this.push = {
 
+			/**
+			* Method: push.gift
+			* 	Pushes a gift code to the data object when it's been accepted.
+			*
+			* Parameters:
+			* 	code - *string* The code to be pushed to the array.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			gift: function(code, skip_update, opts, sync){
 				self.data.g.push(code);
 				self.update(skip_update, opts, sync);
@@ -329,8 +803,19 @@ money.Data = (function(){
 
 		this.donation = {
 
-			/*
-			* don {
+			/**
+			* Method: donation.send
+			* 	Easily send a user a donation
+			*
+			* Parameters:
+			* 	don - *object* The donation object must be specific to the example below
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*
+			* Examples:
+			*
+			* don = {
 			* 	to: (Data object),
 			* 	amount: (Integer / Float),
 			* 	message: {
@@ -342,6 +827,9 @@ money.Data = (function(){
 			* 		name: (String)
 			*	}
 			* }
+			*
+			*
+			* pixeldepth.monetary.data(yootil.user.id()).donation.send(don, false, null, null);
 			*/
 
 			send: function(don, skip_update, opts, sync){
@@ -375,23 +863,57 @@ money.Data = (function(){
 				return false;
 			},
 
+			/**
+			* Method: donation.send_rejected
+			* 	Easily send a user a donation
+			*
+			* Parameters:
+			* 	don - *object* The donation object must be specific to the example below
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*
+			* Examples:
+			*
+			* reject_donation = {
+			*	amount: donation.a,
+			*	receiver: [yootil.user.id(), yootil.user.name()],
+			*	from: donation.f[0],
+			*	time: donation.t
+			*}
+			*
+			* pixeldepth.monetary.data(yootil.user.id()).donation.send_rejected(reject_donation, false, null, null);
+			*/
+
 			send_rejected: function(don, skip_update, opts, sync){
-				if(don.a && don.r && don.f && don.t){
+				if(don.amount && don.receiver && don.from && don.time){
 					var reject = {
 
-						a: don.a,
-						r: don.r,
-						t: don.t
+						a: don.amount,
+						r: don.receiver,
+						t: don.time
 
 					};
 
 					// Push rejected donation to the array (note:  this is on the senders object)
 
-					money.data(don.f).donation.push_reject(reject);
-					money.data(don.f).update(skip_update);
+					money.data(don.from).donation.push_reject(reject);
+					money.data(don.from).update(skip_update);
 					self.update(skip_update, opts, sync);
 				}
 			},
+
+			/**
+			* Method: donation.exists
+			* 	Checks to see if a donation exists.
+			*
+			* Parameters:
+			* 	id - *string* The id is the donation timestamp and the user id joined by string
+			*	return_donation - *boolean* Pass true to return the donation object.
+			*
+			* Returns:
+			* 	*object* / *integer* - Either the object, or an index is returned.  -1 is returned if not found.
+			*/
 
 			// Returns -1 if not exists
 
@@ -409,6 +931,18 @@ money.Data = (function(){
 				return -1;
 			},
 
+			/**
+			* Method: donation.reject_exists
+			* 	Checks to see if a rejected donation exists.
+			*
+			* Parameters:
+			* 	id - *string* The id is the donation timestamp and the user id joined by string
+			*	return_donation - *boolean* Pass true to return the donation object.
+			*
+			* Returns:
+			* 	*object* / *integer* - Either the object, or an index is returned.  -1 is returned if not found.
+			*/
+
 			reject_exists: function(id, return_donation){
 				if(id){
 					for(var d = 0, l = self.data.rd.length; d < l; d ++){
@@ -423,6 +957,17 @@ money.Data = (function(){
 				return -1;
 			},
 
+			/**
+			* Method: donation.accept
+			* 	Accepts a donation and handles increasing the users money.
+			*
+			* Parameters:
+			* 	donation - *object* The donation object.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			accept: function(donation, skip_update, opts, sync){
 				var index = self.donation.exists(donation.t + "" + donation.f[0]);
 
@@ -432,14 +977,39 @@ money.Data = (function(){
 				}
 			},
 
+			/**
+			* Method: donation.reject
+			* 	Rejects a donation and handles sending the rejected donation to the sender.
+			*
+			* Parameters:
+			* 	donation - *object* The donation object.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
 			reject: function(donation, skip_update, opts, sync){
-				var index = self.donation.exists(donation.t + "" + donation.f);
+				var index = self.donation.exists(donation.time + "" + donation.from);
 
 				if(index > -1){
 					self.data.d.splice(index, 1);
 					self.donation.send_rejected(donation, skip_update, opts, sync);
 				}
 			},
+
+			/**
+			* Method: donation.accept_reject
+			* 	Accepts the rejected donation and handles increasing the users money.
+			*
+			* Parameters:
+			* 	donation - *object* The donation object.
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*
+			* Returns:
+			* 	*boolean*
+			*/
 
 			accept_reject: function(donation, skip_update, opts, sync){
 				var index = self.donation.reject_exists(donation.t + "" + donation.r[0]);
@@ -454,9 +1024,25 @@ money.Data = (function(){
 				return false;
 			},
 
+			/**
+			* Method: donation.push
+			* 	Pushes a donation to the array.
+			*
+			* Parameters:
+			* 	donation - *object* The donation object
+			*/
+
 			push: function(donation){
 				self.data.d.push(donation);
 			},
+
+			/**
+			* Method: donation.push_reject
+			* 	Pushes a rejected donation to the array.
+			*
+			* Parameters:
+			* 	reject - *object* The donation object
+			*/
 
 			push_reject: function(reject){
 				self.data.rd.push(reject);

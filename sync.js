@@ -1,9 +1,21 @@
+/**
+* Namespace: money.sync
+*
+* 	Handles syncing the user data between tabs and windows.
+*
+*	Git - https://github.com/pixelDepth/monetarysystem/
+*
+*	Forum Topic - http://support.proboards.com/thread/429762/
+*/
+
 money.sync = (function(){
 
 	return {
 
-		// Called every page load to make sure we are storing the most
-		// up to date data value, or things get messed up
+		/**
+		* Method: init
+		* 	Called every page load to make sure we are storing the most up to date data value, or things get messed up.
+		*/
 
 		init: function(){
 			if(!Modernizr.localstorage){
@@ -21,15 +33,20 @@ money.sync = (function(){
 			}, 100);
 		},
 
+		/**
+		* Method: register
+		* 	Registers this module with the money object.
+		*/
+
 		register: function(){
 			money.modules.push(this);
 			return this;
 		},
 
-		// Checks for the original storage event and makes sure we are
-		// using the correct key.
-
-		// Should not need domain checking
+		/**
+		* Method: handle_syncing
+		* 	Checks for the original storage event and makes sure we are using the correct key.
+		*/
 
 		handle_syncing: function(evt){
 			if(evt && evt.originalEvent && evt.originalEvent.key == "monetary_data_sync"){
@@ -41,7 +58,7 @@ money.sync = (function(){
 				// master of the data.
 
 				if(money.trigger_caller){
-					monye.trigger_caller = false;
+					money.trigger_caller = false;
 					return;
 				}
 
@@ -49,14 +66,14 @@ money.sync = (function(){
 			}
 		},
 
-		// Here we sync the data object with the new data.
-		// We do a straight swap for now, I see no reason not too.
-		// Remember, this only is called when an update to the data has happened.
-
-		// We also handle visual stuff, we don't have too but it's nice.
-
-		// Support has been added for multiple instances of the stock market,
-		// bank, and gift money.
+		/**
+		* Method: sync_data
+		* 	Here we sync the data object with the new data, and we also handle visual stuff, we don't have too but it's nice.
+		*
+		* 	We do a straight swap for now, I see no reason not too.
+		*
+		*	This only is called when an update to the data has happened.
+		*/
 
 		sync_data: function(evt){
 			var old_data = evt.oldValue;
@@ -158,10 +175,10 @@ money.sync = (function(){
 			}
 		},
 
-		// Sometimes we need to trigger the sync (i.e edit money dialog)
-		// Due to IE not following standards, we do some window.name setting
-		// to prevent the trigger caller tab / window from triggering on its self.
-		// Got to love IE, nothing but headaches and workarounds.
+		/**
+		* Method: trigger
+		* 	Sometimes we need to trigger the sync (i.e edit money dialog) manually.
+		*/
 
 		trigger: function(){
 			if(!Modernizr.localstorage){

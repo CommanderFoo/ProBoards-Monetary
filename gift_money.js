@@ -1,4 +1,12 @@
-// TODO: Gift money icon shown by default
+/**
+* Namespace: money.gift_money
+*
+* 	Gift money module handles giving out created gift codes to members.
+*
+*	Git - https://github.com/pixelDepth/monetarysystem/
+*
+*	Forum Topic - http://support.proboards.com/thread/429762/
+*/
 
 money.gift_money = (function(){
 
@@ -12,11 +20,31 @@ money.gift_money = (function(){
 
 		},
 
+		/**
+		* Propety: lookup
+		* 	All gift objects go ito this object for quick lookup.
+		*/
+
 		lookup: {},
+
+		/**
+		* Propety: array_lookup
+		* 	All unique gift code strings are pushed into this lookup array.
+		*/
 
 		array_lookup: [],
 
+		/**
+		* Propety: current_code
+		* 	The current gift code the user is trying to access.
+		*/
+
 		current_code:  "",
+
+		/**
+		* Method: init
+		* 	Called from the money class to get things going.
+		*/
 
 		init: function(){
 
@@ -50,6 +78,11 @@ money.gift_money = (function(){
 				}
 			}
 		},
+
+		/**
+		* Method: setup
+		* 	Sets up basic srettings, images.  Populates the lookup object and array.
+		*/
 
 		setup: function(){
 			if(money.plugin){
@@ -86,10 +119,23 @@ money.gift_money = (function(){
 			}
 		},
 
+		/**
+		* Method: register
+		* 	Registers this module.
+		*
+		* Returns:
+		* 	*object* - This class reference.
+		*/
+
 		register: function(){
 			money.modules.push(this);
 			return this;
 		},
+
+		/**
+		* Method: add_to_yootil_bar
+		* 	Adds gift icon to the yootil bar if the icon is enabled.
+		*/
 
 		add_to_yootil_bar: function(){
 			for(var key in this.lookup){
@@ -101,6 +147,14 @@ money.gift_money = (function(){
 			}
 		},
 
+		/**
+		* Method: show_error
+		* 	Creates an error container and shows the message to the user.
+		*
+		* Parameters:
+		* 	msg - *string*
+		*/
+
 		show_error: function(msg){
 			var html = "";
 
@@ -111,6 +165,14 @@ money.gift_money = (function(){
 
 			container.appendTo("#content");
 		},
+
+		/**
+		* Method: gift_money
+		* 	Handles gifting the money to the user if the gift code is valid and not already accepted.
+		*
+		* Returns:
+		* 	*boolean*
+		*/
 
 		gift_money: function(){
 			var code = this.get_gift_code();
@@ -163,6 +225,14 @@ money.gift_money = (function(){
 			return false;
 		},
 
+		/**
+		* Method: collect_gift
+		* 	Gives the gift to the user.  This will update the wallet or bank depending on settings.
+		*
+		* Returns:
+		* 	*boolean*
+		*/
+
 		collect_gift: function(gift){
 			if(this.current_code && this.lookup[this.current_code]){
 				money.data(yootil.user.id()).push.gift(this.current_code);
@@ -197,9 +267,25 @@ money.gift_money = (function(){
 			return false;
 		},
 
+		/**
+		* Method: save_money_data
+		* 	Wrapper around user Data class to update the key.
+		*/
+
 		save_money_data: function(){
 			money.data(yootil.user.id()).update();
 		},
+
+		/**
+		* Method: allowed_gift
+		* 	Checks to see if the user is allowed this gift.  Various checks are done here against members and groups.
+		*
+		* Parameters:
+		* 	gift - *object* The gift
+		*
+		* Returns:
+		* 	*boolean*
+		*/
 
 		allowed_gift: function(gift){
 			if(gift){
@@ -231,6 +317,17 @@ money.gift_money = (function(){
 			return false;
 		},
 
+		/**
+		* Method: has_received
+		* 	Checks to see if the user has already received the gift.
+		*
+		* Parameters:
+		* 	code - *string* The gift code
+		*
+		* Returns:
+		* 	*boolean*
+		*/
+
 		has_received: function(code){
 			if($.inArrayLoose(code, money.data(yootil.user.id()).get.gifts()) != -1){
 				return true;
@@ -238,6 +335,14 @@ money.gift_money = (function(){
 
 			return false;
 		},
+
+		/**
+		* Method: get_gift_code
+		* 	Gets the gift code from the URL
+		*
+		* Returns:
+		* 	*boolean* / *string*
+		*/
 
 		get_gift_code: function(){
 			var url = location.href;
@@ -248,6 +353,14 @@ money.gift_money = (function(){
 
 			return false;
 		},
+
+		/**
+		* Method: valid_code
+		* 	Checks to make sure that the code is valid and exists in the lookup table.
+		*
+		* Returns:
+		* 	*boolean* / *object*
+		*/
 
 		valid_code: function(code){
 			if(code){
@@ -261,7 +374,10 @@ money.gift_money = (function(){
 			return false;
 		},
 
-		// Remove old codes that are no longer used
+		/**
+		* Method: remove_old_codes
+		* 	Handles removing old codes that do not exist to try and reduce the key length.
+		*/
 
 		remove_old_codes: function(){
 			if(!this.settings.codes.length){

@@ -1,3 +1,13 @@
+/**
+* Namespace: money.donation
+*
+* 	Allows members to donate money to each other.
+*
+*	Git - https://github.com/pixelDepth/monetarysystem/
+*
+*	Forum Topic - http://support.proboards.com/thread/429762/
+*/
+
 money.donation = (function(){
 
 	return {
@@ -566,10 +576,10 @@ money.donation = (function(){
 
 		reject_donation: function(donation){
 			var reject_donation = {
-				a: donation.a,
-				r: [yootil.user.id(), yootil.user.name()],
-				f: donation.f[0],
-				t: donation.t
+				amount: donation.a,
+				receiver: [yootil.user.id(), yootil.user.name()],
+				from: donation.f[0],
+				time: donation.t
 			};
 
 			money.data(yootil.user.id()).donation.reject(reject_donation, false, {

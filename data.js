@@ -124,7 +124,14 @@ money.Data = (function(){
 			* 	Rejected donations
 			*/
 
-			rd: []
+			rd: [],
+
+			/**
+			* Property: data.si
+			* 	Shop items
+			*/
+
+			si: []
 
 		};
 
@@ -147,6 +154,7 @@ money.Data = (function(){
 		this.data.or = (typeof this.data.or == "number")? this.data.or : 0;
 		this.data.d = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
 		this.data.rd = (typeof this.data.rd == "object" && this.data.rd.constructor == Array)? this.data.rd : [];
+		this.data.si = (typeof this.data.si == "object" && this.data.si.constructor == Array)? this.data.si : [];
 
 		/**
 		* Method: update
@@ -360,6 +368,98 @@ money.Data = (function(){
 
 			rejected_donations: function(){
 				return self.data.rd;
+			}
+
+		};
+
+		this.shop = {
+
+			get: {
+
+				/**
+				* Method: get.shop.items
+				* 	Gets all shop items this user has bought
+				*
+				* Returns:
+				* 	*array*
+				*/
+
+				items: function(){
+					return self.data.si;
+				},
+
+				/**
+				* Method: get.shop.item
+				* 	Gets a specific shop item the user has bought
+				*
+				*  Parameters:
+				*	id - *integer* The item id to lookup and return
+				*
+				* Returns:
+				* 	*object*
+				*/
+
+				item: function(id){
+					if(id){
+						var items = self.data.si;
+
+						if(items && items.length){
+							for(var i = 0, l = items.length; i < l; i ++){
+								if(item[i].i == id){
+									return items[i];
+								}
+							}
+						}
+					}
+
+					return null;
+				}
+
+			},
+
+			give: function(id, price, quantity, skip_update, opts, sync){
+				if(id && quantity){
+					for(var i = 0, l = this.data.si.length; i < l; i ++){
+						if(this.data.si[i].id == id){
+							this.data.si[i].q += parseInt(quantity);
+
+							if(price < this.data.si[i].p){
+								this.data.si[i].p = money.format(price);
+							}
+
+							self.update(skip_update, opts, sync);
+							return true;
+						}
+					}
+				}
+
+				return false;
+			},
+
+			remove: function(id, quantity, skip_update, opts, sync){
+				if(id){
+					quantity = (parseInt(quantity))? quantity : 0;
+
+					for(var i = 0, l = this.data.si.length; i < l; i ++){
+						if(this.data.si[i].id == id){
+							this.data.si[i].q -= quantity;
+
+							if(this.data.si[i].q <= 0){
+								this.data.si = this.data.si.splice(i, 1);
+							}
+
+							self.update(skip_update, opts, sync);
+							return true;
+						}
+					}
+				}
+
+				return false;
+			},
+
+			clear: function(skip_update, opts, sync){
+				this.data.si = [];
+				self.update(skip_update, opts, sync);
 			}
 
 		};

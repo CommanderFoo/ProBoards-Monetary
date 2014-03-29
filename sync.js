@@ -128,6 +128,8 @@ money.sync = (function(){
 
 			var user_money = money.data(yootil.user.id()).get.money(true);
 			var user_bank_money = money.data(yootil.user.id()).get.bank(true);
+			var user_donations_sent = money.data(yootil.user.id()).get.total_sent_donations(true);
+			var user_donations_received = money.data(yootil.user.id()).get.total_received_donations(true);
 
 			// Now lets see where we are, and attempt to update visuals
 
@@ -137,10 +139,10 @@ money.sync = (function(){
 				var user_id = yootil.user.id();
 
 				$(".pd_money_amount_" + user_id).text(yootil.number_format(user_money));
+				$(".pd_bank_amount_" + user_id).text(yootil.number_format(user_bank_money));
+				$(".pd_donations_sent_amount_" + user_id).text(yootil.number_format(user_donations_sent));
+				$(".pd_donations_received_amount_" + user_id).text(yootil.number_format(user_donations_received));
 
-				if(yootil.location.check.profile_home() || yootil.location.check.members()){
-					$(".pd_bank_amount_" + user_id).text(yootil.number_format(user_bank_money));
-				}
 			}
 
 			// See if there is a wallet about

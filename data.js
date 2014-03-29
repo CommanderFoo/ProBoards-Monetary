@@ -22,9 +22,9 @@ money.Data = (function(){
 	*	*object*
 	*/
 
-	function Data(user_id, data){
+	function Data(user_id, data_obj){
 		this.user_id = user_id;
-		this.data = data || {
+		this.data = data_obj || {
 
 			/**
 			* Property: data.m
@@ -120,18 +120,25 @@ money.Data = (function(){
 			d: [],
 
 			/**
+			* Property: data.ds
+			* 	Total amount for donations sent
+			*/
+
+			ds: 0,
+
+			/**
+			* Property: data.dr
+			* 	Total amount for donations received
+			*/
+
+			dr: 0,
+
+			/**
 			* Property: data.rd
 			* 	Rejected donations
 			*/
 
-			rd: [],
-
-			/**
-			* Property: data.si
-			* 	Shop items
-			*/
-
-			si: []
+			rd: []
 
 		};
 
@@ -144,8 +151,8 @@ money.Data = (function(){
 
 		// Basic validation of data
 
-		this.data.m = (typeof this.data.m == "number")? this.data.m : 0;
-		this.data.b = (typeof this.data.b == "number")? this.data.b : 0;
+		this.data.m = (parseFloat(this.data.m) > 0)? parseFloat(this.data.m) : 0;
+		this.data.b = (parseFloat(this.data.b) > 0)? parseFloat(this.data.b) : 0;
 		this.data.lt = (typeof this.data.lt == "object" && this.data.lt.constructor == Array)? this.data.lt : [];
 		this.data.li = (typeof this.data.li == "string")? this.data.li : "";
 		this.data.s = (typeof this.data.s == "object" && this.data.s.constructor == Object)? this.data.s : {};
@@ -154,7 +161,8 @@ money.Data = (function(){
 		this.data.or = (typeof this.data.or == "number")? this.data.or : 0;
 		this.data.d = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
 		this.data.rd = (typeof this.data.rd == "object" && this.data.rd.constructor == Array)? this.data.rd : [];
-		this.data.si = (typeof this.data.si == "object" && this.data.si.constructor == Array)? this.data.si : [];
+		this.data.ds = (parseFloat(this.data.ds) > 0)? parseFloat(this.data.ds) : 0;
+		this.data.dr = (parseFloat(this.data.dr) > 0)? parseFloat(this.data.dr) : 0;
 
 		/**
 		* Method: update
@@ -169,18 +177,13 @@ money.Data = (function(){
 		this.update = function(skip_update, options, sync){
 			if(!skip_update){
 
-				// Lets put in a length check on the data so we can get a reason why
-				// the data was not updated.
+				// Lets put in a length check on the data
 
 				if(JSON.stringify(this.data).length > proboards.data("plugin_max_key_length")){
 					this.error = "Data length has gone over it's limit of " + proboards.data("plugin_max_key_length");
+
+					return;
 				}
-
-				// No need to stop update if limit has been reached, ProBoards should handle this
-				// for us and stop the update of the key.
-
-				// Yootil key needs updating to support options
-				//yootil.key.set(money.KEY, this.data, this.user_id);
 
 				var key_obj = proboards.plugin.key(money.KEY);
 
@@ -197,6 +200,10 @@ money.Data = (function(){
 		var self = this;
 
 		this.get = {
+
+			data_length_exceeded: function(){
+				return JSON.stringify(self.data).length > proboards.data("plugin_max_key_length");
+			},
 
 			/**
 			* Method: get.error
@@ -368,98 +375,42 @@ money.Data = (function(){
 
 			rejected_donations: function(){
 				return self.data.rd;
-			}
-
-		};
-
-		this.shop = {
-
-			get: {
-
-				/**
-				* Method: get.shop.items
-				* 	Gets all shop items this user has bought
-				*
-				* Returns:
-				* 	*array*
-				*/
-
-				items: function(){
-					return self.data.si;
-				},
-
-				/**
-				* Method: get.shop.item
-				* 	Gets a specific shop item the user has bought
-				*
-				*  Parameters:
-				*	id - *integer* The item id to lookup and return
-				*
-				* Returns:
-				* 	*object*
-				*/
-
-				item: function(id){
-					if(id){
-						var items = self.data.si;
-
-						if(items && items.length){
-							for(var i = 0, l = items.length; i < l; i ++){
-								if(item[i].i == id){
-									return items[i];
-								}
-							}
-						}
-					}
-
-					return null;
-				}
-
 			},
 
-			give: function(id, price, quantity, skip_update, opts, sync){
-				if(id && quantity){
-					for(var i = 0, l = this.data.si.length; i < l; i ++){
-						if(this.data.si[i].id == id){
-							this.data.si[i].q += parseInt(quantity);
+			/**
+			* Method: get.total_sent_donations
+			* 	Gets the total value of donatins sent to people
+			*
+			* Returns:
+			* 	*integer*
+			*/
 
-							if(price < this.data.si[i].p){
-								this.data.si[i].p = money.format(price);
-							}
+			total_sent_donations: function(string){
+				var amount = money.format(self.data.ds, string || false);
 
-							self.update(skip_update, opts, sync);
-							return true;
-						}
-					}
+				if(string){
+					amount = yootil.number_format(amount);
 				}
 
-				return false;
+				return amount;
 			},
 
-			remove: function(id, quantity, skip_update, opts, sync){
-				if(id){
-					quantity = (parseInt(quantity))? quantity : 0;
+			/**
+			* Method: get.total_recevied_donations
+			* 	Gets the total value of donatins received by people
+			*
+			* Returns:
+			* 	*integer*
+			*/
 
-					for(var i = 0, l = this.data.si.length; i < l; i ++){
-						if(this.data.si[i].id == id){
-							this.data.si[i].q -= quantity;
+			total_received_donations: function(string){
+				var amount = money.format(self.data.dr, string || false);
 
-							if(this.data.si[i].q <= 0){
-								this.data.si = this.data.si.splice(i, 1);
-							}
-
-							self.update(skip_update, opts, sync);
-							return true;
-						}
-					}
+				if(string){
+					amount = yootil.number_format(amount);
 				}
 
-				return false;
-			},
-
-			clear: function(skip_update, opts, sync){
-				this.data.si = [];
-				self.update(skip_update, opts, sync);
+				return amount;
 			}
 
 		};
@@ -481,7 +432,7 @@ money.Data = (function(){
 			*/
 
 			money: function(amount, skip_update, opts, sync){
-				self.data.m -= money.format(amount);
+				self.data.m -= parseFloat(amount);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -500,7 +451,41 @@ money.Data = (function(){
 			*/
 
 			bank: function(amount, skip_update, opts, sync){
-				self.data.b -= money.format(amount);
+				self.data.b -= parseFloat(amount);
+				self.update(skip_update, opts, sync);
+			},
+
+			/**
+			* Method: decrease.donations_sent
+			* 	Decreases the total donations sent
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be removed
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
+			donations_sent: function(amount, skip_update, opts, sync){
+				self.data.ds -= parseFloat(amount);
+				self.data.ds = (self.data.ds < 0)? 0 : self.data.ds;
+				self.update(skip_update, opts, sync);
+			},
+
+			/**
+			* Method: decrease.donations_received
+			* 	Decreases the total donations received
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be removed
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
+			donations_received: function(amount, skip_update, opts, sync){
+				self.data.dr -= parseFloat(amount);
+				self.data.dr = (self.data.dr < 0)? 0 : self.data.dr;
 				self.update(skip_update, opts, sync);
 			}
 
@@ -523,7 +508,7 @@ money.Data = (function(){
 			*/
 
 			money: function(amount, skip_update, opts, sync){
-				self.data.m += money.format(amount);
+				self.data.m += parseFloat(amount);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -542,7 +527,39 @@ money.Data = (function(){
 			*/
 
 			bank: function(amount, skip_update, opts, sync){
-				self.data.b += money.format(amount);
+				self.data.b += parseFloat(amount);
+				self.update(skip_update, opts, sync);
+			},
+
+			/**
+			* Method: increase.donations_sent
+			* 	Increases the total donations sent
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be added
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
+			donations_sent: function(amount, skip_update, opts, sync){
+				self.data.ds += parseFloat(amount);
+				self.update(skip_update, opts, sync);
+			},
+
+			/**
+			* Method: increase.donations_received
+			* 	Increases the total donations received
+			*
+			* Parameters:
+			* 	amount - *integer* The amount to be added
+			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
+			* 	options - *object* ProBoards key options that get passed on to the set method.
+			*	sync - *boolean* To sync up data across tabs / windows, pass true.
+			*/
+
+			donations_received: function(amount, skip_update, opts, sync){
+				self.data.dr += parseFloat(amount);
 				self.update(skip_update, opts, sync);
 			}
 
@@ -562,7 +579,7 @@ money.Data = (function(){
 			*/
 
 			money: function(amount, skip_update, opts, sync){
-				self.data.m = money.format(amount);
+				self.data.m = parseFloat(amount);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -578,7 +595,7 @@ money.Data = (function(){
 			*/
 
 			bank: function(amount, skip_update, opts, sync){
-				self.data.b = money.format(amount);
+				self.data.b = parseFloat(amount);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -938,7 +955,7 @@ money.Data = (function(){
 						var the_donation = {
 
 							t: (+ new Date() / 1000),
-							a: money.format(don.amount),
+							a: parseFloat(don.amount),
 							f: [don.from.id, don.from.name]
 
 						};
@@ -951,6 +968,9 @@ money.Data = (function(){
 
 						don.to.donation.push(the_donation);
 						don.to.update(skip_update);
+
+
+						self.increase.donations_sent(don.amount, true, null, false);
 
 						// Remove donation amount
 
@@ -1073,6 +1093,7 @@ money.Data = (function(){
 
 				if(index > -1){
 					self.data.d.splice(index, 1);
+					self.increase.donations_received(donation.a, true, null, false);
 					self.increase.money(donation.a, skip_update, opts, sync);
 				}
 			},
@@ -1116,6 +1137,7 @@ money.Data = (function(){
 
 				if(index> -1){
 					self.data.rd.splice(index, 1);
+					self.decrease.donations_sent(donation.a, true, null, false);
 					self.increase.money(donation.a, skip_update, opts, sync);
 
 					return true;

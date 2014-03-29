@@ -42,6 +42,10 @@ money.stock_market = (function(){
 		invest_data: {},
 
 		init: function(){
+			if(!yootil.user.logged_in()){
+				return;
+			}
+
 			this.setup();
 
 			if(this.settings.enabled){
@@ -190,7 +194,7 @@ money.stock_market = (function(){
 			for(var stock in invest_data){
 				var amount = this.invest_amount(stock);
 				var bid = invest_data[stock].b;
-				var total_cost = (bid * amount);
+				var total_cost = (parseFloat(bid) * amount);
 
 				total_value += total_cost;
 				total_stocks ++;
@@ -284,7 +288,7 @@ money.stock_market = (function(){
 
 						if(amount){
 							var bid = invest_data[stock_id].b;
-							var total_cost = (bid * amount);
+							var total_cost = (parseFloat(bid) * amount);
 
 							money.data(yootil.user.id()).increase.money(total_cost, true);
 							self.remove_from_data(stock_id);
@@ -585,7 +589,7 @@ money.stock_market = (function(){
 
 			if(amount){
 				var bid = this.symbols[stock_id].BidRealtime;
-				var total_cost = (bid * amount);
+				var total_cost = (parseFloat(bid) * amount);
 
 				money.data(yootil.user.id()).increase.money(total_cost, true);
 

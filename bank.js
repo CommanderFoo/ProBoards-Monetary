@@ -20,6 +20,10 @@ money.bank = (function(){
 			minimum_deposit: 0.01,
 			minimum_withdraw: 0.01,
 
+			show_bank_mini_profile: false,
+			show_bank_profile: true,
+			show_bank_staff_only: true,
+
 			text: {
 
 				bank: "Bank",
@@ -54,6 +58,10 @@ money.bank = (function(){
 
 		init: function(){
 			this.setup();
+
+			if(!yootil.user.logged_in()){
+				return;
+			}
 
 			if(this.settings.enabled){
 				if(money.images.bank){
@@ -147,10 +155,10 @@ money.bank = (function(){
 				if(!value.match(/^\d+(\.\d{1,2})?$/)){
 					self.bank_error(self.settings.text.deposit + " value must be a number (i.e 56, or 56.22).");
 				} else {
-					if(parseFloat(value) >= money.format(self.settings.minimum_deposit)){
+					if(parseFloat(value) >= parseFloat(self.settings.minimum_deposit)){
 						var current_amount = money.data(yootil.user.id()).get.money();
 
-						if(value > current_amount){
+						if(value > parseFloat(current_amount)){
 							self.bank_error("You do not have enough to " + self.settings.text.deposit.toLowerCase() + " that amount.");
 						} else {
 							self.deposit(value);
@@ -175,10 +183,10 @@ money.bank = (function(){
 				if(!value.match(/^\d+(\.\d{1,2})?$/)){
 					self.bank_error(self.settings.text.withdraw + " value must be a number (i.e 56, or 56.22).");
 				} else {
-					if(parseFloat(value) >= money.format(self.settings.minimum_withdraw)){
+					if(parseFloat(value) >= parseFloat(self.settings.minimum_withdraw)){
 						var current_amount = money.data(yootil.user.id()).get.bank();
 
-						if(value > current_amount){
+						if(value > parseFloat(current_amount)){
 							self.bank_error("You do not have enough in the " + self.settings.text.bank.toLowerCase() + " to " + self.settings.text.withdraw.toLowerCase() + " that amount.");
 						} else {
 							self.withdraw(value);
@@ -336,6 +344,10 @@ money.bank = (function(){
 				this.settings.text.types.RANKUP = (settings.type_rankup_text && settings.type_rankup_text.length)? settings.type_rankup_text : this.settings.text.types.RANKUP;
 				this.settings.text.types.STAFFWAGES = (settings.type_staff_wages_text && settings.type_staff_wages_text.length)? settings.type_staff_wages_text : this.settings.text.types.STAFFWAGES;
 				this.settings.text.types.GIFTMONEY = (settings.type_gift_money_text && settings.type_gift_money_text.length)? settings.type_gift_money_text : this.settings.text.types.GIFTMONEY;
+
+				this.settings.show_bank_mini_profile = (settings.bank_mini_profile == "1")? true : this.settings.show_bank_mini_profile;
+				this.settings.show_bank_profile = (settings.bank_profile == "0")? false : this.settings.show_bank_profile;
+				this.settings.show_bank_staff_only = (settings.bank_view_staff_only == "0")? false : this.settings.show_bank_staff_only;
 			}
 		},
 
@@ -430,7 +442,7 @@ money.bank = (function(){
 		deposit: function(amount){
 			var user_id = yootil.user.id();
 
-			amount = money.format(amount);
+			amount = parseFloat(amount);
 
 			money.data(user_id).decrease.money(amount);
 			money.data(user_id).increase.bank(amount);
@@ -444,7 +456,7 @@ money.bank = (function(){
 		withdraw: function(amount){
 			var user_id = yootil.user.id();
 
-			amount = money.format(amount);
+			amount = parseFloat(amount);
 
 			money.data(user_id).decrease.bank(amount);
 			money.data(user_id).increase.money(amount);
@@ -485,8 +497,8 @@ money.bank = (function(){
 			var current_transactions = this.get_transactions(user_id);
 			var now = +new Date();
 
-			in_amount = money.format(in_amount);
-			out_amount = money.format(out_amount);
+			in_amount = parseFloat(in_amount);
+			out_amount = parseFloat(out_amount);
 
 			var total_balance = 0;
 			var previous_balance = 0;
@@ -500,7 +512,11 @@ money.bank = (function(){
 			total_balance = previous_balance;
 
 			if(typeof force_previous_balance != "number"){
-				total_balance += (type == 2)? - out_amount : in_amount;
+				if(!previous_balance){
+					total_balance = parseFloat(money.data(user_id).get.bank());
+				} else {
+					total_balance += (type == 2)? - out_amount : in_amount;
+				}
 			}
 
 			current_transactions.unshift([type, in_amount, out_amount, now, total_balance]);

@@ -24,6 +24,11 @@ money.donation = (function(){
 
 			message_max_len: 50,
 
+			show_total_sent_mini_profile: false,
+			show_total_received_mini_profile: false,
+			show_total_sent_profile: false,
+			show_total_received_profile: false,
+
 			text: {
 
 				donation: "Donation",
@@ -56,9 +61,9 @@ money.donation = (function(){
 		},
 
 		init: function(){
-			if(yootil.user.logged_in()){
-				this.setup();
+			this.setup();
 
+			if(yootil.user.logged_in()){
 				if(!this.settings.enabled){
 					money.show_default();
 					return;
@@ -175,7 +180,7 @@ money.donation = (function(){
 								var user_money_display = $(".pd_money_amount_" + yootil.user.id());
 
 								if(user_money_display.length){
-									user_money_display.text(yootil.number_format(user_money));
+									user_money_display.text(user_money);
 								}
 
 								// Now wallet
@@ -183,13 +188,22 @@ money.donation = (function(){
 								var wallet = $("#pd_money_wallet_amount");
 
 								if(wallet.length){
-									wallet.text(yootil.number_format(user_money));
+									wallet.text(user_money);
 								}
 
 								var other_wallet = $(".money_wallet_amount");
 
 								if(other_wallet.length){
 									other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + yootil.html_encode(user_money));
+								}
+
+								// Donation sent
+
+								var user_donations_sent = money.data(yootil.user.id()).get.total_sent_donations(true);
+								var user_donations_sent_display = $(".pd_donations_sent_amount_" + yootil.user.id());
+
+								if(user_donations_sent_display.length){
+									user_donations_sent_display.text(user_donations_sent);
 								}
 							}
 
@@ -281,8 +295,8 @@ money.donation = (function(){
 
 				this.settings.enabled = (settings.donations_enabled == "0")? false : this.settings.enabled;
 				this.settings.show_profile_button = (settings.show_profile_button == "0")? false : this.settings.show_profile_button;
-				this.settings.minimum_donation = money.format(settings.minimum_donation);
-				this.settings.maximum_donation = money.format(settings.maximum_donation);
+				this.settings.minimum_donation = parseFloat(settings.minimum_donation);
+				this.settings.maximum_donation = parseFloat(settings.maximum_donation);
 
 				if(this.settings.minimum_donation < 1){
 					if(!money.settings.decimal_money){
@@ -299,6 +313,10 @@ money.donation = (function(){
 					this.settings.text.donations += "s";
 				}
 
+				this.settings.show_total_sent_mini_profile = (settings.donations_sent_mp == "1")? true : this.settings.show_total_sent_mini_profile;
+				this.settings.show_total_received_mini_profile = (settings.donations_received_mp == "1")? true : this.settings.show_total_received_mini_profile;
+				this.settings.show_total_sent_profile = (settings.donations_sent_profile == "1")? true : this.settings.show_total_sent_profile;
+				this.settings.show_total_received_profile = (settings.donations_received_profile == "1")? true : this.settings.show_total_received_profile;
 			}
 		},
 
@@ -358,7 +376,7 @@ money.donation = (function(){
 			html += "</div><br style='clear: both' />";
 			html += "</div>";
 
-			var container = yootil.create.container(title, html).show();
+			var container = yootil.create.container(title + "<br style='clear: both;' />", html).show();
 
 			var self = this;
 
@@ -550,7 +568,7 @@ money.donation = (function(){
 				var title = "<div class='monetary-donation-viewing-title'>Viewing Donation - <span id='monetary-donation-page-expiry'>Page Expires In: " + this.PAGE_TIME_EXPIRY + " seconds</span></div>";
 				title += "<div class='monetary-donation-receiving-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + "</span></div>";
 
-				var container = yootil.create.container(title, html).show();
+				var container = yootil.create.container(title + "<br style='clear: both;' />", html).show();
 
 				container.appendTo("#content");
 

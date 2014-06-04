@@ -34,7 +34,9 @@ money.donation = (function(){
 				donation: "Donation",
 				donations: "Donations"
 
-			}
+			},
+
+			excluded: []
 
 		},
 
@@ -72,7 +74,7 @@ money.donation = (function(){
 				var self = this;
 				var total_donations = self.get_total_donations();
 
-				if(total_donations){
+				if(total_donations && this.can_send_receive()){
 					yootil.bar.add("/user/" + yootil.user.id() + "?monetarydonation&view=2", money.images.donate, this.settings.text.donations, "pdmsdonate");
 
 					$("#yootil-bar").ready(function(){
@@ -100,11 +102,15 @@ money.donation = (function(){
 									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=1"), "Send " + this.settings.text.donation);
 									yootil.create.nav_branch("/user/" + id + "?monetarydonation&view=1", "Send " + this.settings.text.donation);
 
-									this.collect_donation_to_details();
-									this.build_send_donation_html();
+									if(this.can_send_receive()){
+										this.collect_donation_to_details();
+										this.build_send_donation_html();
 
-									if(this.settings.page_timer_enabled){
-										this.monitor_time_on_page();
+										if(this.settings.page_timer_enabled){
+											this.monitor_time_on_page();
+										}
+									} else {
+										this.show_error("You do not have permission to send " + this.settings.text.donations.toLowerCase() + ".");
 									}
 								} else {
 									money.show_default();
@@ -118,7 +124,11 @@ money.donation = (function(){
 								yootil.create.page(new RegExp("\\/user\\/" + yootil.user.id() + "\\?monetarydonation&view=2"), "Received " + this.settings.text.donations);
 								yootil.create.nav_branch("/user/" + yootil.user.id() + "?monetarydonation&view=2", "Received " + this.settings.text.donations);
 
-								this.build_received_donations_html();
+								if(this.can_send_receive()){
+									this.build_received_donations_html();
+								} else {
+									this.show_error("You do not have permission to view this page.");
+								}
 
 								break;
 
@@ -131,7 +141,11 @@ money.donation = (function(){
 								if(don_id){
 									yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetarydonation&view=3&id=[\\d\\.]+"), "Viewing " + this.settings.text.donation);
 
-									this.build_view_donation_html(don_id);
+									if(this.can_send_receive()){
+										this.build_view_donation_html(don_id);
+									} else {
+										this.show_error("You do not have permission to receive " + this.settings.text.donations.toLowerCase() + ".");
+									}
 								} else {
 									money.show_default();
 								}
@@ -140,7 +154,9 @@ money.donation = (function(){
 
 						}
 					} else if(yootil.page.member.id() != yootil.user.id() && this.settings.show_profile_button){
-						this.create_donation_button();
+						if(this.can_send_receive()){
+							this.create_donation_button();
+						}
 					}
 				}
 			}
@@ -317,7 +333,23 @@ money.donation = (function(){
 				this.settings.show_total_received_mini_profile = (settings.donations_received_mp == "1")? true : this.settings.show_total_received_mini_profile;
 				this.settings.show_total_sent_profile = (settings.donations_sent_profile == "1")? true : this.settings.show_total_sent_profile;
 				this.settings.show_total_received_profile = (settings.donations_received_profile == "1")? true : this.settings.show_total_received_profile;
+
+				this.settings.excluded = (settings.exc_don_grps && settings.exc_don_grps.length)? settings.exc_don_grps : this.settings.excluded;
 			}
+		},
+
+		can_send_receive: function(){
+			if(this.settings.excluded && this.settings.excluded.length){
+				var grps = yootil.user.group_ids();
+
+				for(var g = 0; g < grps.length; g ++){
+					if($.inArrayLoose(grps[g], this.settings.excluded) > -1){
+						return false;
+					}
+				}
+			}
+
+			return true;
 		},
 
 		register: function(){

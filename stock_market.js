@@ -56,7 +56,7 @@ money.stock_market = (function(){
 				this.offer_full_refund();
 			}
 
-			if(yootil.location.check.forum() && location.href.match(/\/?stockmarket\/?/i)){
+			if(yootil.location.check.forum() && location.href.match(/\/?\?stockmarket\/?/i)){
 				if(this.settings.enabled){
 					money.can_show_default = false;
 					this.start();

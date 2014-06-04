@@ -13,7 +13,8 @@ pixeldepth.monetary.shop = (function(){
 
 		items: [],
 
-		categories: ["Armour", "Animals", "Creatures", "Emblems", "Food", "Keys", "Misc", "Monsters", "Perks", "Potions", "RPG", "Tools", "Toys", "Weapons"],
+		categories: [],
+		category_lookup: {},
 
 		category_items: {},
 
@@ -53,17 +54,55 @@ pixeldepth.monetary.shop = (function(){
 					this.items = (settings.shop_items && settings.shop_items.length)? settings.shop_items : this.items;
 					this.settings.base_image = (settings.item_image_base && settings.item_image_base.length)? settings.item_image_base : this.settings.base_image;
 
+					var categories = settings.categories;
+
+					if(categories.length){
+						categories = categories.sort(function(a, b){
+   							return (a["category_name"] > b["category_name"])? 1 : 0;
+						});
+
+						for(var c = 0; c < categories.length; c ++){
+							this.category_lookup[categories[c].category_id] = categories[c];
+							this.categories.push(categories[c].category_name);
+						}
+
+						this.categories.sort();
+					}
+
 					for(var i = 0, l = this.items.length; i < l; i ++){
 						this.lookup[this.items[i].item_id] = this.items[i];
 
-						if(!this.category_items[this.items[i].item_category]){
-							this.category_items[this.items[i].item_category] = [];
-						}
+						if(this.category_lookup[this.items[i].item_category]){
+							if(!this.category_items[this.items[i].item_category]){
+								this.category_items[this.items[i].item_category] = [];
+							}
 
-						this.category_items[this.items[i].item_category].push(this.items[i]);
+							this.category_items[this.items[i].item_category].push(this.items[i]);
+						}
 					}
+
+					//this.setup_specials();
 				}
 			}
+		},
+
+		setup_specials: function(){
+			var colored_name = {
+
+				item_id: "s1",
+				item_name: "Colored Name",
+				item_description: "Have a colored name across the forum.",
+				item_price: 1500,
+				item_image: "",
+				item_category: 99,
+				item_refundable: 0,
+				item_tradable: 0
+
+			};
+
+			this.category_items[99] = [];
+			this.category_items[99].push(colored_name);
+			this.lookup["s1"] = colored_name;
 		},
 
 		register: function(){
@@ -86,7 +125,7 @@ pixeldepth.monetary.shop = (function(){
 			html += this.create_shop_tabs();
 
 			for(var key in this.category_items){
-				var cat_id = parseInt(key) - 1;
+				var cat_id = parseInt(key);
 
 				html += '<div id="item_category_' + cat_id + '"' + ((div_counter != 0)? ' style="display: none;"' : '') + '>';
 				html += '<table class="list"><thead><tr class="head"><th style="width: 130px;">&nbsp;</th><th style="width: 22%">Item Name</th><th style="width: 78%" class="main">Description</th><th style="width: 110px">Price</th><th style="width: 150px;">&nbsp;</th></tr></thead><tbody class="list-content">';
@@ -201,10 +240,14 @@ pixeldepth.monetary.shop = (function(){
 			var counter = 0;
 
 			for(var key in this.category_items){
-				if(this.categories[parseInt(key) - 1]){
-					var klass = (counter == 0)? ' class="ui-active"' : "";
+				var id = parseInt(key);
 
-					html += '<li' + klass + ' id="category_tab_' + (parseInt(key) - 1) + '"><a href="#">' + this.categories[parseInt(key) - 1] + '</a></li>';
+				if(this.category_lookup[id]){
+					var klass = (counter == 0)? ' class="ui-active"' : "";
+					var cat_name = (id == 99)? "Forum Enhancements" : this.category_lookup[id].category_name;
+					var css = (id == 99)? " style='margin-left: 25px'" : "";
+
+					html += '<li' + css + klass + ' id="category_tab_' + id + '"><a href="#">' + cat_name + '</a></li>';
 					counter ++;
 				}
 			}

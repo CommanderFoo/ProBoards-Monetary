@@ -437,8 +437,8 @@ var money = {
 			if(versions[0] < versions[1]){
 				var msg = "<div class='monetary-notification-content'>";
 
-				msg += "<p>There is a new <strong>Monetary System</strong> version available to install / download for this forum.</p>";
-				msg += "<p>This forum currently have version <strong>" + yootil.html_encode(this.VERSION) + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
+				msg += "<p>There is a new <strong>Monetary System</strong> version available to install for this forum.</p>";
+				msg += "<p>This forum currently has version <strong>" + yootil.html_encode(this.VERSION) + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
 
 				msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
 				msg += "<p style='margin-top: 8px;'>This message can be disabled from the Monetary Systemy settings.</p>";

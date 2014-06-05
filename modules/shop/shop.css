@@ -1,0 +1,17 @@
+div#monetaryshop-buy-dialog table.list tr td, div#monetaryshop-buy-dialog table.list tr th {
+
+	border-width: 1px;
+
+}
+
+div#monetaryshop-buy-dialog table.list {
+
+	margin-bottom: 10px;
+
+}
+
+div#monetaryshop-buy-dialog table.list td.monetaryshop_item_img {
+
+	text-align: center;
+
+}

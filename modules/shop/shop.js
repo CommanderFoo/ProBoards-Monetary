@@ -22,24 +22,27 @@ pixeldepth.monetary.shop = (function(){
 
 		lookup: {},
 
+		user_data_table: {},
+
+		KEY: "pixeldepth_money_shop",
+
 		init: function(){
-			if(yootil.user.logged_in()){
-				this.setup();
+			if(typeof yootil == "undefined"){
+				return;
+			}
 
-				if(!this.settings.enabled){
-					pixeldepth.monetary.show_default();
-					return;
-				}
+			this.setup_user_data_table();
+			this.setup();
 
-				if(location.href.match(/\?monetaryshop(&view=(\d+))?/i)){
-					if(RegExp.$2 && parseInt(RegExp.$2) > 1 && yootil.location.check.profile_home()){
-						console.log("Viewing bought items");
-					} else {
-						yootil.create.nav_branch(yootil.html_encode(location.href), "Monetary Shop");
-						yootil.create.page("?monetaryshop", "Monetary Shop");
-						this.build_shop_html();
-					}
-				}
+			if(!this.settings.enabled){
+				pixeldepth.monetary.show_default();
+				return;
+			}
+
+			if(yootil.user.logged_in() && location.href.match(/\?monetaryshop/i)){
+				yootil.create.nav_branch(yootil.html_encode(location.href), "Monetary Shop");
+				yootil.create.page("?monetaryshop", "Monetary Shop");
+				this.build_shop_html();
 			}
 		},
 
@@ -83,6 +86,25 @@ pixeldepth.monetary.shop = (function(){
 
 					//this.setup_specials();
 				}
+			}
+		},
+
+		data: function(user_id){
+			var user_data = this.user_data_table[((user_id)? user_id : yootil.user.id())];
+
+			if(!user_data){
+				user_data = new this.Data(user_id);
+				this.user_data_table[user_id] = user_data;
+			}
+
+			return user_data;
+		},
+
+		setup_user_data_table: function(){
+			var all_data = proboards.plugin.keys.data[this.KEY];
+
+			for(var key in all_data){
+				this.user_data_table[key] = new this.Data(key, all_data[key]);
 			}
 		},
 
@@ -452,7 +474,114 @@ pixeldepth.monetary.shop = (function(){
 		},
 
 		checkout: function(){
-			console.log(1);
+			var self = this;
+			var users_money = parseFloat(pixeldepth.monetary.data(yootil.user.id()).get.money());
+			var total = 0;
+
+			for(var i = 0; i < this.cart.length; i ++){
+				var item = this.lookup[this.cart[i]];
+
+				total += parseFloat(item.item_price);
+			}
+
+			if(total > users_money){
+				var msg = "You do not have enough money to pay for the items in your basket.<br /><br />";
+
+				msg += "Total Amount: <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(pixeldepth.monetary.format(total, true)) + "</strong><br /><br />";
+				msg += "You need <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(pixeldepth.monetary.format(total - users_money, true)) + "</strong> more in your " + pixeldepth.monetary.settings.text.wallet + ", then you can checkout.";
+
+				proboards.alert("Not Enough Money", msg, {
+					modal: true,
+					height: 220,
+					width: 500,
+					resizable: false,
+					draggable: false
+				});
+			} else {
+				var msg = "Are you sure you want to purchase the following items?<br /><br />";
+				var grouped_items = {};
+
+				for(var i = 0; i < this.cart.length; i ++){
+					if(grouped_items[this.cart[i]]){
+						grouped_items[this.cart[i]].quantity ++;
+					} else {
+						grouped_items[this.cart[i]] = {
+
+							quantity: 1
+
+						};
+					}
+				}
+
+				msg += "Total Amount: <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(pixeldepth.monetary.format(total, true)) + "</strong><br /><br />";
+
+				msg += '<table class="list"><thead><tr class="head"><th style="width: 130px;">&nbsp;</th><th>Item Name</th><th>Quantity</th><th>Item Cost</th><th>Total Cost</th></tr></thead><tbody class="list-content">';
+
+				for(var key in grouped_items){
+					var item = this.lookup[key];
+
+					msg += "<tr class='item'>";
+					msg += "<td style='width: 130px;' class='monetaryshop_item_img'><img src='" + this.settings.base_image + item.item_image + "' /></td>";
+					msg += "<td>" + item.item_name + "</td>";
+					msg += "<td style='width: 80px;'>" + grouped_items[key].quantity + "</td>";
+					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(item.item_price, true) + "</td>";
+					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(item.item_price * grouped_items[key].quantity, true) + "</td>";
+					msg += "</tr>";
+				}
+
+				msg + "</tbody></table>";
+
+				var confirm = proboards.dialog("monetaryshop-buy-dialog", {
+					modal: true,
+					height: 380,
+					width: 650,
+					title: "Confirm Purchase",
+					html: msg,
+					resizable: false,
+					draggable: false,
+
+					buttons: {
+
+						Cancel: function(){
+							$(this).dialog("close");
+						},
+
+						"Purchase Items": function(){
+							var total = 0;
+
+							for(var key in grouped_items){
+								var item = self.lookup[key];
+
+								self.data(yootil.user.id()).add.item({
+
+									id: key,
+									quantity: grouped_items[key].quantity,
+									price: item.item_price,
+									time: ((+ new Date()) / 1000)
+
+								});
+
+								total += item.item_price * grouped_items[key].quantity;
+							}
+
+							pixeldepth.monetary.data(yootil.user.id()).decrease.money(total, false, null, true);
+
+							var wallet = $("#pd_money_wallet_amount");
+
+							if(wallet.length){
+								wallet.text(yootil.number_format(pixeldepth.monetary.data(yootil.user.id()).get.money(true)));
+							}
+
+							$("div.container_monetaryshop div#basket_items_list tbody").empty();
+							$("div.container_monetaryshop table#basket_items_list").hide();
+							$("div.container_monetaryshop div#basket_no_items").show();
+							$("div.container_monetaryshop li#basket_items_tab a").html("Basket (0)");
+							console.log(this);
+							//$(this).dialog("close");
+						}
+					}
+				});
+			}
 		}
 
 	};

@@ -77,13 +77,13 @@ money.donation = (function(){
 				if(total_donations && this.can_send_receive()){
 					yootil.bar.add("/user/" + yootil.user.id() + "?monetarydonation&view=2", money.images.donate, this.settings.text.donations, "pdmsdonate");
 
-					$("#yootil-bar").ready(function(){
+					/*$("#yootil-bar").ready(function(){
 						var bar_link = $("#yootil-bar a[href*=monetarydonation\\&view\\=2]");
 
 						var tip = '<div class="monetary-donation-tip-holder"><div class="monetary-donation-tip-number">' + total_donations + '</div><span class="monetary-donation-tip"></span></div>';
 
 						bar_link.append($(tip));
-					});
+					});*/
 				}
 
 				this.check_rejected_donations();

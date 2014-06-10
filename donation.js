@@ -437,24 +437,6 @@ money.donation = (function(){
 			$("#pd_donation_message").bind("keyup keydown",  msg_len_handler);
 		},
 
-		get_suffix: function(n){
-			var j = (n % 10);
-
-			if(j == 1 && n != 11){
-				return "st";
-			}
-
-			if(j == 2 && n != 12){
-			    return "nd";
-			}
-
-			if(j == 3 && n != 13) {
-				return "rd";
-			}
-
-			return "th";
-		},
-
 		build_received_donations_html: function(){
 			var donations = money.data(yootil.user.id()).get.donations();
 			var html = "";
@@ -469,8 +451,6 @@ money.donation = (function(){
 			html += "<tbody class='list-content'>";
 
 			var counter = 0;
-			var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-			var days = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"];
 			var time_24 = (yootil.user.time_format() == "12hr")? false : true;
 
 			if(donations.length){
@@ -478,11 +458,11 @@ money.donation = (function(){
 					var amount = money.format(donations[d].a, true);
 					var date = new Date(donations[d].t * 1000);
 					var day = date.getDate() || 1;
-					var month = months[date.getMonth()];
+					var month = money.months[date.getMonth()];
 					var year = date.getFullYear();
 					var hours = date.getHours();
 					var mins = date.getMinutes();
-					var date_str = days[date.getDay()] + " " + day + "<sup>" + this.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
+					var date_str = money.days[date.getDay()] + " " + day + "<sup>" + money.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
 					var am_pm = "";
 
 					mins = (mins < 10)? "0" + mins : mins;

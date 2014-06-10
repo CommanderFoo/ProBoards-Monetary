@@ -55,7 +55,7 @@ pixeldepth.monetary.shop.Data = (function(){
 				if(item && item.id){
 					if(self.data.i[item.id]){
 						self.data.i[item.id].q += item.quantity;
-						self.data.i[item.id].t += item.time;
+						self.data.i[item.id].t = item.time;
 
 						// Use lowest price and update when buying additional
 

@@ -258,6 +258,27 @@ var money = {
 		}
 	},
 
+	months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"],
+	days: ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"],
+
+	get_suffix: function(n){
+		var j = (n % 10);
+
+		if(j == 1 && n != 11){
+			return "st";
+		}
+
+		if(j == 2 && n != 12){
+		    return "nd";
+		}
+
+		if(j == 3 && n != 13) {
+			return "rd";
+		}
+
+		return "th";
+	},
+
 	/**
 	* Method: version
 	* 	Gets current version of the plugin.
@@ -739,10 +760,7 @@ var money = {
 		}
 
 		if(the_form.length){
-
-			// Bind validated event in case the form wasn't submitted (onsubmit is useless)
-
-			the_form.bind("validated", function(event){
+			the_form.bind("submit", function(event){
 				if(!self.processed){
 					if(self.is_new_thread || self.is_editing){
 						var poll_input = $(this).find("input[name=has_poll]");
@@ -751,30 +769,11 @@ var money = {
 					}
 
 					if(hook){
-						self.form_hook(hook, self.apply_posting_money);
-						self.processed = false;
+						self.apply_posting_money(hook);
 						self.clear_auto_save();
-						this.submit();
 					}
-
-					return;
 				}
 			});
-		}
-	},
-
-	/**
-	* Method: form_hook
-	* 	Handles hooking the correct event, kinda of messy and needs cleaning up.
-	*
-	* Parameters:
-	* 	event - *string* The key event we are hooking.
-	* 	func - *function* The function we will be calling (generally apply_posting_money).
-	*/
-
-	form_hook: function(event, func){
-		if(this.plugin){
-			$.proxy(func, this)(event, func);
 		}
 	},
 
@@ -785,10 +784,9 @@ var money = {
 	*
 	* Parameters:
 	* 	event - *string* The key event we are hooking.
-	* 	hooking - *boolean* True if we are hooking using key events (this is old and needs cleaning up).
 	*/
 
-	apply_posting_money: function(event, hooking){
+	apply_posting_money: function(event){
 		if(!this.can_earn_money){
 			return false;
 		}
@@ -832,25 +830,15 @@ var money = {
 		if(!this.processed){
 			this.processed = true;
 
-			// Only update if we have data changes.  This prevents a request if not hooking.
-
 			var interest_applied = this.bank.apply_interest();
 			var wages_paid = this.wages.pay();
 			var rank_up_paid = this.rank_up.pay();
 
 			if(money_to_add > 0 || interest_applied || wages_paid || rank_up_paid){
-				if(hooking){
-					this.data(yootil.user.id()).increase.money(money_to_add, true);
-					yootil.key.get_key(this.KEY).set_on(event, null, this.data(yootil.user.id()).get.data());
-				} else {
-					this.data(yootil.user.id()).increase.money(money_to_add);
-				}
-
-				return true;
+				this.data(yootil.user.id()).increase.money(money_to_add, true);
+				yootil.key.get_key(this.KEY).set_on(event, null, this.data(yootil.user.id()).get.data());
 			}
 		}
-
-		return false;
 	},
 
 	/**

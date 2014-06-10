@@ -5,9 +5,17 @@ pixeldepth.monetary.shop = (function(){
 		settings: {
 
 			enabled: true,
-			base_image: ""
+			base_image: "",
+			show_total_bought: true,
+			show_bought_date: true,
+			items_private: false,
+			refund_percent: 50,
+			no_members: [],
+			no_groups: []
 
 		},
+
+		images: {},
 
 		plugin: {},
 
@@ -39,10 +47,29 @@ pixeldepth.monetary.shop = (function(){
 				return;
 			}
 
-			if(yootil.user.logged_in() && location.href.match(/\?monetaryshop/i)){
-				yootil.create.nav_branch(yootil.html_encode(location.href), "Monetary Shop");
-				yootil.create.page("?monetaryshop", "Monetary Shop");
-				this.build_shop_html();
+			if(yootil.user.logged_in() && location.href.match(/\?monetaryshop$/i)){
+				if(this.can_use_shop()){
+					yootil.create.nav_branch(yootil.html_encode(location.href), "Monetary Shop");
+					yootil.create.page("?monetaryshop", "Monetary Shop");
+
+					this.build_shop_html();
+				} else {
+					yootil.create.nav_branch(yootil.html_encode(location.href), "Monetary Shop - An Error Has Occurred");
+					yootil.create.page("?monetaryshop", "Monetary Shop - An Error Has Occurred");
+
+					var html = "";
+
+					html += "<div class='monetary-shop-notice-icon'><img src='" + pixeldepth.monetary.images.info + "' /></div>";
+					html += "<div class='monetary-shop-notice-content'>You do not have permission to access the shop.</div>";
+
+					var container = yootil.create.container("An Error Has Occurred", html).show();
+
+					container.appendTo("#content");
+				}
+			} else if(yootil.location.check.profile_home()){
+				if(yootil.user.is_staff() || !this.settings.items_private || (this.settings.items_private && yootil.user.id() == yootil.page.member.id())){
+					this.create_shop_item_box();
+				}
 			}
 		},
 
@@ -52,10 +79,18 @@ pixeldepth.monetary.shop = (function(){
 
 				var settings = this.plugin.settings;
 
+				this.images = this.plugin.images;
+
 				if(this.plugin && this.plugin.settings){
 					this.settings.enabled = (settings.shop_enabled && settings.shop_enabled == "0")? false : this.settings.enabled;
 					this.items = (settings.shop_items && settings.shop_items.length)? settings.shop_items : this.items;
 					this.settings.base_image = (settings.item_image_base && settings.item_image_base.length)? settings.item_image_base : this.settings.base_image;
+					this.settings.refund_percent = (settings.refund_percent && settings.refund_percent.length)? settings.refund_percent : this.settings.refund_amount;
+					this.settings.show_total_bought = (settings.show_total_bought && settings.show_total_bought == "0")? false : this.settings.show_total_bought;
+					this.settings.show_bought_date = (settings.show_bought_date && settings.show_bought_date == "0")? false : this.settings.show_bought_date;
+					this.settings.items_private = (settings.items_private && settings.items_private == "1")? true : this.settings.items_private;
+					this.settings.no_members = settings.no_members || [];
+					this.settings.no_groups = settings.no_groups || [];
 
 					var categories = settings.categories;
 
@@ -87,6 +122,26 @@ pixeldepth.monetary.shop = (function(){
 					//this.setup_specials();
 				}
 			}
+		},
+
+		can_use_shop: function(){
+			if(this.settings.no_members.length){
+				if($.inArrayLoose(yootil.user.id(), this.settings.no_members) > -1){
+					return false;
+				}
+			}
+
+			if(this.settings.no_groups.length){
+				var user_groups = yootil.user.group_ids();
+
+				for(var g = 0, l = user_groups.length; g < l; g ++){
+					if($.inArrayLoose(user_groups[g], this.settings.no_groups) > -1){
+						return false;
+					}
+				}
+			}
+
+			return true;
 		},
 
 		data: function(user_id){
@@ -130,6 +185,103 @@ pixeldepth.monetary.shop = (function(){
 		register: function(){
 			pixeldepth.monetary.modules.push(this);
 			return this;
+		},
+
+		has_items: function(){
+			var user_id = yootil.page.member.id() || yootil.user.id();
+			var items = this.data(user_id).get.items();
+
+			for(var key in items){
+				if(this.lookup[key]){
+					return true;
+				}
+			}
+
+			return false;
+		},
+
+		create_shop_item_box: function(){
+			if(!this.has_items()){
+				return;
+			}
+
+			var box = yootil.create.profile_content_box();
+			var first_box = $("form.form_user_status .content-box:first");
+			var using_custom = false;
+
+			if(!first_box.length){
+				first_box = $("#shop_items");
+				using_custom = true;
+			}
+
+			if(first_box.length){
+				var items_html = "";
+				var user_id = yootil.page.member.id() || yootil.user.id();
+				var items = this.data(user_id).get.items();
+				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
+
+				for(var key in items){
+					var num = "";
+					var date_str = "";
+
+					if(this.settings.show_bought_date){
+						var date = new Date(items[key].t * 1000);
+						var day = date.getDate() || 1;
+						var month = pixeldepth.monetary.months[date.getMonth()];
+						var year = date.getFullYear();
+						var hours = date.getHours();
+						var mins = date.getMinutes();
+
+						date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year + " at ";
+						var am_pm = "";
+
+						mins = (mins < 10)? "0" + mins : mins;
+
+						if(!time_24){
+							am_pm = (hours > 11)? "pm" : "am";
+							hours = hours % 12;
+							hours = (hours)? hours : 12;
+						}
+
+						date_str += hours + ":" + mins + am_pm;
+
+						date_str = " (Last Bought: " + date_str + ")";
+					}
+
+					if(items[key].q > 1 && this.settings.show_total_bought){
+						num = '<span class="shop_item">';
+						num += '<img class="shop_item_x" src="' + this.images.x + '" />';
+
+						if(items[key].q >= 99){
+							num += 	'<img class="shop_item_num" src="' + this.images["9"] + '" /><img class="shop_item_num shop_item_num_last" src="' + this.images["9"] + '" />';
+						} else {
+							var str = items[key].q.toString();
+
+							for(var s = 0; s < str.length; s ++){
+								var klass = (s > 0)? " shop_item_num_last" : "";
+
+								num += 	'<img class="shop_item_num' + klass + '" src="' + this.images[str.substr(s, 1)] + '" />';
+							}
+						}
+
+						num += '</span>';
+					}
+
+					items_html += '<div title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" id="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '" />' + num + '</div>';
+				}
+
+				if(using_custom){
+					first_box.html(items_html);
+				} else {
+					box.html(items_html);
+
+					if(yootil.user.id() == yootil.page.member.id()){
+						box.insertAfter(first_box);
+					} else {
+						box.insertBefore(first_box);
+					}
+				}
+			}
 		},
 
 		build_shop_html: function(){
@@ -500,6 +652,7 @@ pixeldepth.monetary.shop = (function(){
 			} else {
 				var msg = "Are you sure you want to purchase the following items?<br /><br />";
 				var grouped_items = {};
+				var total_items = 0;
 
 				for(var i = 0; i < this.cart.length; i ++){
 					if(grouped_items[this.cart[i]]){
@@ -520,6 +673,8 @@ pixeldepth.monetary.shop = (function(){
 				for(var key in grouped_items){
 					var item = this.lookup[key];
 
+					total_items ++;
+
 					msg += "<tr class='item'>";
 					msg += "<td style='width: 130px;' class='monetaryshop_item_img'><img src='" + this.settings.base_image + item.item_image + "' /></td>";
 					msg += "<td>" + item.item_name + "</td>";
@@ -531,11 +686,13 @@ pixeldepth.monetary.shop = (function(){
 
 				msg + "</tbody></table>";
 
+				var plu = (total_items == 1)? "" : "s";
+
 				var confirm = proboards.dialog("monetaryshop-buy-dialog", {
 					modal: true,
 					height: 380,
 					width: 650,
-					title: "Confirm Purchase",
+					title: ("Confirm Purchase" + plu),
 					html: msg,
 					resizable: false,
 					draggable: false,
@@ -546,7 +703,7 @@ pixeldepth.monetary.shop = (function(){
 							$(this).dialog("close");
 						},
 
-						"Purchase Items": function(){
+						"Purchase": function(){
 							var total = 0;
 
 							for(var key in grouped_items){
@@ -559,11 +716,13 @@ pixeldepth.monetary.shop = (function(){
 									price: item.item_price,
 									time: ((+ new Date()) / 1000)
 
-								});
+								}, true);
 
 								total += item.item_price * grouped_items[key].quantity;
 							}
 
+							self.cart = [];
+							self.data(yootil.user.id()).update();
 							pixeldepth.monetary.data(yootil.user.id()).decrease.money(total, false, null, true);
 
 							var wallet = $("#pd_money_wallet_amount");
@@ -576,8 +735,32 @@ pixeldepth.monetary.shop = (function(){
 							$("div.container_monetaryshop table#basket_items_list").hide();
 							$("div.container_monetaryshop div#basket_no_items").show();
 							$("div.container_monetaryshop li#basket_items_tab a").html("Basket (0)");
-							console.log(this);
-							//$(this).dialog("close");
+
+							var msg = "Your item was successfully purchased.<br /><br />You can view your purchased item from the profile page <a href='/user/" + yootil.user.id() + "/'>here</a>.";
+
+							if(total_items > 1){
+								msg = "Your items were successfully purchased.<br /><br />You can view your purchased items from the profile page <a href='/user/" + yootil.user.id() + "/'>here</a>.";
+							}
+
+							$(this).dialog("close");
+
+							proboards.dialog("monetaryshop-thanks-dialog", {
+								modal: true,
+								height: 200,
+								width: 460,
+								title: "Thank You",
+								html: msg,
+								resizable: false,
+								draggable: false,
+								buttons: {
+
+									"Close": function(){
+										$(this).dialog("close");
+									}
+
+								}
+
+							});
 						}
 					}
 				});

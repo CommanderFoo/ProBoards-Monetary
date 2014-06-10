@@ -1,5 +1,5 @@
 /**
-* Namespace: money.gift_money
+* Namespace: money.gift
 *
 * 	Gift money module handles giving out created gift codes to members.
 *
@@ -8,7 +8,7 @@
 *	Forum Topic - http://support.proboards.com/thread/429762/
 */
 
-money.gift_money = (function(){
+money.gift = (function(){
 
 	return {
 

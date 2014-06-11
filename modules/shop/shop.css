@@ -19,8 +19,8 @@ div#monetaryshop-buy-dialog table.list td.monetaryshop_item_img {
 span.shop_item {
 
 	position: absolute;
-	bottom: 0px;
-	right: 0px;
+	bottom: -2px;
+	right: -1px;
 
 }
 
@@ -43,6 +43,8 @@ div#shop_items_list {
 	display: inline-block;
 	position: relative;
 	margin-right: 5px;
+	padding: 5px;
+	cursor: pointer;
 
 }
 
@@ -64,5 +66,38 @@ div.monetary-shop-notice-content {
 div.monetary-shop-notice-content p {
 
 	margin-top: 10px;
+
+}
+
+div#monetaryshop-item-info-dialog p {
+
+	margin-bottom: 5px;
+
+}
+
+div#monetaryshop-item-info-dialog div {
+
+	font-size: 12px;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_img {
+
+	float: left;
+	padding: 5px;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_info {
+
+	float: left;
+	margin-left: 10px;
+	width: 80%;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_desc {
+
+	margin-top: 8px;
 
 }

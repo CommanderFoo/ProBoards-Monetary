@@ -36,6 +36,10 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			data: function(){
 				return self.data;
+			},
+
+			item: function(id){
+				return self.data.i[id] || null;
 			}
 
 		};

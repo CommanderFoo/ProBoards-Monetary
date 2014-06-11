@@ -1109,13 +1109,25 @@ var money = {
 					var action_key = ($(this).attr("id").match("remove"))? "decrease" : "increase";
 
 					if(value){
+						if(action_key == "decrease"){
+							var current = self.data(user_id).get[money_type_key]();
+
+							if(current == 0){
+								return;
+							}
+
+							if(value > current){
+								value = current;
+							}
+						}
+
 						self.data(user_id)[action_key][money_type_key](value);
 
 						if(bank_edit){
 							if(action_key == "decrease"){
-								value_out = (value);
+								value_out = value;
 							} else {
-								value_in = (value);
+								value_in = value;
 							}
 
 							transactions = self.bank.create_transaction(4, value_in, value_out, true, value, user_id);

@@ -92,8 +92,18 @@ pixeldepth.monetary.shop.Data = (function(){
 
 		this.refund = {
 
-			item: function(item, skip_update, opts){
+			item: function(item_id, quantity, skip_update, opts){
+				var item = self.data.i[item_id];
 
+				if(item && item.q >= quantity){
+					item.q -= quantity;
+
+					if(item.q <= 0){
+						delete self.data.i[item_id];
+					}
+
+					self.update(skip_update, opts);
+				}
 			}
 
 		};

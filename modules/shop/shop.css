@@ -38,7 +38,7 @@ span.shop_item img.shop_item_num_last {
 
 }
 
-div#shop_items_list {
+div.shop_items_list {
 
 	display: inline-block;
 	position: relative;
@@ -84,15 +84,20 @@ div#monetaryshop-item-info-dialog div {
 div#monetaryshop-item-info-dialog .item_info_img {
 
 	float: left;
-	padding: 5px;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_img img {
+
+	margin-left: 10px;
+	margin-right: 15px;
 
 }
 
 div#monetaryshop-item-info-dialog .item_info_info {
 
-	float: left;
 	margin-left: 10px;
-	width: 80%;
+	overflow: hidden;
 
 }
 

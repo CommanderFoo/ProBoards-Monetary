@@ -1,2 +1,2 @@
-Monetary System - Shop Module 0.1.0
+Monetary System - Shop 0.1.0
 ===================================

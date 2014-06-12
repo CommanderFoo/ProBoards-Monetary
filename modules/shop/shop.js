@@ -2,6 +2,8 @@ pixeldepth.monetary.shop = (function(){
 
 	return {
 
+		required_monetary_version: "0.7.7",
+
 		settings: {
 
 			enabled: true,
@@ -70,6 +72,7 @@ pixeldepth.monetary.shop = (function(){
 				return;
 			}
 
+			this.check_monetary_version();
 			this.setup_user_data_table();
 			this.setup();
 
@@ -107,6 +110,19 @@ pixeldepth.monetary.shop = (function(){
 				if(yootil.user.is_staff() || !this.settings.items_private || (this.settings.items_private && yootil.user.id() == yootil.page.member.id())){
 					this.create_shop_item_box();
 				}
+			}
+		},
+
+		check_monetary_version: function(){
+			var versions = yootil.convert_versions(pixeldepth.monetary.version(), this.required_monetary_version);
+
+			if(versions[0] < versions[1]){
+				var msg = "<p>The Monetary System - Shop requires at least " + yootil.html_encode(this.required_monetary_version) + " of the <a href='http://support.proboards.com/thread/429360/'>Monetary System</a> plugin to function correctly.</p>";
+				msg += "<p style='margin-top: 8px;'>For more information, please visit the the <a href='http://support.proboards.com'>ProBoards support forum</a>.</p>";
+
+				var container = yootil.create.container("Monetary System - Shop", msg).show();
+
+				$("div#content").prepend(container);
 			}
 		},
 
@@ -331,12 +347,13 @@ pixeldepth.monetary.shop = (function(){
 						num += '</span>';
 					}
 
-					items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" id="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '" />' + num + '</div>';
+					items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '" />' + num + '</div>';
 				}
 
 				if(using_custom){
-					first_box.html(items_html);
+					first_box.addClass("monetary_shop_profile_box").show().html(items_html);
 				} else {
+					box.addClass("monetary_shop_profile_box");
 					box.html(items_html);
 
 					if(yootil.user.id() == yootil.page.member.id()){
@@ -350,103 +367,215 @@ pixeldepth.monetary.shop = (function(){
 			}
 		},
 
+		update_item_count: function(item_id, quantity){
+			if(!this.settings.show_total_bought){
+				return;
+			}
+
+			var item = $(".shop_items_list[data-shop-item-id='" + item_id + "'] .shop_item");
+
+			if(item){
+				item.empty();
+
+				var num = "";
+
+				if(quantity > 1){
+					num += '<img class="shop_item_x" src="' + this.images.x + '" />';
+
+					if(quantity >= 99){
+						num += 	'<img class="shop_item_num" src="' + this.images["9"] + '" /><img class="shop_item_num shop_item_num_last" src="' + this.images["9"] + '" />';
+					} else {
+						var str = quantity.toString();
+
+						for(var s = 0; s < str.length; s ++){
+							var klass = (s > 0)? " shop_item_num_last" : "";
+
+							num += 	'<img class="shop_item_num' + klass + '" src="' + this.images[str.substr(s, 1)] + '" />';
+						}
+					}
+				}
+
+				item.html(num);
+			}
+		},
+
+		build_item_info_dialog: function(item_elem){
+			var self = this;
+			var item_id = parseInt($(item_elem).attr("data-shop-item-id"));
+			var bought_item = self.data(yootil.user.id()).get.item(item_id);
+			var shop_item = self.lookup[item_id];
+			var msg = "";
+
+			msg += "<div>";
+
+			msg += "<div class='item_info_img'><img src='" + self.settings.base_image + shop_item.item_image + "' /></div>";
+			msg += "<div class='item_info_info'>";
+
+			msg += "<p><strong>" + self.settings.text.item + " " + self.settings.text.name + ":</strong> " + shop_item.item_name + "</p>";
+			msg += "<p><strong>" + self.settings.text.quantity + ":</strong> <span id='shop_item_quantity'>" + bought_item.q + "</span></p>";
+			msg += "<p><strong>" + self.settings.text.price + " " + self.settings.text.paid + ":</strong> " + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(bought_item.p, true)) + "</p>";
+			msg += "<p><strong>" + self.settings.text.total_cost + ":</strong> <span id='shop_item_total_cost'>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(bought_item.p * bought_item.q, true)) + "</span></p>";
+
+			if(self.settings.show_bought_date){
+				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
+				var date_str = "";
+				var date = new Date(bought_item.t * 1000);
+				var day = date.getDate() || 1;
+				var month = pixeldepth.monetary.months[date.getMonth()];
+				var year = date.getFullYear();
+				var hours = date.getHours();
+				var mins = date.getMinutes();
+
+				date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year + " at ";
+
+				var am_pm = "";
+
+				mins = (mins < 10)? "0" + mins : mins;
+
+				if(!time_24){
+					am_pm = (hours > 11)? "pm" : "am";
+					hours = hours % 12;
+					hours = (hours)? hours : 12;
+				}
+
+				date_str += hours + ":" + mins + am_pm;
+				msg += "<p><strong>" + self.settings.text.last_bought + ": </strong>" + date_str + "</p>";
+			}
+
+			msg += "<p class='item_info_desc'>" + pb.text.nl2br(shop_item.item_description) + "</p>";
+
+			msg += "</div>";
+			msg += "</div>";
+
+			var info_buttons = {
+
+				"Close": function(){
+					$(this).dialog("close");
+				}
+
+			};
+
+			if(shop_item.item_refundable == "1"){
+				var refund_buttons = {
+
+					"Close": function(){
+						$(this).dialog("close");
+					}
+
+				};
+
+				refund_buttons["Accept " + self.settings.text.refund] = this.build_refund_dialog(item_id);
+
+				info_buttons[self.settings.text.refund] = function(){
+					proboards.dialog("monetaryshop-item-refund-dialog", {
+						modal: true,
+						height: 220,
+						width: 350,
+						title: self.settings.text.refund,
+						html: self.build_refund_msg(item_id),
+						resizable: false,
+						draggable: false,
+						buttons: refund_buttons
+					});
+				};
+			}
+
+			refund_txt = (shop_item.item_refundable == "1")? "" : " (Not Refundable)";
+
+			proboards.dialog("monetaryshop-item-info-dialog", {
+				modal: true,
+				height: 320,
+				width: 600,
+				title: shop_item.item_name + refund_txt,
+				html: msg,
+				resizable: false,
+				draggable: false,
+				buttons: info_buttons
+
+			});
+
+		},
+
+		build_refund_msg: function(item_id){
+			var self = this;
+			var item_counter = 0;
+			var refund_msg = "<strong>" + self.settings.text.quantity + " to " + self.settings.text.refund.toLowerCase() + ":</strong> ";
+			var	bought_item = self.data(yootil.user.id()).get.item(item_id);
+			var one_refund = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * 1;
+
+			refund_msg += "<select id='shop_item_refund_quantity'>";
+
+			while(item_counter < bought_item.q){
+				item_counter ++;
+				refund_msg += "<option value='" + item_counter + "'> " + item_counter + " </option>";
+			}
+
+			refund_msg += "</select>";
+			refund_msg += "<br /><br /><span id='shop_item_refund_total_back'><strong>" + self.settings.text.refund + ":</strong> " + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(pixeldepth.monetary.format(one_refund, true))) + " (" + self.settings.refund_percent + "%)</span>";
+			refund_msg = $("<div>" + refund_msg + "</div>");
+
+			refund_msg.find("select").change(function(){
+				var selected_quantity = parseInt(this.value);
+				var refund_amount = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * selected_quantity;
+
+				$("#shop_item_refund_total_back").html("<strong>" + self.settings.text.refund + "</strong>: " + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(pixeldepth.monetary.format(refund_amount, true))) + " (" + self.settings.refund_percent + "%)");
+			});
+
+			return refund_msg;
+		},
+
+		build_refund_dialog: function(item_id){
+			var self = this;
+
+			return function(){
+				var refund_quantity = parseInt($("#shop_item_refund_quantity option:selected").val());
+				var bought_item = self.data(yootil.user.id()).get.item(item_id);
+
+				if(refund_quantity <= bought_item.q){
+					var amount = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * refund_quantity;
+					var info_dialog = $("#monetaryshop-item-info-dialog");
+
+					self.data(yootil.user.id()).refund.item(item_id, refund_quantity);
+					pixeldepth.monetary.data(yootil.user.id()).increase.money(amount);
+					bought_item = self.data(yootil.user.id()).get.item(item_id);
+
+					if(!bought_item){
+						$(".shop_items_list[data-shop-item-id='" + item_id + "']").remove();
+						info_dialog.dialog("close");
+
+						if(!$(".shop_items_list").length){
+							$(".monetary_shop_profile_box").hide();
+						}
+					} else {
+						info_dialog.find("span#shop_item_quantity").html(bought_item.q);
+						info_dialog.find("span#shop_item_total_cost").html(pixeldepth.monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(pixeldepth.monetary.format(bought_item.q * bought_item.p, true))));
+						self.update_item_count(item_id, bought_item.q);
+
+					}
+				} else {
+					self.error("Could not issue refund");
+				}
+
+				$(this).dialog("destroy").remove();
+			};
+		},
+
+		error: function(){
+			proboards.alert("An Error Has Occurred", msg, {
+				modal: true,
+				height: 220,
+				width: 400,
+				resizable: false,
+				draggable: false
+			});
+		},
+
 		bind_refundable_dialog: function(){
 			var self = this;
 
 			if(yootil.user.id() == yootil.page.member.id()){
 				$("div[data-shop-item-id]").click(function(){
-					var item_id = parseInt($(this).attr("data-shop-item-id"));
-					var bought_item = self.data(yootil.user.id()).get.item(item_id);
-					var shop_item = self.lookup[item_id];
-					var msg = "";
-
-					msg += "<div>";
-
-					msg += "<div class='item_info_img'><img src='" + self.settings.base_image + shop_item.item_image + "' /></div>";
-					msg += "<div class='item_info_info'>";
-
-					msg += "<p><strong>" + self.settings.text.item + " " + self.settings.text.name + ":</strong> " + shop_item.item_name + "</p>";
-					msg += "<p><strong>" + self.settings.text.quantity + ":</strong> " + bought_item.q + "</p>";
-					msg += "<p><strong>" + self.settings.text.price + " " + self.settings.text.paid + ":</strong> " + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(bought_item.p, true) + "</p>";
-
-					if(self.settings.show_bought_date){
-						var time_24 = (yootil.user.time_format() == "12hr")? false : true;
-						var date_str = "";
-						var date = new Date(bought_item.t * 1000);
-						var day = date.getDate() || 1;
-						var month = pixeldepth.monetary.months[date.getMonth()];
-						var year = date.getFullYear();
-						var hours = date.getHours();
-						var mins = date.getMinutes();
-
-						date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year + " at ";
-
-						var am_pm = "";
-
-						mins = (mins < 10)? "0" + mins : mins;
-
-						if(!time_24){
-							am_pm = (hours > 11)? "pm" : "am";
-							hours = hours % 12;
-							hours = (hours)? hours : 12;
-						}
-
-						date_str += hours + ":" + mins + am_pm;
-						msg += "<p><strong>" + self.settings.text.last_bought + ": </strong>" + date_str + "</p>";
-					}
-
-					msg += "<p class='item_info_desc'>" + pb.text.nl2br(shop_item.item_description) + "</p>";
-
-					msg += "</div>";
-					msg += "</div>";
-
-					var info_buttons = {
-
-						"Close": function(){
-							$(this).dialog("close");
-						}
-
-					};
-
-					if(shop_item.item_refundable == "1"){
-						var refund_buttons = {
-
-							"Close": function(){
-								$(this).dialog("close");
-							}
-
-						};
-
-						refund_buttons["Accept " + self.settings.text.refund] = function(){
-							console.log(1);
-						};
-
-						info_buttons["Refund"] = function(){
-							proboards.dialog("monetaryshop-item-refund-dialog", {
-								modal: true,
-								height: 250,
-								width: 400,
-								title: "Refund",
-								html: "hi",
-								resizable: false,
-								draggable: false,
-								buttons: refund_buttons
-							});
-						};
-					}
-
-					proboards.dialog("monetaryshop-item-info-dialog", {
-						modal: true,
-						height: 320,
-						width: 600,
-						title: shop_item.item_name,
-						html: msg,
-						resizable: false,
-						draggable: false,
-						buttons: info_buttons
-
-					});
-
+					self.build_item_info_dialog(this);
 				});
 			}
 		},
@@ -480,7 +609,7 @@ pixeldepth.monetary.shop = (function(){
 					html += '<td style="text-align: center;"><img src="' + this.settings.base_image + this.category_items[key][i].item_image + '" alt="' + yootil.html_encode(this.category_items[key][i].item_name) + '" title="' + yootil.html_encode(this.category_items[key][i].item_name) + '" /></td>';
 					html += '<td>' + this.category_items[key][i].item_name + '</td>';
 					html += '<td>' + pb.text.nl2br(this.category_items[key][i].item_description) + '</td>';
-					html += '<td>' + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(this.category_items[key][i].item_price, true) + '</td>';
+					html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(this.category_items[key][i].item_price, true)) + '</td>';
 					html += '<td style="text-align: center;"><button data-item-id="' + this.category_items[key][i].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
 
 					counter ++;
@@ -656,7 +785,7 @@ pixeldepth.monetary.shop = (function(){
 						result_html += '<td style="text-align: center;"><img src="' + this.settings.base_image + results[r].item_image + '" alt="' + yootil.html_encode(results[r].item_name) + '" title="' + yootil.html_encode(results[r].item_name) + '" /></td>';
 						result_html += '<td>' + results[r].item_name + '</td>';
 						result_html += '<td>' + pb.text.nl2br(results[r].item_description) + '</td>';
-						result_html += '<td>' + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(results[r].item_price, true) + '</td>';
+						result_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(results[r].item_price, true)) + '</td>';
 						result_html += '<td style="text-align: center;"><button data-item-id="' + results[r].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
 
 						counter ++;
@@ -739,7 +868,7 @@ pixeldepth.monetary.shop = (function(){
 				basket_html += '<td style="text-align: center;"><img src="' + this.settings.base_image + item.item_image + '" alt="' + yootil.html_encode(item.item_name) + '" title="' + yootil.html_encode(item.item_name) + '" /></td>';
 				basket_html += '<td>' + item.item_name + '</td>';
 				basket_html += '<td>' + pb.text.nl2br(item.item_description) + '</td>';
-				basket_html += '<td>' + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(item.item_price, true) + '</td>';
+				basket_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(item.item_price, true)) + '</td>';
 				basket_html += '<td style="text-align: center;"><button data-item-id="' + item.item_id + '">' + this.settings.text.remove + '</button></td>';
 
 				total += parseFloat(item.item_price);
@@ -748,7 +877,7 @@ pixeldepth.monetary.shop = (function(){
 
 			var total_html = "<tr class='item' style='height: 30px'><td colspan='5'></td></tr>";
 
-			total_html += "<tr class='item last'><td colspan='3' style='text-align: right; font-weight: bold'>" + this.settings.text.total_amount + ": </td><td style='font-weight: bold'>" + pixeldepth.monetary.settings.money_symbol + "<span id='basket_total_amount'>" + pixeldepth.monetary.format(total, true) + "</span></td><td style='text-align: center'><button id='shop_checkout'>" + this.settings.text.checkout + "</button></td></tr>";
+			total_html += "<tr class='item last'><td colspan='3' style='text-align: right; font-weight: bold'>" + this.settings.text.total_amount + ": </td><td style='font-weight: bold'>" + pixeldepth.monetary.settings.money_symbol + "<span id='basket_total_amount'>" + yootil.number_format(pixeldepth.monetary.format(total, true)) + "</span></td><td style='text-align: center'><button id='shop_checkout'>" + this.settings.text.checkout + "</button></td></tr>";
 
 			var basket_items_table = $("div.container_monetaryshop table#basket_items_list");
 
@@ -773,7 +902,7 @@ pixeldepth.monetary.shop = (function(){
 				total += parseFloat(item.item_price);
 			}
 
-			$("div.container_monetaryshop span#basket_total_amount").html(pixeldepth.monetary.format(total, true));
+			$("div.container_monetaryshop span#basket_total_amount").html(yootil.number_format(pixeldepth.monetary.format(total, true)));
 		},
 
 		remove_from_cart: function(button, item_id){
@@ -813,8 +942,8 @@ pixeldepth.monetary.shop = (function(){
 			if(total > users_money){
 				var msg = "You do not have enough money to pay for the " + this.settings.text.item + "s in your " + this.settings.text.basket.toLowerCase() + ".<br /><br />";
 
-				msg += this.settings.text.total_amount + ": <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(pixeldepth.monetary.format(total, true)) + "</strong><br /><br />";
-				msg += "You need <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(pixeldepth.monetary.format(total - users_money, true)) + "</strong> more in your " + pixeldepth.monetary.settings.text.wallet + ", then you can " + this.settings.text.checkout.toLowerCase() + ".";
+				msg += this.settings.text.total_amount + ": <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(pixeldepth.monetary.format(total, true))) + "</strong><br /><br />";
+				msg += "You need <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(pixeldepth.monetary.format(total - users_money, true))) + "</strong> more in your " + pixeldepth.monetary.settings.text.wallet + ", then you can " + this.settings.text.checkout.toLowerCase() + ".";
 
 				proboards.alert("Not Enough Money", msg, {
 					modal: true,
@@ -840,7 +969,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 				}
 
-				msg += this.settings.text.total_amount + ": <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(pixeldepth.monetary.format(total, true)) + "</strong><br /><br />";
+				msg += this.settings.text.total_amount + ": <strong>" + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(pixeldepth.monetary.format(total, true))) + "</strong><br /><br />";
 
 				msg += '<table class="list"><thead><tr class="head"><th style="width: 130px;">&nbsp;</th><th>' + this.settings.text.item + ' ' + this.settings.text.name + '</th><th>' + this.settings.text.quantity + '</th><th>' + this.settings.text.item + ' ' + this.settings.text.price + '</th><th>' + this.settings.text.total_cost + '</th></tr></thead><tbody class="list-content">';
 
@@ -853,8 +982,8 @@ pixeldepth.monetary.shop = (function(){
 					msg += "<td style='width: 130px;' class='monetaryshop_item_img'><img src='" + this.settings.base_image + item.item_image + "' /></td>";
 					msg += "<td>" + item.item_name + "</td>";
 					msg += "<td style='width: 80px;'>" + grouped_items[key].quantity + "</td>";
-					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(item.item_price, true) + "</td>";
-					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + pixeldepth.monetary.format(item.item_price * grouped_items[key].quantity, true) + "</td>";
+					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(item.item_price, true)) + "</td>";
+					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(item.item_price * grouped_items[key].quantity, true)) + "</td>";
 					msg += "</tr>";
 				}
 

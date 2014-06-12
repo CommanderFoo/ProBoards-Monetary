@@ -289,7 +289,7 @@ pixeldepth.monetary.shop = (function(){
 			var first_box = $("form.form_user_status .content-box:first");
 			var using_custom = false;
 
-			if(!first_box.length){
+			if($("#monetary_shop_items").length){
 				first_box = $("#monetary_shop_items");
 				using_custom = true;
 			}

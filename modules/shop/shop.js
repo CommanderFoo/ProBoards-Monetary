@@ -16,6 +16,11 @@ pixeldepth.monetary.shop = (function(){
 			no_members: [],
 			no_groups: [],
 
+			// Gift settings
+
+			gifts_enabled: true,
+			gift_codes: [],
+
 			text: {
 
 				monetary_shop: "Monetary Shop",
@@ -38,7 +43,8 @@ pixeldepth.monetary.shop = (function(){
 				remove: "Remove",
 				quantity: "Quantity",
 				paid: "Paid",
-				refund: "Refund"
+				refund: "Refund",
+				gift: "Gift"
 
 			},
 
@@ -66,6 +72,9 @@ pixeldepth.monetary.shop = (function(){
 		user_data_table: {},
 
 		KEY: "pixeldepth_money_shop",
+
+		gift_lookup: {},
+		gift_code_lookup: [],
 
 		init: function(){
 			if(typeof yootil == "undefined"){
@@ -110,6 +119,8 @@ pixeldepth.monetary.shop = (function(){
 				if(yootil.user.is_staff() || !this.settings.items_private || (this.settings.items_private && yootil.user.id() == yootil.page.member.id())){
 					this.create_shop_item_box();
 				}
+			} else if(yootil.user.logged_in() && location.href.match(/\?monetaryshop&gift=.+?$/i)){
+				this.gift();
 			}
 		},
 
@@ -167,6 +178,7 @@ pixeldepth.monetary.shop = (function(){
 					this.settings.text.quantity = (settings.txt_quantity && settings.txt_quantity.length)? settings.txt_quantity : this.settings.text.quantity;
 					this.settings.text.paid = (settings.txt_paid && settings.txt_paid.length)? settings.txt_paid : this.settings.text.paid;
 					this.settings.text.refund = (settings.txt_refund && settings.txt_refund.length)? settings.txt_refund : this.settings.text.refund;
+					this.settings.text.gift = (settings.txt_gift && settings.txt_gift.length)? settings.txt_gift : this.settings.text.gift;
 
 					this.settings.welcome_message_enabled = (settings.show_message && settings.show_message == "1")? true : this.settings.welcome_message_enabled;
 					this.settings.welcome_message_title = (settings.welcome_title && settings.welcome_title.length)? settings.welcome_title : this.settings.welcome_message_title;
@@ -199,8 +211,29 @@ pixeldepth.monetary.shop = (function(){
 						}
 					}
 
+					this.setup_gift_settings(settings);
+					this.add_gift_to_yootil_bar();
 					//this.setup_specials();
 				}
+			}
+		},
+
+		setup_gift_settings: function(settings){
+			this.settings.gifts_enabled = (settings.gifts_enabled && settings.gifts_enabled == "0")? false : this.settings.gifts_enabled;
+			this.settings.gift_codes = (settings.gift_codes && settings.gift_codes.length)? settings.gift_codes : [];
+
+			for(var c = 0, l = this.settings.gift_codes.length; c < l; c ++){
+				this.gift_lookup[this.settings.gift_codes[c].unique_code.toLowerCase()] = {
+					code: this.settings.gift_codes[c].unique_code.toLowerCase(),
+					item_id: this.settings.gift_codes[c].item_id,
+					quantity: this.settings.gift_codes[c].quantity,
+					message: this.settings.gift_codes[c].message,
+					members: this.settings.gift_codes[c].members,
+					groups: this.settings.gift_codes[c].groups,
+					show_icon: (this.settings.gift_codes[c].show_gift_icon && this.settings.gift_codes[c].show_gift_icon == "0")? false : true
+				};
+
+				this.gift_code_lookup.push(this.settings.gift_codes[c].unique_code.toLowerCase());
 			}
 		},
 
@@ -540,7 +573,12 @@ pixeldepth.monetary.shop = (function(){
 					bought_item = self.data(yootil.user.id()).get.item(item_id);
 
 					if(!bought_item){
-						$(".shop_items_list[data-shop-item-id='" + item_id + "']").remove();
+						var item_elem = $(".shop_items_list[data-shop-item-id='" + item_id + "']");
+
+						item_elem.hide("slow", function(){
+							item_elem.remove();
+						});
+
 						info_dialog.dialog("close");
 
 						if(!$(".shop_items_list").length){
@@ -1073,6 +1111,190 @@ pixeldepth.monetary.shop = (function(){
 
 				});
 			}
+		},
+
+		gift: function(){
+			if(!this.settings.gifts_enabled){
+				pixeldepth.monetary.show_default();
+				return;
+			}
+
+			var has_error = false;
+			var error_msg = "Item gift code was invalid";
+			var code = this.get_gift_code();
+			var gift = this.valid_code(code);
+
+			if(code && gift){
+				if(!this.has_received(code) && this.allowed_gift(gift)){
+					var html = "";
+
+					html += "<div class='monetary-gift-notice-icon'><img src='" + this.images.gift_big + "' /></div>";
+					html += "<div class='monetary-gift-notice-content'><div class='monetary-gift-notice-content-top'><p>You have recieved a " + this.settings.text.gift.toLowerCase() + " " + this.settings.text.item.toLowerCase() + ".</p>";
+
+					if(gift.message.length){
+						html += "<p>" + gift.message.replace(/\n/g, "<br />") + "</p>";
+					}
+
+					html+= "</div>";
+
+					html += "<p class='monetary-gift-notice-content-accept'>Do you want to accept this " + this.settings.text.gift.toLowerCase() + "?  <button>Yes</button></p></div><br style='clear: both' />";
+
+					var container = yootil.create.container("You Have Received A " + this.settings.text.gift + " " + this.settings.text.item, html).show();
+					var self = this;
+
+					container.find("button").click(function(){
+						if(self.collect_gift()){
+							var msg = "";
+
+							msg += "<p>You have successfully received the " + self.settings.text.gift.toLowerCase() + " " + self.settings.text.item.toLowerCase() + ".</p>";
+
+							$(".monetary-gift-notice-content").html(msg);
+
+							yootil.bar.remove("giftitem_" + gift.code);
+
+							var item_id = gift.item_id;
+							var shop_item = self.lookup[item_id];
+							var msg = "";
+
+							msg += "<div>";
+
+							msg += "<div class='item_info_img'><img src='" + self.settings.base_image + shop_item.item_image + "' /></div>";
+							msg += "<div class='item_info_info'>";
+
+							msg += "<p><strong>" + self.settings.text.item + " " + self.settings.text.name + ":</strong> " + shop_item.item_name + "</p>";
+							msg += "<p><strong>" + self.settings.text.quantity + ":</strong> <span id='shop_item_quantity'>" + gift.quantity + "</span></p>";
+							msg += "<p><strong>" + self.settings.text.item + " " + self.settings.text.price + ":</strong> " + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(shop_item.item_price, true)) + "</p>";
+							msg += "<p class='item_info_desc'>" + pb.text.nl2br(shop_item.item_description) + "</p>";
+
+							msg += "</div>";
+							msg += "</div>";
+
+							proboards.dialog("monetaryshop-item-info-dialog", {
+								modal: true,
+								height: 280,
+								width: 500,
+								title: "You received the following " + self.settings.text.item.toLowerCase(),
+								html: msg,
+								resizable: false,
+								draggable: false,
+								buttons: {
+
+									"Close": function(){
+										$(this).dialog("close");
+									}
+
+								}
+
+							});
+						} else {
+							proboards.alert("An Error Occurred", "Could not collect " + this.settings.text.gift.toLowerCase() + " " + this.settings.text.item.toLowerCase() + ".", {
+								modal: true,
+								resizable: false,
+								draggable: false
+							});
+						}
+					});
+
+					container.appendTo("#content");
+				}
+			} else {
+				has_error = true;
+			}
+
+			if(has_error){
+				console.log(error_msg);
+			}
+		},
+
+		allowed_gift: function(gift){
+			if(gift){
+
+				// Check if this is for everyone
+
+				if(!gift.members.length && !gift.groups.length){
+					return true;
+				} else {
+
+					// Check members first, this overrides groups
+
+					if($.inArrayLoose(yootil.user.id(), gift.members) > -1){
+						return true;
+					}
+
+					// Now check the group
+
+					var user_groups = yootil.user.group_ids();
+
+					for(var g = 0, l = user_groups.length; g < l; g ++){
+						if($.inArrayLoose(user_groups[g], gift.groups) > -1){
+							return true;
+						}
+					}
+				}
+			}
+
+			return false;
+		},
+
+
+		add_gift_to_yootil_bar: function(){
+			if(!this.settings.gifts_enabled){
+				return;
+			}
+
+			for(var key in this.gift_lookup){
+				if(this.gift_lookup[key].show_icon){
+					if(!this.has_received(key) && this.allowed_gift(this.gift_lookup[key])){
+						yootil.bar.add("/?monetaryshop&gift=" + key, this.images.gift, "Gift Item", "giftitem_" + key);
+					}
+				}
+			}
+		},
+
+		has_received: function(code){
+			if($.inArrayLoose(code, this.data(yootil.user.id()).get.gifts()) != -1){
+				return true;
+			}
+
+			return false;
+		},
+
+		get_gift_code: function(){
+			var url = location.href;
+
+			if(location.href.match(/\?monetaryshop&gift=(\w+)/i)){
+				return RegExp.$1.toLowerCase();
+			}
+
+			return false;
+		},
+
+		valid_code: function(code){
+			if(code){
+				if(this.gift_lookup[code]){
+					this.current_code = code;
+
+					return this.gift_lookup[code];
+				}
+			}
+
+			return false;
+		},
+
+		collect_gift: function(){
+			if(this.current_code && this.gift_lookup[this.current_code]){
+				//this.data(yootil.user.id()).push.gift(this.current_code, true);
+				//this.data(yootil.user.id()).add.item({
+
+
+				//});
+
+				//this.remove_old_codes();
+
+				return true;
+			}
+
+			return false;
 		}
 
 	};

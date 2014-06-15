@@ -1,2 +1,2 @@
-Monetary System 0.7.7
+Monetary System 0.7.8
 =====================

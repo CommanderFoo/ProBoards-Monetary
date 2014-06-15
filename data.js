@@ -151,8 +151,8 @@ money.Data = (function(){
 
 		// Basic validation of data
 
-		this.data.m = (parseFloat(this.data.m) > 0)? parseFloat(this.data.m) : 0;
-		this.data.b = (parseFloat(this.data.b) > 0)? parseFloat(this.data.b) : 0;
+		this.data.m = parseFloat(this.data.m);
+		this.data.b = parseFloat(this.data.b);
 		this.data.lt = (typeof this.data.lt == "object" && this.data.lt.constructor == Array)? this.data.lt : [];
 		this.data.li = (typeof this.data.li == "string")? this.data.li : "";
 		this.data.s = (typeof this.data.s == "object" && this.data.s.constructor == Object)? this.data.s : {};

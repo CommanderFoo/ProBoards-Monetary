@@ -6,11 +6,16 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			// Items
 
-			i: {}
+			i: {},
+
+			// Gifts
+
+			g: []
 
 		};
 
 		this.data.i = (typeof this.data.i == "object" && this.data.i.constructor == Object)? this.data.i : {};
+		this.data.g = (typeof this.data.g == "object" && this.data.lt.constructor == Array)? this.data.g : [];
 
 		this.update = function(skip_update, options){
 			if(!skip_update){
@@ -40,6 +45,10 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			item: function(id){
 				return self.data.i[id] || null;
+			},
+
+			gifts: function(){
+				return self.data.g;
 			}
 
 		};
@@ -48,6 +57,11 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			items: function(items, skip_update, opts){
 				self.data.i = items;
+				self.update(skip_update, opts);
+			},
+
+			gifts: function(gifts, skip_update, opts){
+				self.data.g = gifts;
 				self.update(skip_update, opts);
 			}
 
@@ -112,6 +126,20 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			items: function(skip_update, opts){
 				self.data.i = {};
+				self.update(skip_update, opts);
+			},
+
+			gifts: function(skip_update, opts){
+				self.data.g = [];
+				self.update(skip_update, opts);
+			}
+
+		};
+
+		this.push = {
+
+			gift: function(code, skip_update, opts){
+				self.data.g.push(code);
 				self.update(skip_update, opts);
 			}
 

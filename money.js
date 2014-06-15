@@ -1044,7 +1044,6 @@ var money = {
 					var value_in = value_out = 0.00;
 
 					if(value != money){
-						value = (value < 0)? 0 : value;
 						self.data(user_id).set[key](value);
 
 						if(bank_edit){

@@ -138,7 +138,9 @@ money.Data = (function(){
 			* 	Rejected donations
 			*/
 
-			rd: []
+			rd: [],
+
+			n: []
 
 		};
 
@@ -163,6 +165,7 @@ money.Data = (function(){
 		this.data.rd = (typeof this.data.rd == "object" && this.data.rd.constructor == Array)? this.data.rd : [];
 		this.data.ds = (parseFloat(this.data.ds) > 0)? parseFloat(this.data.ds) : 0;
 		this.data.dr = (parseFloat(this.data.dr) > 0)? parseFloat(this.data.dr) : 0;
+		this.data.n = (typeof this.data.n == "object" && this.data.n.constructor == Array)? this.data.n : [];
 
 		/**
 		* Method: update
@@ -411,6 +414,10 @@ money.Data = (function(){
 				}
 
 				return amount;
+			},
+
+			notifications: function(){
+				return self.data.n;
 			}
 
 		};
@@ -894,6 +901,11 @@ money.Data = (function(){
 			rejected_donations: function(skip_update, opts, sync){
 				self.data.rd = [];
 				self.update(skip_update, opts, sync);
+			},
+
+			notifications: function(skip_update, opts, sync){
+				self.data.n = [];
+				self.update(skip_update, opts, sync);
 			}
 
 		};
@@ -913,6 +925,25 @@ money.Data = (function(){
 
 			gift: function(code, skip_update, opts, sync){
 				self.data.g.push(code);
+				self.update(skip_update, opts, sync);
+			},
+
+			// a 3rd element: 1 = set, 2 = reset, 3 = increase, 4 = descrease
+
+			// type: 1 = money, 2 = bank
+
+			notification: function(notification, skip_update, opts, sync){
+				notification.amount = [parseFloat(notification.amount[0]), parseFloat(notification.amount[1]), notification.amount[2]];
+
+				self.data.n.push({
+
+					k: notification.type,
+					a: notification.amount,
+					t: notification.time,
+					u: notification.user
+
+				});
+
 				self.update(skip_update, opts, sync);
 			}
 

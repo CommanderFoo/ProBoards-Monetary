@@ -115,6 +115,16 @@ var money = {
 			}
 		},
 
+		notification: {
+
+			show: false,
+			title: "Notifications",
+			msg: "The following changes were made to your account:",
+			show_edited: true,
+			show_date: true
+
+		},
+
 		no_earn_members: [],
 		no_earn_groups: [],
 		no_earn_categories: [],
@@ -204,6 +214,7 @@ var money = {
 		this.check_version();
 
 		if(yootil.user.logged_in()){
+			this.check_for_notifications();
 			this.look_for_wallet();
 			this.can_earn_money = this.can_earn();
 
@@ -947,6 +958,12 @@ var money = {
 			this.settings.no_earn_threads = settings.no_earn_threads;
 
 			this.settings.text.wallet = (settings.wallet_text && settings.wallet_text.length)? settings.wallet_text : this.settings.text.wallet;
+
+			this.settings.notification.show = (settings.n_show_notification && settings.n_show_notification == "1")? true : false;
+			this.settings.notification.title = (settings.n_notification_title && settings.n_notification_title.length)? settings.n_notification_title : this.settings.notification.title;
+			this.settings.notification.msg = (settings.n_notification_msg && settings.n_notification_msg.length)? settings.n_notification_msg : this.settings.notification.msg;
+			this.settings.notification.show_edited = (settings.n_show_edited_by && settings.n_show_edited_by == "0")? false : true;
+			this.settings.notification.show_date = (settings.n_show_date && settings.n_show_date == "0")? false : true;
 		}
 	},
 
@@ -997,6 +1014,7 @@ var money = {
 		var bank_edit = (bank)? true : false;
 		var bank_str = (bank_edit)? "bank_" : "";
 		var title = (bank_edit)? (this.bank.settings.text.bank + " Balance") : this.settings.money_text;
+		var old_money = self.data(user_id).get[((bank_edit)? "bank" : "money")]();
 
 		element = $(element);
 
@@ -1057,6 +1075,15 @@ var money = {
 							self.data(user_id).set.transactions(transactions, true);
 						}
 
+						self.data(user_id).push.notification({
+
+							type: ((bank_edit)? 2 : 1),
+							amount: [old_money, value, 1],
+							time: ((+ new Date()) / 1000),
+							user: [yootil.user.name(), yootil.user.id()]
+
+						}, true);
+
 						self.data(user_id).update();
 
 						var update_element = (update_selector)? update_selector : (".pd_" + ((bank)? "" : "money_") + bank_str + "amount_" + user_id);
@@ -1075,7 +1102,7 @@ var money = {
 					var money = self.data(user_id).get[key]();
 					var value_in = value_out = 0.00;
 
-					if(money > 0){
+					if(money != 0){
 						$(this).parent().find("input[name=edit_" + bank_str + "money]").val(self.format(0, true));
 
 						self.data(user_id).set[key](value);
@@ -1087,6 +1114,15 @@ var money = {
 							transactions = self.bank.create_transaction(4, value_in, value_out, true, value, user_id);
 							self.data(user_id).set.transactions(transactions, true);
 						}
+
+						self.data(user_id).push.notification({
+
+							type: ((bank_edit)? 2 : 1),
+							amount: [old_money, value, 2],
+							time: ((+ new Date()) / 1000),
+							user: [yootil.user.name(), yootil.user.id()]
+
+						}, true);
 
 						self.data(user_id).update();
 
@@ -1111,13 +1147,13 @@ var money = {
 						if(action_key == "decrease"){
 							var current = self.data(user_id).get[money_type_key]();
 
-							if(current == 0){
-								return;
-							}
+							//if(current == 0){
+								//return;
+							//}
 
-							if(value > current){
-								value = current;
-							}
+							//if(value > current){
+								//value = current;
+							//}
 						}
 
 						self.data(user_id)[action_key][money_type_key](value);
@@ -1132,6 +1168,17 @@ var money = {
 							transactions = self.bank.create_transaction(4, value_in, value_out, true, value, user_id);
 							self.data(user_id).set.transactions(transactions, true);
 						}
+
+						var act_type = (action_key == "increase")? 3 : 4;
+
+						self.data(user_id).push.notification({
+
+							type: ((bank_edit)? 2 : 1),
+							amount: [old_money, value, act_type],
+							time: ((+ new Date()) / 1000),
+							user: [yootil.user.name(), yootil.user.id()]
+
+						}, true);
 
 						self.data(user_id).update();
 
@@ -1509,5 +1556,97 @@ var money = {
 				}
 			});
 		}
+	},
+
+	check_for_notifications: function(){
+		if(!this.settings.notification.show){
+			return;
+		}
+
+		var notifications = this.data(yootil.user.id()).get.notifications();
+
+		if(notifications.length){
+			var msg = pb.text.nl2br(this.settings.notification.msg) + "<br ><br />";
+			var self = this;
+			var height = 180;
+			var time_24 = (yootil.user.time_format() == "12hr")? false : true;
+
+			for(var n = 0; n < notifications.length; n ++){
+				var type = (notifications[n].k == 1)? this.settings.text.wallet : this.settings.text.bank_column;
+				var user = "";
+				var date_str = "";
+
+				if(this.settings.notification.show_edited){
+					user = ", by <a href='/user/" + parseInt(notifications[n].u[1]) + "'>" + yootil.html_encode(notifications[n].u[0]) + "</a>";
+				}
+
+				if(this.settings.notification.show_date){
+					var date = new Date(notifications[n].t * 1000);
+					var day = date.getDate() || 1;
+					var month = pixeldepth.monetary.months[date.getMonth()];
+					var year = date.getFullYear();
+					var hours = date.getHours();
+					var mins = date.getMinutes();
+					var am_pm = "";
+
+					mins = (mins < 10)? "0" + mins : mins;
+					date_str = ", on " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year;
+
+					if(!time_24){
+						am_pm = (hours > 11)? "pm" : "am";
+						hours = hours % 12;
+						hours = (hours)? hours : 12;
+					}
+
+					date_str += ", at " + hours + ":" + mins + am_pm;
+				}
+
+				msg += "<p>" + type + " was ";
+
+				switch(notifications[n].a[2]){
+
+					case 3:
+						msg += "increased by ";
+						break;
+
+					case 4:
+						msg += "decreased by ";
+						break;
+
+					case 1:
+						msg += "reset ";
+						break;
+
+					case 2:
+						msg += "set too ";
+						break;
+				}
+
+				msg += "<strong>" + this.settings.money_symbol + yootil.html_encode(this.format(notifications[n].a[1], true)) + "</strong>" + date_str + user + "</p>";
+				height += 10;
+			}
+
+			msg = "<span class='monetary-notifications' style='font-size: 11px;'>" + msg + "</span>";
+
+			proboards.dialog("monetaryshop-notification-dialog", {
+				modal: true,
+				height: height,
+				width: 600,
+				title: this.settings.notification.title,
+				html: msg,
+				resizable: false,
+				draggable: false,
+				buttons: {
+
+					"Close": function(){
+						self.data(yootil.user.id()).clear.notifications();
+						$(this).dialog("close");
+					}
+
+				}
+
+			});
+		}
 	}
+
 };

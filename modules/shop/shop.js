@@ -1,3 +1,6 @@
+// @TODO
+// Syncing of items between windows and tabs (new sync class or rewrite of Money syncing class)
+
 pixeldepth.monetary.shop = (function(){
 
 	return {
@@ -434,8 +437,9 @@ pixeldepth.monetary.shop = (function(){
 
 		build_item_info_dialog: function(item_elem){
 			var self = this;
+			var owner = yootil.page.member.id() || yootil.user.id();
 			var item_id = parseInt($(item_elem).attr("data-shop-item-id"));
-			var bought_item = self.data(yootil.user.id()).get.item(item_id);
+			var bought_item = self.data(owner).get.item(item_id);
 			var shop_item = self.lookup[item_id];
 			var msg = "";
 
@@ -488,7 +492,7 @@ pixeldepth.monetary.shop = (function(){
 
 			};
 
-			if(shop_item.item_refundable == "1"){
+			if(shop_item.item_refundable == "1" && yootil.user.id() == owner){
 				var refund_buttons = {
 
 					"Close": function(){
@@ -513,7 +517,11 @@ pixeldepth.monetary.shop = (function(){
 				};
 			}
 
-			refund_txt = (shop_item.item_refundable == "1")? "" : " (Not Refundable)";
+			var refund_txt = "";
+
+			if(yootil.user.id() == owner){
+				refund_txt = (shop_item.item_refundable == "1")? "" : " (Not Refundable)";
+			}
 
 			proboards.dialog("monetaryshop-item-info-dialog", {
 				modal: true,
@@ -569,7 +577,26 @@ pixeldepth.monetary.shop = (function(){
 					var info_dialog = $("#monetaryshop-item-info-dialog");
 
 					self.data(yootil.user.id()).refund.item(item_id, refund_quantity);
-					pixeldepth.monetary.data(yootil.user.id()).increase.money(amount);
+					pixeldepth.monetary.data(yootil.user.id()).increase.money(amount, false, null, true);
+
+					// Update wallet & profile money
+
+					var user_money = pixeldepth.monetary.data(yootil.user.id()).get.money(true);
+
+					$(".pd_money_amount_" + yootil.user.id()).text(yootil.number_format(user_money));
+
+					var wallet = $("#pd_money_wallet_amount");
+
+					if(wallet.length){
+						wallet.text(yootil.number_format(user_money));
+					}
+
+					var other_wallet = $(".money_wallet_amount");
+
+					if(other_wallet.length){
+						other_wallet.html(pixeldepth.monetary.settings.text.wallet + pixeldepth.monetary.settings.money_separator + pixeldepth.monetary.settings.money_symbol + yootil.html_encode(user_money));
+					}
+
 					bought_item = self.data(yootil.user.id()).get.item(item_id);
 
 					if(!bought_item){
@@ -611,11 +638,9 @@ pixeldepth.monetary.shop = (function(){
 		bind_refundable_dialog: function(){
 			var self = this;
 
-			if(yootil.user.id() == yootil.page.member.id()){
-				$("div[data-shop-item-id]").click(function(){
-					self.build_item_info_dialog(this);
-				});
-			}
+			$("div[data-shop-item-id]").click(function(){
+				self.build_item_info_dialog(this);
+			});
 		},
 
 		build_shop_html: function(){
@@ -1119,13 +1144,14 @@ pixeldepth.monetary.shop = (function(){
 				return;
 			}
 
-			var has_error = false;
-			var error_msg = "Item gift code was invalid";
+			var has_error = true;
 			var code = this.get_gift_code();
 			var gift = this.valid_code(code);
 
-			if(code && gift){
+			if(code && gift && gift.item_id && this.lookup[gift.item_id]){
 				if(!this.has_received(code) && this.allowed_gift(gift)){
+					has_error = false;
+
 					var html = "";
 
 					html += "<div class='monetary-gift-notice-icon'><img src='" + this.images.gift_big + "' /></div>";
@@ -1197,12 +1223,17 @@ pixeldepth.monetary.shop = (function(){
 
 					container.appendTo("#content");
 				}
-			} else {
-				has_error = true;
 			}
 
 			if(has_error){
-				console.log(error_msg);
+				var html = "";
+
+				html += "<div class='monetary-gift-notice-icon'><img src='" + this.images.gift_big + "' /></div>";
+				html += "<div class='monetary-gift-notice-content'><p>The gift code you are trying to access either isn't for you, doesn't exist, or you have already accepted.</p><p>If you think this is an error, please contact a member of staff quoting <strong>\"" + yootil.html_encode(code) + "</strong>\".</p></div>";
+
+				var container = yootil.create.container("An Error Has Occurred", html).show();
+
+				container.appendTo("#content");
 			}
 		},
 
@@ -1282,19 +1313,46 @@ pixeldepth.monetary.shop = (function(){
 		},
 
 		collect_gift: function(){
-			if(this.current_code && this.gift_lookup[this.current_code]){
-				//this.data(yootil.user.id()).push.gift(this.current_code, true);
-				//this.data(yootil.user.id()).add.item({
+			var gift = this.gift_lookup[this.current_code];
 
+			if(this.current_code && gift){
+				var item = this.lookup[gift.item_id];
 
-				//});
+				this.data(yootil.user.id()).push.gift(this.current_code, true);
+				this.data(yootil.user.id()).add.item({
 
-				//this.remove_old_codes();
+					id: gift.item_id,
+					quantity: gift.quantity,
+					price: item.item_price,
+					time: ((+ new Date()) / 1000)
+
+				});
+
+				this.remove_old_codes();
 
 				return true;
 			}
 
 			return false;
+		},
+
+		remove_old_codes: function(){
+			if(!this.settings.gift_codes.length){
+				this.data(yootil.user.id()).clear.gifts();
+
+				return;
+			}
+
+			var gifts = this.data(yootil.user.id()).get.gifts();
+			var len = gifts.length;
+
+			while(len --){
+				if(!this.gift_lookup[gifts[len]]){
+					gifts.splice(len, 1);
+				}
+			}
+
+			this.data(yootil.user.id()).set.gifts(gifts);
 		}
 
 	};

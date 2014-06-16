@@ -15,7 +15,7 @@ pixeldepth.monetary.shop.Data = (function(){
 		};
 
 		this.data.i = (typeof this.data.i == "object" && this.data.i.constructor == Object)? this.data.i : {};
-		this.data.g = (typeof this.data.g == "object" && this.data.lt.constructor == Array)? this.data.g : [];
+		this.data.g = (typeof this.data.g == "object" && this.data.g.constructor == Array)? this.data.g : [];
 
 		this.update = function(skip_update, options){
 			if(!skip_update){
@@ -72,7 +72,7 @@ pixeldepth.monetary.shop.Data = (function(){
 			item: function(item, skip_update, opts){
 				if(item && item.id){
 					if(self.data.i[item.id]){
-						self.data.i[item.id].q += item.quantity;
+						self.data.i[item.id].q = parseInt(self.data.i[item.id].q) + parseInt(item.quantity);
 						self.data.i[item.id].t = item.time;
 
 						// Use lowest price and update when buying additional

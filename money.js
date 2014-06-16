@@ -1075,14 +1075,16 @@ var money = {
 							self.data(user_id).set.transactions(transactions, true);
 						}
 
-						self.data(user_id).push.notification({
+						if(self.settings.notification.show){
+							self.data(user_id).push.notification({
 
-							type: ((bank_edit)? 2 : 1),
-							amount: [old_money, value, 1],
-							time: ((+ new Date()) / 1000),
-							user: [yootil.user.name(), yootil.user.id()]
+								type: ((bank_edit)? 2 : 1),
+								amount: [old_money, value, 1],
+								time: ((+ new Date()) / 1000),
+								user: [yootil.user.name(), yootil.user.id()]
 
-						}, true);
+							}, true);
+						}
 
 						self.data(user_id).update();
 
@@ -1115,14 +1117,16 @@ var money = {
 							self.data(user_id).set.transactions(transactions, true);
 						}
 
-						self.data(user_id).push.notification({
+						if(self.settings.notification.show){
+							self.data(user_id).push.notification({
 
-							type: ((bank_edit)? 2 : 1),
-							amount: [old_money, value, 2],
-							time: ((+ new Date()) / 1000),
-							user: [yootil.user.name(), yootil.user.id()]
+								type: ((bank_edit)? 2 : 1),
+								amount: [old_money, value, 2],
+								time: ((+ new Date()) / 1000),
+								user: [yootil.user.name(), yootil.user.id()]
 
-						}, true);
+							}, true);
+						}
 
 						self.data(user_id).update();
 
@@ -1169,16 +1173,18 @@ var money = {
 							self.data(user_id).set.transactions(transactions, true);
 						}
 
-						var act_type = (action_key == "increase")? 3 : 4;
+						if(self.settings.notification.show){
+							var act_type = (action_key == "increase")? 3 : 4;
 
-						self.data(user_id).push.notification({
+							self.data(user_id).push.notification({
 
-							type: ((bank_edit)? 2 : 1),
-							amount: [old_money, value, act_type],
-							time: ((+ new Date()) / 1000),
-							user: [yootil.user.name(), yootil.user.id()]
+								type: ((bank_edit)? 2 : 1),
+								amount: [old_money, value, act_type],
+								time: ((+ new Date()) / 1000),
+								user: [yootil.user.name(), yootil.user.id()]
 
-						}, true);
+							}, true);
+						}
 
 						self.data(user_id).update();
 

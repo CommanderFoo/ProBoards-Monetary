@@ -73,7 +73,7 @@ money.gift = (function(){
 							code_msg = " quoting the code \"<strong>" + yootil.html_encode(unsafe_code) + "</strong>\"";
 						}
 
-						this.show_error("<p>The gift code you are trying to access either isn't for you, doesn't exist, or you have already accepted.</p><p>If you think this is an error, please contact a member of staff" + code_msg + ".");
+						this.show_error("<p>The gift code you are trying to access either isn't for you, doesn't exist, or you have already accepted.</p><p>If you think this is an error, please contact a member of staff" + code_msg + ".</p>");
 					}
 				}
 			}

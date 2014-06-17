@@ -19,6 +19,16 @@ pixeldepth.monetary.shop = (function(){
 			no_members: [],
 			no_groups: [],
 
+			image_width: 0,
+			image_height: 0,
+			image_percent: 0,
+
+			show_in_mini_profile: true,
+			mini_image_width: 0,
+			mini_image_height: 0,
+			mini_image_percent: 0,
+			mini_limit_shown: 0,
+
 			// Gift settings
 
 			gifts_enabled: true,
@@ -125,6 +135,13 @@ pixeldepth.monetary.shop = (function(){
 			} else if(yootil.user.logged_in() && location.href.match(/\?monetaryshop&gift=.+?$/i)){
 				this.gift();
 			}
+
+			var location_check = (yootil.location.check.search_results() || yootil.location.check.message_thread() || yootil.location.check.thread() || yootil.location.check.recent_posts());
+
+			if(this.settings.show_in_mini_profile && location_check){
+				this.show_in_mini_profile();
+				yootil.ajax.after_search(this.show_in_mini_profile, this);
+			}
 		},
 
 		check_monetary_version: function(){
@@ -186,6 +203,16 @@ pixeldepth.monetary.shop = (function(){
 					this.settings.welcome_message_enabled = (settings.show_message && settings.show_message == "1")? true : this.settings.welcome_message_enabled;
 					this.settings.welcome_message_title = (settings.welcome_title && settings.welcome_title.length)? settings.welcome_title : this.settings.welcome_message_title;
 					this.settings.welcome_message_message = (settings.welcome_message && settings.welcome_message.length)? settings.welcome_message : this.settings.welcome_message_message;
+
+					this.settings.image_width = (settings.item_img_width && settings.item_img_width.length)? settings.item_img_width : 0;
+					this.settings.image_height = (settings.item_img_height && settings.item_img_height.length)? settings.item_img_height : 0;
+					this.settings.image_percent = (settings.img_size_percent && settings.img_size_percent.length)? settings.img_size_percent : 0;
+
+					this.settings.show_in_mini_profile = (settings.show_in_mini_profile == "0")? false : this.settings.show_in_mini_profile;
+					this.settings.mini_image_width = (settings.mini_img_width && settings.mini_img_width.length)? settings.mini_img_width : 0;
+					this.settings.mini_image_height = (settings.mini_img_height && settings.mini_img_height.length)? settings.mini_img_height : 0;
+					this.settings.mini_image_percent = (settings.mini_img_percent && settings.mini_img_percent.length)? settings.mini_img_percent : 0;
+					this.settings.mini_limit_shown = (settings.limit_shown && settings.limit_shown.length)? settings.limit_shown : 0;
 
 					var categories = settings.categories;
 
@@ -316,6 +343,20 @@ pixeldepth.monetary.shop = (function(){
 			return false;
 		},
 
+		get_size_css: function(mini){
+			if(mini){
+				if(this.settings.mini_image_width > 0 && this.settings.mini_image_height > 0){
+					return 'style="height: ' + this.settings.mini_image_height + 'px; width: ' + this.settings.mini_image_width + 'px;"';
+				}
+			} else {
+				if(this.settings.image_width > 0 && this.settings.image_height > 0){
+					return ' style="height: ' + this.settings.image_height + 'px; width: ' + this.settings.image_width + 'px;"';
+				}
+			}
+
+			return "";
+		},
+
 		create_shop_item_box: function(){
 			if(!this.has_items()){
 				return;
@@ -335,6 +376,7 @@ pixeldepth.monetary.shop = (function(){
 				var user_id = yootil.page.member.id() || yootil.user.id();
 				var items = this.data(user_id).get.items();
 				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
+				var img_size = this.get_size_css();
 
 				for(var key in items){
 					var num = "";
@@ -383,7 +425,7 @@ pixeldepth.monetary.shop = (function(){
 						num += '</span>';
 					}
 
-					items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '" />' + num + '</div>';
+					items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '"' + img_size + ' />' + num + '</div>';
 				}
 
 				if(using_custom){
@@ -397,6 +439,20 @@ pixeldepth.monetary.shop = (function(){
 					} else {
 						box.insertBefore(first_box);
 					}
+				}
+
+				if(parseInt(this.settings.image_percent) > 0){
+					var self = this;
+
+					$(".shop_items_list").each(function(){
+						$(this).find("img:first").bind("load", function(){
+							var width = this.width;
+							var height = this.height;
+
+							this.width = width * (parseInt(self.settings.image_percent) / 100);
+							this.height = height * (parseInt(self.settings.image_percent) / 100);
+						});
+					});
 				}
 
 				this.bind_refundable_dialog();
@@ -1353,6 +1409,77 @@ pixeldepth.monetary.shop = (function(){
 			}
 
 			this.data(yootil.user.id()).set.gifts(gifts);
+		},
+
+		show_in_mini_profile: function(){
+			var minis = $("div.mini-profile");
+
+			if(minis && minis.length){
+				if(minis.find("div.info div[class*=pd_shop_]").length){
+					return;
+				}
+
+				var self = this;
+				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
+				var img_size = this.get_size_css();
+
+				minis.each(function(){
+					var user_link = $(this).find("a.user-link[href*='user']:first");
+
+					if(user_link && user_link.length){
+						var user_id_match = user_link.attr("href").match(/\/user\/(\d+)\/?/i);
+
+						if(user_id_match && user_id_match.length == 2){
+							var user_id = parseInt(user_id_match[1]);
+
+							if(!user_id){
+								return;
+							}
+
+							var items = self.data(user_id).get.items();
+							var str = "";
+
+							var counter = 0;
+
+							for(var key in items){
+								if(self.settings.mini_limit_shown != 0 && counter >= self.settings.mini_limit_shown){
+									break;
+								}
+
+								str += '<span class="pd_shop_mini_item" data-shop-item-id="' + self.lookup[key].item_id + '" title="' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')"><img src="' + self.settings.base_image + self.lookup[key].item_image + '"' + img_size + ' /></span>';
+
+								counter ++;
+							}
+
+							var custom = $(this).find(".monetary_shop_items");
+
+							if(custom.length){
+								custom.append($(str));
+							} else {
+								var info = $(this).find("div.info");
+
+								str = "<br /><div class='monetary_shop_items pd_shop_items_" + user_id + "'>" + str + "</div>";
+
+								if(info.length){
+									$(str).insertAfter(info);
+								} else {
+									$(this).append($(str));
+								}
+							}
+
+							if(parseInt(self.settings.mini_image_percent) > 0){
+								$(this).find(".monetary_shop_items span[data-shop-item-id] img").bind("load", function(){
+									var width = this.width;
+									var height = this.height;
+
+									this.width = width * (parseInt(self.settings.mini_image_percent) / 100);
+									this.height = height * (parseInt(self.settings.mini_image_percent) / 100);
+								});
+							}
+						}
+					}
+				});
+			}
 		}
 
 	};

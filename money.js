@@ -1,3 +1,6 @@
+// @TODO
+// - Sync clear notifications
+
 /**
 * Namespace: money
 *
@@ -267,6 +270,10 @@ var money = {
 
 			this.user_data_table[key] = new this.Data(key, data);
 		}
+	},
+
+	refresh_user_data_table: function(){
+		this.setup_user_data_table();
 	},
 
 	months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"],
@@ -1219,6 +1226,8 @@ var money = {
 			return;
 		}
 
+		this.refresh_user_data_table();
+
 		var self = this;
 		var table = $("div.content.cap-bottom table.list");
 
@@ -1471,6 +1480,8 @@ var money = {
 				return;
 			}
 
+			this.refresh_user_data_table();
+
 			var self = this;
 			var money_text = (this.settings.show_money_text_mini)? this.settings.money_text : "";
 			var money_symbol = (this.settings.show_money_symbol_mini)? this.settings.money_symbol : "";
@@ -1509,7 +1520,12 @@ var money = {
 					var user_id_match = user_link.attr("href").match(/\/user\/(\d+)\/?/i);
 
 					if(user_id_match && user_id_match.length == 2){
-						var user_id = user_id_match[1];
+						var user_id = parseInt(user_id_match[1]);
+
+						if(!user_id){
+							return;
+						}
+
 						var money = self.data(user_id).get.money(true);
 						var user_bank_money = self.data(user_id).get.bank(true);
 						var user_donations_sent = self.data(user_id).get.total_sent_donations(true);

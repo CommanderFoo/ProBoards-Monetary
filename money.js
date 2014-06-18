@@ -1,6 +1,3 @@
-// @TODO
-// - Sync clear notifications
-
 /**
 * Namespace: money
 *
@@ -1661,7 +1658,7 @@ var money = {
 				buttons: {
 
 					"Close": function(){
-						self.data(yootil.user.id()).clear.notifications();
+						self.data(yootil.user.id()).clear.notifications(false, null, true);
 						$(this).dialog("close");
 					}
 

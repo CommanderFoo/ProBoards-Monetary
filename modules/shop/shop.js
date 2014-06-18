@@ -425,7 +425,9 @@ pixeldepth.monetary.shop = (function(){
 						num += '</span>';
 					}
 
-					items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '"' + img_size + ' />' + num + '</div>';
+					if(this.lookup[key]){
+						items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '"' + img_size + ' />' + num + '</div>';
+					}
 				}
 
 				if(using_custom){
@@ -1446,9 +1448,11 @@ pixeldepth.monetary.shop = (function(){
 									break;
 								}
 
-								str += '<span class="pd_shop_mini_item" data-shop-item-id="' + self.lookup[key].item_id + '" title="' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')"><img src="' + self.settings.base_image + self.lookup[key].item_image + '"' + img_size + ' /></span>';
+								if(self.lookup[key]){
+									str += '<span class="pd_shop_mini_item" data-shop-item-id="' + self.lookup[key].item_id + '" title="' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')"><img src="' + self.settings.base_image + self.lookup[key].item_image + '"' + img_size + ' /></span>';
 
-								counter ++;
+									counter ++;
+								}
 							}
 
 							var custom = $(this).find(".monetary_shop_items");

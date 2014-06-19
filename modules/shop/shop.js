@@ -267,6 +267,10 @@ pixeldepth.monetary.shop = (function(){
 			}
 		},
 
+		safe_id: function(id){
+			return id.toString().replace(/\D+/g, "");
+		},
+
 		can_use_shop: function(){
 			if(this.settings.no_members.length){
 				if($.inArrayLoose(yootil.user.id(), this.settings.no_members) > -1){
@@ -466,7 +470,7 @@ pixeldepth.monetary.shop = (function(){
 				return;
 			}
 
-			var item = $(".shop_items_list[data-shop-item-id='" + item_id + "'] .shop_item");
+			var item = $(".shop_items_list[data-shop-item-id='" + this.safe_id(item_id) + "'] .shop_item");
 
 			if(item){
 				item.empty();
@@ -496,9 +500,14 @@ pixeldepth.monetary.shop = (function(){
 		build_item_info_dialog: function(item_elem){
 			var self = this;
 			var owner = yootil.page.member.id() || yootil.user.id();
-			var item_id = parseInt($(item_elem).attr("data-shop-item-id"));
+			var item_id = this.safe_id($(item_elem).attr("data-shop-item-id"));
 			var bought_item = self.data(owner).get.item(item_id);
 			var shop_item = self.lookup[item_id];
+
+			if(!shop_item){
+				return;
+			}
+
 			var msg = "";
 
 			msg += "<div>";
@@ -658,7 +667,7 @@ pixeldepth.monetary.shop = (function(){
 					bought_item = self.data(yootil.user.id()).get.item(item_id);
 
 					if(!bought_item){
-						var item_elem = $(".shop_items_list[data-shop-item-id='" + item_id + "']");
+						var item_elem = $(".shop_items_list[data-shop-item-id='" + self.safe_id(item_id) + "']");
 
 						item_elem.hide("slow", function(){
 							item_elem.remove();

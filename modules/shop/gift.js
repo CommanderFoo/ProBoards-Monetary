@@ -1,4 +1,4 @@
-pixeldepth.monetary.shop.test = (function(){
+pixeldepth.monetary.shop.gift = (function(){
 
 	return {
 

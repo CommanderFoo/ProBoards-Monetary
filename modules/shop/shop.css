@@ -124,3 +124,104 @@ div.container_monetaryshop span.search-filters-button {
 	min-height: 16px;
 
 }
+
+div.trade_wrapper {
+
+	height: 100%;
+
+}
+
+div.trade_wrapper .trade_profile {
+
+	display: none;
+	height: 90%;
+	border: 1px solid #e6e6e6;
+	border-radius: 10px;
+	color: #000;
+	overflow: hidden;
+	padding: 13px 10px;
+	width: 150px;
+
+}
+
+div.trade_wrapper .trade_owner {
+
+	float: right;
+
+}
+
+div.trade_profile .trader_name {
+
+	text-align: center;
+	font-weight: bold;
+
+}
+
+div.trade_wrapper .trade_with {
+
+	float: left;
+
+}
+
+div.trade_wrapper .trade_with:hover, div.trade_wrapper .trade_owner:hover, div.trade_box_right .trade_item_box_right:hover, div.trade_box_left .trade_item_box_left:hover {
+
+	background-color: #FCF9F9;
+	cursor: pointer;
+}
+
+div.trade_wrapper .trade_middle {
+
+	overflow: hidden;
+	height: 100%;
+
+}
+
+div.trade_middle .trade_box_left {
+
+	float: left;
+	height: 100%;
+	width: 50%;
+
+}
+
+div.trade_middle .trade_box_right {
+
+	float: right;
+	height: 100%;
+	width: 50%;
+	text-align: right;
+
+}
+
+div.trade_box_left .arrow_left {
+
+	margin-top: 25px;
+	text-align: right;
+
+}
+
+div.trade_box_right .arrow_right {
+
+	margin-top: 38px;
+	text-align: left;
+
+}
+
+div.trade_box_left .trade_item_box_left {
+
+	margin-top: 37px;
+
+}
+
+div.trade_box_right .trade_item_box_right, div.trade_box_left .trade_item_box_left {
+
+	width: 130px;
+	height: 130px;
+	border: 1px solid #e6e6e6;
+	padding: 5px;
+	border-radius: 10px;
+	margin-left: 15px;
+	background-repeat: no-repeat;
+	background-position: center center;
+
+}

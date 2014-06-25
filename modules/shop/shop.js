@@ -7,6 +7,8 @@ pixeldepth.monetary.shop = (function(){
 
 		required_monetary_version: "0.7.7",
 
+		VERSION: "{VER}",
+
 		settings: {
 
 			enabled: true,
@@ -16,6 +18,7 @@ pixeldepth.monetary.shop = (function(){
 			show_bought_date: true,
 			items_private: false,
 			refund_percent: 50,
+			allow_removing: false,
 			no_members: [],
 			no_groups: [],
 
@@ -143,6 +146,10 @@ pixeldepth.monetary.shop = (function(){
 			}
 		},
 
+		version: function(){
+			return this.VERSION;
+		},
+
 		check_monetary_version: function(){
 			var versions = yootil.convert_versions(pixeldepth.monetary.version(), this.required_monetary_version);
 
@@ -173,6 +180,7 @@ pixeldepth.monetary.shop = (function(){
 					this.settings.show_total_bought = (settings.show_total_bought && settings.show_total_bought == "0")? false : this.settings.show_total_bought;
 					this.settings.show_bought_date = (settings.show_bought_date && settings.show_bought_date == "0")? false : this.settings.show_bought_date;
 					this.settings.items_private = (settings.items_private && settings.items_private == "1")? true : this.settings.items_private;
+					this.settings.allow_removing = (settings.allow_removing && settings.allow_removing == "1")? true : this.settings.allow_removing;
 					this.settings.no_members = settings.no_members || [];
 					this.settings.no_groups = settings.no_groups || [];
 
@@ -561,6 +569,53 @@ pixeldepth.monetary.shop = (function(){
 				};
 			}
 
+			if(this.settings.allow_removing && yootil.user.is_staff() && yootil.user.id() != owner){
+				info_buttons["Remove"] = function(){
+					var elem = this;
+
+					proboards.dialog("monetaryshop-item-remove-dialog", {
+						modal: true,
+						height: 160,
+						width: 400,
+						title: "Remove " + self.settings.text.item,
+						html: "Are you sure you want to remove this " + self.settings.text.item.toLowerCase() + " from this member?",
+						resizable: false,
+						draggable: false,
+						buttons: {
+
+							"Cancel": function(){
+								$(this).dialog("close");
+							},
+
+							"Remove": function(){
+								var user = yootil.page.member.id();
+
+								if(user && self.data(user).remove.item(item_id)){
+									var item_elem = $(".shop_items_list[data-shop-item-id='" + self.safe_id(item_id) + "']");
+
+									item_elem.hide("slow", function(){
+										item_elem.remove();
+									});
+								} else {
+									proboards.alert("Error", "An error has occurred, refresh and try again.");
+								}
+
+								$(this).dialog("close");
+								$(elem).dialog("close");
+							}
+
+						}
+					});
+				};
+			}
+
+			if(shop_item.item_tradable == "1" && pixeldepth.monetary.shop.trade.settings.enabled && yootil.user.id() != owner){
+				info_buttons["Request " + pixeldepth.monetary.shop.trade.settings.text.trade] = function(){
+					$(this).dialog("close");
+					pixeldepth.monetary.shop.trade.request(shop_item);
+				};
+			}
+
 			var refund_txt = "";
 
 			if(yootil.user.id() == owner){
@@ -705,18 +760,32 @@ pixeldepth.monetary.shop = (function(){
 				var cat_id = parseInt(key);
 
 				html += '<div id="item_category_' + cat_id + '"' + ((div_counter != 0)? ' style="display: none;"' : '') + '>';
-				html += '<table class="list"><thead><tr class="head"><th style="width: 130px;">&nbsp;</th><th style="width: 22%">' + this.settings.text.item + ' ' + this.settings.text.name + '</th><th style="width: 78%" class="main">' + this.settings.text.description + '</th><th style="width: 110px">' + this.settings.text.price + '</th><th style="width: 150px;">&nbsp;</th></tr></thead><tbody class="list-content">';
+				html += '<table class="list"><thead><tr class="head"><th style="width: 140px;">&nbsp;</th><th style="width: 22%">' + this.settings.text.item + ' ' + this.settings.text.name + '</th><th style="width: 78%" class="main">' + this.settings.text.description + '</th><th style="width: 110px">' + this.settings.text.price + '</th><th style="width: 150px;">&nbsp;</th></tr></thead><tbody class="list-content">';
 
 				var counter = 0;
 
 				for(var i = 0; i < this.category_items[key].length; i ++){
 					klass = (counter == 0)? " first" : ((counter == (this.category_items.length - 1))? " last" : "");
 
+					var ribbon = "";
+					var extra_ribbon_class = "";
+					var price = parseFloat(this.category_items[key][i].item_price);
+
+					if(this.category_items[key][i].item_discount && this.category_items[key][i].item_discount > 0){
+						var discount = this.category_items[key][i].item_discount | 0;
+
+						if(this.images["ribbon" + discount]){
+							ribbon = "background-image: url(" + this.images["ribbon" + discount] + ");";
+							extra_ribbon_class = " shop_ribbon_" + discount;
+							price -= (price * (discount / 100));
+						}
+					}
+
 					html += '<tr class="item' + klass + '">';
-					html += '<td style="text-align: center;"><img src="' + this.settings.base_image + this.category_items[key][i].item_image + '" alt="' + yootil.html_encode(this.category_items[key][i].item_name) + '" title="' + yootil.html_encode(this.category_items[key][i].item_name) + '" /></td>';
+					html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + this.category_items[key][i].item_image + '" alt="' + yootil.html_encode(this.category_items[key][i].item_name) + '" title="' + yootil.html_encode(this.category_items[key][i].item_name) + '" /></td>';
 					html += '<td>' + this.category_items[key][i].item_name + '</td>';
 					html += '<td>' + pb.text.nl2br(this.category_items[key][i].item_description) + '</td>';
-					html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(this.category_items[key][i].item_price, true)) + '</td>';
+					html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
 					html += '<td style="text-align: center;"><button data-item-id="' + this.category_items[key][i].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
 
 					counter ++;
@@ -888,11 +957,24 @@ pixeldepth.monetary.shop = (function(){
 					for(var r = 0; r < results.length; r ++){
 						klass = (counter == 0)? " first" : ((counter == (results.length - 1))? " last" : "");
 
+						var ribbon = "";
+						var extra_ribbon_class = "";
+						var price = parseFloat(results[r].item_price);
+
+						if(results[r].item_discount && results[r].item_discount > 0){
+							var discount = results[r].item_discount | 0;
+
+							if(this.images["ribbon" + discount]){
+								ribbon = "background-image: url(" + this.images["ribbon" + discount] + ");";
+								extra_ribbon_class = " shop_ribbon_" + discount;
+								price -= (price * (discount / 100));
+							}
+						}
 						result_html += '<tr class="item' + klass + '">';
-						result_html += '<td style="text-align: center;"><img src="' + this.settings.base_image + results[r].item_image + '" alt="' + yootil.html_encode(results[r].item_name) + '" title="' + yootil.html_encode(results[r].item_name) + '" /></td>';
+						result_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + results[r].item_image + '" alt="' + yootil.html_encode(results[r].item_name) + '" title="' + yootil.html_encode(results[r].item_name) + '" /></td>';
 						result_html += '<td>' + results[r].item_name + '</td>';
 						result_html += '<td>' + pb.text.nl2br(results[r].item_description) + '</td>';
-						result_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(results[r].item_price, true)) + '</td>';
+						result_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
 						result_html += '<td style="text-align: center;"><button data-item-id="' + results[r].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
 
 						counter ++;
@@ -971,14 +1053,28 @@ pixeldepth.monetary.shop = (function(){
 
 				klass = (counter == 0)? " first" : "";
 
+				var ribbon = "";
+				var extra_ribbon_class = "";
+				var price = parseFloat(item.item_price);
+
+				if(item.item_discount && item.item_discount > 0){
+					var discount = item.item_discount | 0;
+
+					if(this.images["ribbon" + discount]){
+						ribbon = "background-image: url(" + this.images["ribbon" + discount] + ");";
+						extra_ribbon_class = " shop_ribbon_" + discount;
+						price -= (price * (discount / 100));
+					}
+				}
+
 				basket_html += '<tr class="item' + klass + '">';
-				basket_html += '<td style="text-align: center;"><img src="' + this.settings.base_image + item.item_image + '" alt="' + yootil.html_encode(item.item_name) + '" title="' + yootil.html_encode(item.item_name) + '" /></td>';
+				basket_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + item.item_image + '" alt="' + yootil.html_encode(item.item_name) + '" title="' + yootil.html_encode(item.item_name) + '" /></td>';
 				basket_html += '<td>' + item.item_name + '</td>';
 				basket_html += '<td>' + pb.text.nl2br(item.item_description) + '</td>';
-				basket_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(item.item_price, true)) + '</td>';
+				basket_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
 				basket_html += '<td style="text-align: center;"><button data-item-id="' + item.item_id + '">' + this.settings.text.remove + '</button></td>';
 
-				total += parseFloat(item.item_price);
+				total += parseFloat(price);
 				counter ++;
 			}
 
@@ -1042,8 +1138,17 @@ pixeldepth.monetary.shop = (function(){
 
 			for(var i = 0; i < this.cart.length; i ++){
 				var item = this.lookup[this.cart[i]];
+				var price = parseFloat(item.item_price);
 
-				total += parseFloat(item.item_price);
+				if(item.item_discount && item.item_discount > 0){
+					var discount = item.item_discount | 0;
+
+					if(this.images["ribbon" + discount]){
+						price -= (price * (discount / 100));
+					}
+				}
+
+				total += parseFloat(price);
 			}
 
 			if(total > users_money){
@@ -1085,12 +1190,26 @@ pixeldepth.monetary.shop = (function(){
 
 					total_items ++;
 
+					var ribbon = "";
+					var extra_ribbon_class = "";
+					var price = parseFloat(item.item_price);
+
+					if(item.item_discount && item.item_discount > 0){
+						var discount = item.item_discount | 0;
+
+						if(this.images["ribbon" + discount]){
+							ribbon = "background-image: url(" + this.images["ribbon" + discount] + ");";
+							extra_ribbon_class = " shop_ribbon_" + discount;
+							price -= (price * (discount / 100));
+						}
+					}
+
 					msg += "<tr class='item'>";
-					msg += "<td style='width: 130px;' class='monetaryshop_item_img'><img src='" + this.settings.base_image + item.item_image + "' /></td>";
+					msg += "<td style='width: 130px;" + ribbon + "' class='monetaryshop_item_img shop_ribbon" + extra_ribbon_class + "'><img src='" + this.settings.base_image + item.item_image + "' /></td>";
 					msg += "<td>" + item.item_name + "</td>";
 					msg += "<td style='width: 80px;'>" + grouped_items[key].quantity + "</td>";
-					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(item.item_price, true)) + "</td>";
-					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(item.item_price * grouped_items[key].quantity, true)) + "</td>";
+					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + "</td>";
+					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price * grouped_items[key].quantity, true)) + "</td>";
 					msg += "</tr>";
 				}
 
@@ -1111,17 +1230,26 @@ pixeldepth.monetary.shop = (function(){
 
 					for(var key in grouped_items){
 						var item = self.lookup[key];
+						var price = parseFloat(item.item_price);
+
+						if(item.item_discount && item.item_discount > 0){
+							var discount = item.item_discount | 0;
+
+							if(self.images["ribbon" + discount]){
+								price -= (price * (discount / 100));
+							}
+						}
 
 						self.data(yootil.user.id()).add.item({
 
 							id: key,
 							quantity: grouped_items[key].quantity,
-							price: item.item_price,
+							price: price,
 							time: ((+ new Date()) / 1000)
 
 						}, true);
 
-						total += item.item_price * grouped_items[key].quantity;
+						total += price * grouped_items[key].quantity;
 					}
 
 					self.cart = [];

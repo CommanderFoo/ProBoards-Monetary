@@ -112,3 +112,15 @@ span.pd_shop_mini_item {
 	padding: 2px;
 
 }
+
+td.shop_ribbon {
+
+	background-repeat: no-repeat;
+	background-position: -8px -8px;
+}
+
+div.container_monetaryshop span.search-filters-button {
+
+	min-height: 16px;
+
+}

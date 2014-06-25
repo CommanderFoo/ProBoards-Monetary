@@ -1,2 +1,2 @@
-Monetary System - Shop 0.3.1
+Monetary System - Shop 0.4.0
 ============================

@@ -98,8 +98,15 @@ pixeldepth.monetary.shop.Data = (function(){
 
 		this.remove = {
 
-			item: function(item, skip_update, opts){
+			item: function(item_id, skip_update, opts){
+				if(item_id && self.data.i[item_id]){
+					delete self.data.i[item_id];
+					self.update(skip_update, opts);
 
+					return true;
+				}
+
+				return false;
 			}
 
 		};

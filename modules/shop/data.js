@@ -49,6 +49,14 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			gifts: function(){
 				return self.data.g;
+			},
+
+			quantity: function(id){
+				if(self.data.i[id]){
+					return self.data.i[id].q | 0;
+				}
+
+				return 0;
 			}
 
 		};

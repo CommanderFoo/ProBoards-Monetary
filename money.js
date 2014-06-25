@@ -1633,15 +1633,13 @@ var money = {
 						break;
 
 					case 1:
-						msg += "reset ";
-						break;
-
 					case 2:
-						msg += "set too ";
+						msg += "set to ";
 						break;
 				}
 
 				msg += "<strong>" + this.settings.money_symbol + yootil.html_encode(this.format(notifications[n].a[1], true)) + "</strong>" + date_str + user + "</p>";
+
 				height += 10;
 			}
 

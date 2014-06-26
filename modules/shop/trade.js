@@ -53,6 +53,7 @@ pixeldepth.monetary.shop.trade = (function(){
 		},
 
 		request: function(item){
+			var self = this;
 			var title = this.settings.text.trade + " Request";
 			var viewing_id = yootil.page.member.id() || null;
 
@@ -71,11 +72,14 @@ pixeldepth.monetary.shop.trade = (function(){
 
 			owner_html += "<div class='trader_name'>You</div><br /><div id='trade_owner_items'>";
 
+			var img_size = this.shop.get_size_css(true);
+			var disp = (!img_size.length && parseInt(self.shop.settings.mini_image_percent) > 0)? " style='display: none;'" : "";
+
 			for(var key in own_items){
 				var item = this.shop.lookup[key];
 
 				if(item){
-					owner_html += '<span class="pd_shop_mini_item" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '" /></span>';
+					owner_html += '<span class="pd_shop_mini_item" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
 				}
 			}
 
@@ -89,7 +93,7 @@ pixeldepth.monetary.shop.trade = (function(){
 				var item = this.shop.lookup[key];
 
 				if(item){
-					with_html += '<span class="pd_shop_mini_item" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '" /></span>';
+					with_html += '<span class="pd_shop_mini_item" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
 				}
 			}
 
@@ -134,22 +138,33 @@ pixeldepth.monetary.shop.trade = (function(){
 			$("#monetaryshop-trade-dialog span.pd_shop_mini_item").click(function(){
 				var who = $(this).parent().attr("id");
 				var where_to = (who == "trade_owner_items")? $("#trade_left_offer") : $("#trade_right_offer");
+				var item_image = $(this).find("img");
 
-				where_to.css("background-image", "url(" + $(this).find("img").attr("src") + ")");
+				where_to.css("background-image", "url(" + item_image.attr("src") + ")");
+
+				if(item_image.width() > 125 || item_image.height() > 125){
+					var width = item_image.width() * .5;
+					var height = item_image.height() * .5;
+
+					where_to.css("background-size", width + "px " + height + "px");
+				}
 
 				$(this).parent().find("span").css("opacity", 1);
 				$(this).css("opacity", 0.4);
 			});
 
-			$("#monetaryshop-trade-dialog span[data-shop-item-id] img").bind("load", function(){
-				var width = this.width;
-				var height = this.height;
+			if(parseInt(self.shop.settings.mini_image_percent) > 0){
+				$("#monetaryshop-trade-dialog span[data-shop-item-id] img").bind("load", function(){
+					var width = this.width;
+					var height = this.height;
+					var percent = parseInt(self.shop.settings.mini_image_percent);
 
-				this.width = width * .6;
-				this.height = height * .6;
-			});
+					this.width = (width - (width * (percent / 100)));
+					this.height = (height - (height * (percent / 100)));
 
-			$("#monetaryshop-trade-dialog .trade_profile").fadeIn("slow");
+					$(this).fadeIn("slow");
+				});
+			}
 		}
 
 	};

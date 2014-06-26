@@ -238,6 +238,14 @@ pixeldepth.monetary.shop = (function(){
 					for(var i = 0, l = this.items.length; i < l; i ++){
 						this.lookup[this.items[i].item_id] = this.items[i];
 
+						if(typeof this.lookup[this.items[i].item_id].item_max_quantity === "undefined"){
+							this.lookup[this.items[i].item_id].item_max_quantity = 0;
+						}
+
+						if(typeof this.lookup[this.items[i].item_id].item_discount === "undefined"){
+							this.lookup[this.items[i].item_id].item_discount = 0;
+						}
+
 						if(this.category_lookup[this.items[i].item_category]){
 							if(!this.category_items[this.items[i].item_category]){
 								this.category_items[this.items[i].item_category] = [];
@@ -366,6 +374,7 @@ pixeldepth.monetary.shop = (function(){
 				var items = this.data(user_id).get.items();
 				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
 				var img_size = this.get_size_css();
+				var disp = (!img_size.length && parseInt(this.settings.image_percent) > 0)? " style='display: none;'" : "";
 
 				for(var key in items){
 					var num = "";
@@ -397,17 +406,17 @@ pixeldepth.monetary.shop = (function(){
 
 					if(items[key].q > 1 && this.settings.show_total_bought){
 						num = '<span class="shop_item">';
-						num += '<img class="shop_item_x" src="' + this.images.x + '" />';
+						num += '<img' + disp + ' class="shop_item_x" src="' + this.images.x + '" />';
 
 						if(items[key].q >= 99){
-							num += 	'<img class="shop_item_num" src="' + this.images["9"] + '" /><img class="shop_item_num shop_item_num_last" src="' + this.images["9"] + '" />';
+							num += 	'<img' + disp + ' class="shop_item_num" src="' + this.images["9"] + '" /><img class="shop_item_num shop_item_num_last" src="' + this.images["9"] + '" />';
 						} else {
 							var str = items[key].q.toString();
 
 							for(var s = 0; s < str.length; s ++){
 								var klass = (s > 0)? " shop_item_num_last" : "";
 
-								num += 	'<img class="shop_item_num' + klass + '" src="' + this.images[str.substr(s, 1)] + '" />';
+								num += 	'<img' + disp + ' class="shop_item_num' + klass + '" src="' + this.images[str.substr(s, 1)] + '" />';
 							}
 						}
 
@@ -415,7 +424,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					if(this.lookup[key]){
-						items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '"' + img_size + ' />' + num + '</div>';
+						items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '"' + img_size + disp + ' />' + num + '</div>';
 					}
 				}
 
@@ -440,8 +449,10 @@ pixeldepth.monetary.shop = (function(){
 							var width = this.width;
 							var height = this.height;
 
-							this.width = width * (parseInt(self.settings.image_percent) / 100);
-							this.height = height * (parseInt(self.settings.image_percent) / 100);
+							this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+							this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+							$(this).parent().find("img").fadeIn("slow");
 						});
 					});
 				}
@@ -609,12 +620,12 @@ pixeldepth.monetary.shop = (function(){
 				};
 			}
 
-			if(shop_item.item_tradable == "1" && pixeldepth.monetary.shop.trade.settings.enabled && yootil.user.id() != owner){
-				info_buttons["Request " + pixeldepth.monetary.shop.trade.settings.text.trade] = function(){
+			/*if(shop_item.item_tradable == "1" && pixeldepth.monetary.shop.trade.settings.enabled && yootil.user.id() != owner){
+				info_buttons[pixeldepth.monetary.shop.trade.settings.text.trade] = function(){
 					$(this).dialog("close");
 					pixeldepth.monetary.shop.trade.request(shop_item);
 				};
-			}
+			}*/
 
 			var refund_txt = "";
 
@@ -756,6 +767,9 @@ pixeldepth.monetary.shop = (function(){
 
 			html += this.create_shop_tabs();
 
+			var img_size = this.get_size_css();
+			var disp = (!img_size.length && parseInt(this.settings.image_percent) > 0)? " style='display: none;'" : "";
+
 			for(var key in this.category_items){
 				var cat_id = parseInt(key);
 
@@ -782,7 +796,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					html += '<tr class="item' + klass + '">';
-					html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + this.category_items[key][i].item_image + '" alt="' + yootil.html_encode(this.category_items[key][i].item_name) + '" title="' + yootil.html_encode(this.category_items[key][i].item_name) + '" /></td>';
+					html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + this.category_items[key][i].item_image + '"' + img_size + disp + ' alt="' + yootil.html_encode(this.category_items[key][i].item_name) + '" title="' + yootil.html_encode(this.category_items[key][i].item_name) + '" /></td>';
 					html += '<td>' + this.category_items[key][i].item_name + '</td>';
 					html += '<td>' + pb.text.nl2br(this.category_items[key][i].item_description) + '</td>';
 					html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
@@ -900,6 +914,18 @@ pixeldepth.monetary.shop = (function(){
 			}
 
 			container.appendTo("#content");
+
+			if(parseInt(this.settings.image_percent) > 0){
+				$(".container_monetaryshop table tr td.shop_ribbon img").bind("load", function(){
+					var width = this.width;
+					var height = this.height;
+
+					this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+					this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+					$(this).fadeIn("slow");
+				});
+			}
 		},
 
 		create_shop_tabs: function(){
@@ -967,6 +993,8 @@ pixeldepth.monetary.shop = (function(){
 
 					var counter = 0;
 					var result_html = "";
+					var img_size = this.get_size_css();
+					var disp = (!img_size.length && parseInt(this.settings.image_percent) > 0)? " style='display: none;'" : "";
 
 					for(var r = 0; r < results.length; r ++){
 						klass = (counter == 0)? " first" : ((counter == (results.length - 1))? " last" : "");
@@ -992,7 +1020,7 @@ pixeldepth.monetary.shop = (function(){
 						}
 
 						result_html += '<tr class="item' + klass + '">';
-						result_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + results[r].item_image + '" alt="' + yootil.html_encode(results[r].item_name) + '" title="' + yootil.html_encode(results[r].item_name) + '" /></td>';
+						result_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + results[r].item_image + '"' + img_size + disp + ' alt="' + yootil.html_encode(results[r].item_name) + '" title="' + yootil.html_encode(results[r].item_name) + '" /></td>';
 						result_html += '<td>' + results[r].item_name + '</td>';
 						result_html += '<td>' + pb.text.nl2br(results[r].item_description) + '</td>';
 						result_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
@@ -1012,6 +1040,18 @@ pixeldepth.monetary.shop = (function(){
 							self.add_to_cart(this, id);
 						}
 					});
+
+					if(parseInt(this.settings.image_percent) > 0){
+						$(".container_monetaryshop table tr td.shop_ribbon img").bind("load", function(){
+							var width = this.width;
+							var height = this.height;
+
+							this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+							this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+							$(this).fadeIn("slow");
+						});
+					}
 				} else {
 					$("div.container_monetaryshop div#search_no_results").show();
 					$("div.container_monetaryshop table#search_results_items").hide();
@@ -1101,6 +1141,8 @@ pixeldepth.monetary.shop = (function(){
 			var counter = 0;
 			var basket_html = "";
 			var total = 0;
+			var img_size = this.get_size_css();
+			var disp = (!img_size.length && parseInt(this.settings.image_percent) > 0)? " style='display: none;'" : "";
 
 			for(var i = 0; i < this.cart.length; i ++){
 				var item = self.lookup[this.cart[i]];
@@ -1122,7 +1164,7 @@ pixeldepth.monetary.shop = (function(){
 				}
 
 				basket_html += '<tr class="item' + klass + '">';
-				basket_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + item.item_image + '" alt="' + yootil.html_encode(item.item_name) + '" title="' + yootil.html_encode(item.item_name) + '" /></td>';
+				basket_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + item.item_image + '"' + img_size + disp + ' alt="' + yootil.html_encode(item.item_name) + '" title="' + yootil.html_encode(item.item_name) + '" /></td>';
 				basket_html += '<td>' + item.item_name + '</td>';
 				basket_html += '<td>' + pb.text.nl2br(item.item_description) + '</td>';
 				basket_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
@@ -1146,6 +1188,18 @@ pixeldepth.monetary.shop = (function(){
 			basket_items_table.find("button#shop_checkout").click(function(){
 				self.checkout();
 			});
+
+			if(parseInt(this.settings.image_percent) > 0){
+				$(".container_monetaryshop table tr td.shop_ribbon img").bind("load", function(){
+					var width = this.width;
+					var height = this.height;
+
+					this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+					this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+					$(this).fadeIn("slow");
+				});
+			}
 
 			basket_items_table.show();
 		},
@@ -1252,6 +1306,9 @@ pixeldepth.monetary.shop = (function(){
 
 				msg += '<table class="list"><thead><tr class="head"><th style="width: 130px;">&nbsp;</th><th>' + this.settings.text.item + ' ' + this.settings.text.name + '</th><th>' + this.settings.text.quantity + '</th><th>' + this.settings.text.item + ' ' + this.settings.text.price + '</th><th>' + this.settings.text.total_cost + '</th></tr></thead><tbody class="list-content">';
 
+				var img_size = this.get_size_css();
+				var disp = (!img_size.length && parseInt(this.settings.image_percent) > 0)? " style='display: none;'" : "";
+
 				for(var key in grouped_items){
 					var item = this.lookup[key];
 
@@ -1272,7 +1329,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					msg += "<tr class='item'>";
-					msg += "<td style='width: 130px;" + ribbon + "' class='monetaryshop_item_img shop_ribbon" + extra_ribbon_class + "'><img src='" + this.settings.base_image + item.item_image + "' /></td>";
+					msg += "<td style='width: 130px;" + ribbon + "' class='monetaryshop_item_img shop_ribbon" + extra_ribbon_class + "'><img src='" + this.settings.base_image + item.item_image + "'' + img_size + disp + ' /></td>";
 					msg += "<td>" + item.item_name + "</td>";
 					msg += "<td style='width: 80px;'>" + grouped_items[key].quantity + "</td>";
 					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + "</td>";
@@ -1374,6 +1431,18 @@ pixeldepth.monetary.shop = (function(){
 					buttons: buttons
 
 				});
+
+				if(parseInt(this.settings.image_percent) > 0){
+					$("#monetaryshop-buy-dialog table tr td.shop_ribbon img").bind("load", function(){
+						var width = this.width;
+						var height = this.height;
+
+						this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+						this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+						$(this).fadeIn("slow");
+					});
+				}
 			}
 		},
 
@@ -1388,6 +1457,7 @@ pixeldepth.monetary.shop = (function(){
 				var self = this;
 				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
 				var img_size = this.get_size_css();
+				var disp = (!img_size.length && parseInt(this.settings.mini_image_percent) > 0)? " style='display: none;'" : "";
 
 				minis.each(function(){
 					var user_link = $(this).find("a.user-link[href*='user']:first");
@@ -1413,7 +1483,7 @@ pixeldepth.monetary.shop = (function(){
 								}
 
 								if(self.lookup[key]){
-									str += '<span class="pd_shop_mini_item" data-shop-item-id="' + self.lookup[key].item_id + '" title="' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')"><img src="' + self.settings.base_image + self.lookup[key].item_image + '"' + img_size + ' /></span>';
+									str += '<span class="pd_shop_mini_item" data-shop-item-id="' + self.lookup[key].item_id + '" title="' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')"><img src="' + self.settings.base_image + self.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
 
 									counter ++;
 								}
@@ -1440,8 +1510,10 @@ pixeldepth.monetary.shop = (function(){
 									var width = this.width;
 									var height = this.height;
 
-									this.width = width * (parseInt(self.settings.mini_image_percent) / 100);
-									this.height = height * (parseInt(self.settings.mini_image_percent) / 100);
+									this.width = (width - (width * (parseInt(self.settings.mini_image_percent) / 100)));
+									this.height = (height - (height * (parseInt(self.settings.mini_image_percent) / 100)));
+
+									$(this).fadeIn("slow");
 								});
 							}
 						}

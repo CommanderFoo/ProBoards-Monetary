@@ -16,6 +16,12 @@ div#monetaryshop-buy-dialog table.list td.monetaryshop_item_img {
 
 }
 
+div#monetaryshop-buy-dialog table.list tr td, .container_monetaryshop table.list tr td {
+
+	vertical-align: top;
+
+}
+
 span.shop_item {
 
 	position: absolute;
@@ -117,6 +123,14 @@ td.shop_ribbon {
 
 	background-repeat: no-repeat;
 	background-position: -8px -8px;
+
+}
+
+td.shop_ribbon img {
+
+	margin-top: 4px;
+	margin-bottom: 4px;
+
 }
 
 div.container_monetaryshop span.search-filters-button {
@@ -133,7 +147,6 @@ div.trade_wrapper {
 
 div.trade_wrapper .trade_profile {
 
-	display: none;
 	height: 90%;
 	border: 1px solid #e6e6e6;
 	border-radius: 10px;
@@ -160,6 +173,12 @@ div.trade_profile .trader_name {
 div.trade_wrapper .trade_with {
 
 	float: left;
+
+}
+
+div.trade_wrapper .trade_with, div.trade_wrapper .trade_owner {
+
+	overflow: auto;
 
 }
 

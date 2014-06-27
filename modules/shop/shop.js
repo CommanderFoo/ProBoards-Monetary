@@ -343,11 +343,11 @@ pixeldepth.monetary.shop = (function(){
 		get_size_css: function(mini){
 			if(mini){
 				if(this.settings.mini_image_width > 0 && this.settings.mini_image_height > 0){
-					return 'style="height: ' + this.settings.mini_image_height + 'px; width: ' + this.settings.mini_image_width + 'px;"';
+					return 'style="max-height: ' + this.settings.mini_image_height + 'px; max-width: ' + this.settings.mini_image_width + 'px;"';
 				}
 			} else {
 				if(this.settings.image_width > 0 && this.settings.image_height > 0){
-					return ' style="height: ' + this.settings.image_height + 'px; width: ' + this.settings.image_width + 'px;"';
+					return ' style="max-height: ' + this.settings.image_height + 'px; max-width: ' + this.settings.image_width + 'px;"';
 				}
 			}
 

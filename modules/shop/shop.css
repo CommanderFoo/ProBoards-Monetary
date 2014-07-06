@@ -240,7 +240,20 @@ div.trade_box_right .trade_item_box_right, div.trade_box_left .trade_item_box_le
 	padding: 5px;
 	border-radius: 10px;
 	margin-left: 15px;
-	background-repeat: no-repeat;
-	background-position: center center;
+	overflow: auto;
+	text-align: center;
+
+}
+
+div.trade_box_right .trade_item_box_right img, div.trade_box_left .trade_item_box_left img {
+
+	max-height: 30px;
+	max-width: 30px;
+
+}
+
+span.trade_item_disabled {
+
+	opacity: 0.15;
 
 }

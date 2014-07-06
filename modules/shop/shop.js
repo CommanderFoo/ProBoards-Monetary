@@ -238,20 +238,22 @@ pixeldepth.monetary.shop = (function(){
 					for(var i = 0, l = this.items.length; i < l; i ++){
 						this.lookup[this.items[i].item_id] = this.items[i];
 
-						if(typeof this.lookup[this.items[i].item_id].item_max_quantity === "undefined"){
+						if(typeof this.items[i].item_max_quantity === "undefined"){
 							this.lookup[this.items[i].item_id].item_max_quantity = 0;
 						}
 
-						if(typeof this.lookup[this.items[i].item_id].item_discount === "undefined"){
-							this.lookup[this.items[i].item_id].item_discount = 0;
+						if(typeof this.items[i].item_show === "undefined" || !this.items[i].item_show.length){
+							this.lookup[this.items[i].item_id].item_show = 1;
 						}
 
 						if(this.category_lookup[this.items[i].item_category]){
-							if(!this.category_items[this.items[i].item_category]){
-								this.category_items[this.items[i].item_category] = [];
-							}
+							if(this.items[i].item_show == 1){
+								if(!this.category_items[this.items[i].item_category]){
+									this.category_items[this.items[i].item_category] = [];
+								}
 
-							this.category_items[this.items[i].item_category].push(this.items[i]);
+								this.category_items[this.items[i].item_category].push(this.items[i]);
+							}
 						}
 					}
 
@@ -620,12 +622,12 @@ pixeldepth.monetary.shop = (function(){
 				};
 			}
 
-			/*if(shop_item.item_tradable == "1" && pixeldepth.monetary.shop.trade.settings.enabled && yootil.user.id() != owner){
+			if(shop_item.item_tradable == "1" && pixeldepth.monetary.shop.trade.settings.enabled && yootil.user.id() != owner){
 				info_buttons[pixeldepth.monetary.shop.trade.settings.text.trade] = function(){
 					$(this).dialog("close");
 					pixeldepth.monetary.shop.trade.request(shop_item);
 				};
-			}*/
+			}
 
 			var refund_txt = "";
 
@@ -973,11 +975,13 @@ pixeldepth.monetary.shop = (function(){
 				var results = [];
 
 				for(var i = 0, l = this.items.length; i < l; i ++){
-					var name = this.items[i].item_name.toLowerCase();
-					var desc = this.items[i].item_description.toLowerCase();
+					if(this.items[i].item_show == 1){
+						var name = this.items[i].item_name.toLowerCase();
+						var desc = this.items[i].item_description.toLowerCase();
 
-					if(name.match(txt) || desc.match(txt)){
-						results.push(this.items[i]);
+						if(name.match(txt) || desc.match(txt)){
+							results.push(this.items[i]);
+						}
 					}
 				}
 
@@ -1077,7 +1081,7 @@ pixeldepth.monetary.shop = (function(){
 		},
 
 		add_to_cart: function(button, item_id){
-			if(button && this.lookup[item_id]){
+			if(button && this.lookup[item_id] && this.lookup[item_id].item_show == 1){
 				var add_button = $(".container_monetaryshop button.add_to_cart[data-item-id=" + item_id + "]");
 
 				if(this.lookup[item_id].item_max_quantity != 0 && this.at_max_quantity(item_id)){
@@ -1147,6 +1151,10 @@ pixeldepth.monetary.shop = (function(){
 			for(var i = 0; i < this.cart.length; i ++){
 				var item = self.lookup[this.cart[i]];
 
+				if(item.item_show != 1){
+					continue;
+				}
+
 				klass = (counter == 0)? " first" : "";
 
 				var ribbon = "";
@@ -1209,6 +1217,11 @@ pixeldepth.monetary.shop = (function(){
 
 			for(var i = 0; i < this.cart.length; i ++){
 				var item = this.lookup[this.cart[i]];
+
+				if(item.item_show != 1){
+					continue;
+				}
+
 				var price = parseFloat(item.item_price);
 
 				if(item.item_discount && item.item_discount > 0){
@@ -1259,6 +1272,11 @@ pixeldepth.monetary.shop = (function(){
 
 			for(var i = 0; i < this.cart.length; i ++){
 				var item = this.lookup[this.cart[i]];
+
+				if(item.item_show != 1){
+					continue;
+				}
+
 				var price = parseFloat(item.item_price);
 
 				if(item.item_discount && item.item_discount > 0){
@@ -1312,6 +1330,10 @@ pixeldepth.monetary.shop = (function(){
 				for(var key in grouped_items){
 					var item = this.lookup[key];
 
+					if(item.item_show != 1){
+						continue;
+					}
+
 					total_items ++;
 
 					var ribbon = "";
@@ -1354,6 +1376,11 @@ pixeldepth.monetary.shop = (function(){
 
 					for(var key in grouped_items){
 						var item = self.lookup[key];
+
+						if(item.item_show != 1){
+							continue;
+						}
+
 						var price = parseFloat(item.item_price);
 
 						if(item.item_discount && item.item_discount > 0){

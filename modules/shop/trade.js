@@ -79,7 +79,10 @@ pixeldepth.monetary.shop.trade = (function(){
 				var item = this.shop.lookup[key];
 
 				if(item){
-					owner_html += '<span class="pd_shop_mini_item" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
+					var klass = (this.shop.lookup[key].item_tradable == 1)? "" : " trade_item_disabled";
+					var title = (klass.length)? " (Not Tradable)" : "";
+
+					owner_html += '<span class="pd_shop_mini_item' + klass + '" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
 				}
 			}
 
@@ -93,7 +96,10 @@ pixeldepth.monetary.shop.trade = (function(){
 				var item = this.shop.lookup[key];
 
 				if(item){
-					with_html += '<span class="pd_shop_mini_item" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
+					var klass = (this.shop.lookup[key].item_tradable == 1)? "" : " trade_item_disabled";
+					var title = (klass.length)? " (Not Tradable)" : "";
+
+					with_html += '<span class="pd_shop_mini_item' + klass + '" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
 				}
 			}
 
@@ -124,8 +130,13 @@ pixeldepth.monetary.shop.trade = (function(){
 
 						text: "Send " + this.settings.text.trade,
 						click: function(){
-							console.log("go go go");
+							if($("#trade_right_offer img").length || $("#trade_left_offer img").length){
+								var owner_items = self.validate_trade_items($("#trade_right_offer img"), true);
+								var with_items = self.validate_trade_items($("#trade_right_offer img"), false);
+
+							}
 						},
+
 						id: "trade_accept_btn",
 						style: "opacity: 0.5;"
 
@@ -136,21 +147,45 @@ pixeldepth.monetary.shop.trade = (function(){
 			});
 
 			$("#monetaryshop-trade-dialog span.pd_shop_mini_item").click(function(){
-				var who = $(this).parent().attr("id");
-				var where_to = (who == "trade_owner_items")? $("#trade_left_offer") : $("#trade_right_offer");
-				var item_image = $(this).find("img");
+				var span = $(this);
+				var who = span.parent().attr("id");
+				var item_id = span.attr("data-shop-item-id");
 
-				where_to.css("background-image", "url(" + item_image.attr("src") + ")");
-
-				if(item_image.width() > 125 || item_image.height() > 125){
-					var width = item_image.width() * .5;
-					var height = item_image.height() * .5;
-
-					where_to.css("background-size", width + "px " + height + "px");
+				if(self.shop.lookup[item_id].item_tradable != 1){
+					return;
 				}
 
-				$(this).parent().find("span").css("opacity", 1);
-				$(this).css("opacity", 0.4);
+				var where_to = (who == "trade_owner_items")? $("#trade_left_offer") : $("#trade_right_offer");
+				var item_image = span.find("img");
+				var img = $("<img />").attr("src", item_image.attr("src"));
+				var current_total_offer = where_to.find("img[data-shop-item-id=" + item_id + "]").length;
+				var current_quantity = pixeldepth.monetary.shop.data(yootil.user.id()).get.quantity(item_id);
+
+				if(current_total_offer < current_quantity){
+					img.attr("data-shop-item-id", item_id);
+
+					img.click(function(){
+						$(this).hide("normal", function(){
+							$(this).remove();
+
+							if(!$("#trade_right_offer img").length && !$("#trade_left_offer img").length){
+								$("#trade_accept_btn").css("opacity", .5);
+							}
+
+							span.css("opacity", 1);
+						});
+					});
+
+					img.appendTo(where_to);
+				}
+
+				if(where_to.find("img[data-shop-item-id=" + item_id + "]").length == current_quantity){
+					span.css("opacity", 0.5);
+				}
+
+				if(where_to.find("img").length){
+					$("#trade_accept_btn").css("opacity", 1);
+				}
 			});
 
 			if(parseInt(self.shop.settings.mini_image_percent) > 0){
@@ -165,6 +200,16 @@ pixeldepth.monetary.shop.trade = (function(){
 					$(this).fadeIn("slow");
 				});
 			}
+		},
+
+		validate_trade_items: function(imgs, owner){
+			var grouped_items = {};
+
+			imgs.each(function(){
+				var item_id = $(this).attr("data-shop-item-id");
+
+				//if(!grouped_items
+			});
 		}
 
 	};

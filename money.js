@@ -1,3 +1,6 @@
+// @TODO
+// make it not look for "Posts" on the profile when injecting into the DOM
+
 /**
 * Namespace: money
 *

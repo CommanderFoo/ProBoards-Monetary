@@ -1,3 +1,5 @@
+// @TODO Errors
+
 pixeldepth.monetary.shop.trade = (function(){
 
 	return {
@@ -5,19 +7,37 @@ pixeldepth.monetary.shop.trade = (function(){
 		settings: {
 
 			enabled: true,
+			show_trade_button: true,
+			page_timer_enabled: true,
 
 			text: {
 
-				trade: "Trade"
+				trade: "Gift / Trade"
 
 			}
 
 		},
 
+		page_timer: 0,
+		PAGE_TIME_EXPIRY: 45,
+		interval: 0,
+		expired: false,
+		timer_running: false,
+
 		images: {},
 
 		init: function(){
 			this.setup();
+
+			if(!this.settings.enabled){
+				return;
+			}
+
+			if(yootil.page.member.id() != yootil.user.id() && this.settings.show_trade_button){
+				if(this.shop.can_use_shop()){
+					this.create_trade_button();
+				}
+			}
 		},
 
 		register: function(){
@@ -32,6 +52,25 @@ pixeldepth.monetary.shop.trade = (function(){
 			var settings = plugin.settings;
 
 			this.images = plugin.images;
+		},
+
+		create_trade_button: function(){
+			var trade_button = $(".controls a.button[href^='/conversation/new/']");
+
+			if(trade_button.length){
+				var self = this;
+				var clone = trade_button.clone();
+				var id = yootil.page.member.id();
+
+				clone.attr("href", "#").text(this.shop.trade.settings.text.trade);
+
+				clone.click(function(){
+					self.shop.trade.request();
+					return false;
+				});
+
+				clone.insertAfter(trade_button);
+			}
 		},
 
 		build_trading_box: function(){
@@ -52,9 +91,57 @@ pixeldepth.monetary.shop.trade = (function(){
 			return html;
 		},
 
-		request: function(item){
+		monitor_time_on_page: function(){
 			var self = this;
-			var title = this.settings.text.trade + " Request";
+
+			if(this.timer_running){
+				return false;
+			}
+
+			this.interval = setInterval(function(){
+				if(self.page_timer >= self.PAGE_TIME_EXPIRY){
+					self.expired = true;
+					$("#monetaryshop-trade-dialog div.trade_wrapper").css("opacity", .5);
+					$("#monetary-trade-page-expiry").html("Page Expires In: expired");
+					$("#trade_accept_btn").css("opacity", .5);
+
+					proboards.alert("Page Expired", "This page has expired, please refresh.", {
+						modal: true,
+						height: 160,
+						resizable: false,
+						draggable: false
+					});
+
+					clearInterval(self.interval);
+
+					return;
+				}
+
+				self.page_timer ++;
+
+				var time_left = self.PAGE_TIME_EXPIRY - self.page_timer;
+
+				time_left = (time_left < 0)? 0 : time_left;
+
+				$("#monetary-trade-page-expiry").html("Page Expires In: " + time_left + " second" + ((time_left == 1)? "" : "s"));
+			}, 1000);
+		},
+
+		request: function(){
+			if(this.expired){
+				proboards.alert("Page Expired", "This page has expired, please refresh.", {
+					modal: true,
+					height: 160,
+					resizable: false,
+					draggable: false
+				});
+
+				return;
+			}
+
+			var self = this;
+			var expiry_str = (this.expired)? "expired" : ((this.PAGE_TIME_EXPIRY  - this.page_timer) + " seconds");
+			var dialog_title = this.settings.text.trade + " Request - <span id='monetary-trade-page-expiry'>Page Expires In: " + expiry_str + "</span>";
 			var viewing_id = yootil.page.member.id() || null;
 
 			if(!viewing_id){
@@ -64,8 +151,13 @@ pixeldepth.monetary.shop.trade = (function(){
 				return false;
 			}
 
-			var own_items = pixeldepth.monetary.shop.data(yootil.user.id()).get.items();
-			var with_items = pixeldepth.monetary.shop.data(viewing_id).get.items();
+			if(this.settings.page_timer_enabled){
+				this.monitor_time_on_page();
+				this.timer_running = true;
+			}
+
+			var own_items = this.shop.data(yootil.user.id()).get.items();
+			var with_items = this.shop.data(viewing_id).get.items();
 			var html = "<div class='trade_wrapper'>";
 
 			var owner_html = "<div class='trade_owner trade_profile'>";
@@ -111,7 +203,7 @@ pixeldepth.monetary.shop.trade = (function(){
 				modal: true,
 				height: 400,
 				width: 700,
-				title: title,
+				title: dialog_title,
 				html: html,
 				resizable: false,
 				draggable: false,
@@ -130,10 +222,21 @@ pixeldepth.monetary.shop.trade = (function(){
 
 						text: "Send " + this.settings.text.trade,
 						click: function(){
-							if($("#trade_right_offer img").length || $("#trade_left_offer img").length){
-								var owner_items = self.validate_trade_items($("#trade_right_offer img"), true);
-								var with_items = self.validate_trade_items($("#trade_right_offer img"), false);
+							if(self.expired){
+								return false;
+							}
 
+							if($("#trade_right_offer img").length || $("#trade_left_offer img").length){
+								var with_items = self.validate_trade_items($("#trade_right_offer img"), false);
+								var owner_items = self.validate_trade_items($("#trade_left_offer img"), true);
+
+								if(with_items || owner_items){
+
+								} else {
+
+									// Show error
+
+								}
 							}
 						},
 
@@ -147,6 +250,10 @@ pixeldepth.monetary.shop.trade = (function(){
 			});
 
 			$("#monetaryshop-trade-dialog span.pd_shop_mini_item").click(function(){
+				if(self.expired){
+					return false;
+				}
+
 				var span = $(this);
 				var who = span.parent().attr("id");
 				var item_id = span.attr("data-shop-item-id");
@@ -159,12 +266,16 @@ pixeldepth.monetary.shop.trade = (function(){
 				var item_image = span.find("img");
 				var img = $("<img />").attr("src", item_image.attr("src"));
 				var current_total_offer = where_to.find("img[data-shop-item-id=" + item_id + "]").length;
-				var current_quantity = pixeldepth.monetary.shop.data(yootil.user.id()).get.quantity(item_id);
+				var current_quantity = self.shop.data(yootil.user.id()).get.quantity(item_id);
 
 				if(current_total_offer < current_quantity){
 					img.attr("data-shop-item-id", item_id);
 
 					img.click(function(){
+						if(self.expired){
+							return false;
+						}
+
 						$(this).hide("normal", function(){
 							$(this).remove();
 
@@ -208,8 +319,29 @@ pixeldepth.monetary.shop.trade = (function(){
 			imgs.each(function(){
 				var item_id = $(this).attr("data-shop-item-id");
 
-				//if(!grouped_items
+				if(!grouped_items[item_id]){
+					grouped_items[item_id] = {
+
+						quantity: 1
+
+					};
+				} else {
+					grouped_items[item_id].quantity ++;
+				}
 			});
+
+			var user_id = (owner)? yootil.user.id() : yootil.page.member.id();
+			var count = 0;
+
+			for(var k in grouped_items){
+				if(!this.shop.data(user_id).get.quantity(k)){
+					delete grouped_items[k];
+				} else {
+					count ++;
+				}
+			}
+
+			return (count > 0)? true : false;
 		}
 
 	};

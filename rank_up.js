@@ -52,6 +52,10 @@ money.rank_up = (function(){
 		},
 
 		pay: function(){
+			if(!this.settings.enabled){
+				return;
+			}
+
 			if(this.has_ranked_up()){
 				this.update_rank();
 				this.workout_pay();

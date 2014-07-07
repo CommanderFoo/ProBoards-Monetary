@@ -625,7 +625,7 @@ pixeldepth.monetary.shop = (function(){
 			if(shop_item.item_tradable == "1" && pixeldepth.monetary.shop.trade.settings.enabled && yootil.user.id() != owner){
 				info_buttons[pixeldepth.monetary.shop.trade.settings.text.trade] = function(){
 					$(this).dialog("close");
-					pixeldepth.monetary.shop.trade.request(shop_item);
+					pixeldepth.monetary.shop.trade.request();
 				};
 			}
 

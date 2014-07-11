@@ -231,7 +231,9 @@ pixeldepth.monetary.shop.trade = (function(){
 								var owner_items = self.validate_trade_items($("#trade_left_offer img"), true);
 
 								if(with_items || owner_items){
-
+									if(self.data(yootil.user.id()).trade.send(owner_items, with_items)){
+										console.log("sent");	
+									}
 								} else {
 
 									// Show error

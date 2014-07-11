@@ -202,6 +202,10 @@ money.Data = (function(){
 
 		var self = this;
 
+		this.fixed = function(val){
+			return parseFloat(parseFloat(val).toFixed(2));		
+		};
+		
 		this.get = {
 
 			data_length_exceeded: function(){
@@ -440,6 +444,7 @@ money.Data = (function(){
 
 			money: function(amount, skip_update, opts, sync){
 				self.data.m -= parseFloat(amount);
+				self.data.m = self.fixed(self.data.m);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -459,6 +464,7 @@ money.Data = (function(){
 
 			bank: function(amount, skip_update, opts, sync){
 				self.data.b -= parseFloat(amount);
+				self.data.b = self.fixed(self.data.b);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -475,6 +481,7 @@ money.Data = (function(){
 
 			donations_sent: function(amount, skip_update, opts, sync){
 				self.data.ds -= parseFloat(amount);
+				self.data.ds = self.fixed(self.data.ds);
 				self.data.ds = (self.data.ds < 0)? 0 : self.data.ds;
 				self.update(skip_update, opts, sync);
 			},
@@ -492,6 +499,7 @@ money.Data = (function(){
 
 			donations_received: function(amount, skip_update, opts, sync){
 				self.data.dr -= parseFloat(amount);
+				self.data.dr = self.fixed(self.data.dr);
 				self.data.dr = (self.data.dr < 0)? 0 : self.data.dr;
 				self.update(skip_update, opts, sync);
 			}
@@ -516,6 +524,7 @@ money.Data = (function(){
 
 			money: function(amount, skip_update, opts, sync){
 				self.data.m += parseFloat(amount);
+				self.data.m = self.fixed(self.data.m);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -535,6 +544,7 @@ money.Data = (function(){
 
 			bank: function(amount, skip_update, opts, sync){
 				self.data.b += parseFloat(amount);
+				self.data.b = self.fixed(self.data.b);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -551,6 +561,7 @@ money.Data = (function(){
 
 			donations_sent: function(amount, skip_update, opts, sync){
 				self.data.ds += parseFloat(amount);
+				self.data.ds = self.fixed(self.data.ds);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -567,6 +578,7 @@ money.Data = (function(){
 
 			donations_received: function(amount, skip_update, opts, sync){
 				self.data.dr += parseFloat(amount);
+				self.data.dr = self.fixed(self.data.dr);
 				self.update(skip_update, opts, sync);
 			}
 
@@ -587,6 +599,7 @@ money.Data = (function(){
 
 			money: function(amount, skip_update, opts, sync){
 				self.data.m = parseFloat(amount);
+				self.data.m = self.fixed(self.data.m);
 				self.update(skip_update, opts, sync);
 			},
 
@@ -603,6 +616,7 @@ money.Data = (function(){
 
 			bank: function(amount, skip_update, opts, sync){
 				self.data.b = parseFloat(amount);
+				self.data.b = self.fixed(self.data.b);
 				self.update(skip_update, opts, sync);
 			},
 

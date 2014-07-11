@@ -582,7 +582,7 @@ pixeldepth.monetary.shop = (function(){
 				};
 			}
 
-			if(this.settings.allow_removing && yootil.user.is_staff() && yootil.user.id() != owner){
+			if(this.settings.allow_removing && yootil.user.is_staff()){
 				info_buttons["Remove"] = function(){
 					var elem = this;
 
@@ -601,7 +601,7 @@ pixeldepth.monetary.shop = (function(){
 							},
 
 							"Remove": function(){
-								var user = yootil.page.member.id();
+								var user = yootil.page.member.id() || yootil.user.id();
 
 								if(user && self.data(user).remove.item(item_id)){
 									var item_elem = $(".shop_items_list[data-shop-item-id='" + self.safe_id(item_id) + "']");
@@ -774,9 +774,16 @@ pixeldepth.monetary.shop = (function(){
 
 			for(var key in this.category_items){
 				var cat_id = parseInt(key);
-
+				var inline_css = "";
+				
 				html += '<div id="item_category_' + cat_id + '"' + ((div_counter != 0)? ' style="display: none;"' : '') + '>';
-				html += '<table class="list"><thead><tr class="head"><th style="width: 140px;">&nbsp;</th><th style="width: 22%">' + this.settings.text.item + ' ' + this.settings.text.name + '</th><th style="width: 78%" class="main">' + this.settings.text.description + '</th><th style="width: 110px">' + this.settings.text.price + '</th><th style="width: 150px;">&nbsp;</th></tr></thead><tbody class="list-content">';
+				
+				if(this.category_lookup[cat_id].category_desc && this.category_lookup[cat_id].category_desc.length){
+					html += '<div class="item_shop_category_description">' + pb.text.nl2br(this.category_lookup[cat_id].category_desc) + '</div>';
+					inline_css = " border-top-width: 1px;";
+				}
+				
+				html += '<table class="list"><thead><tr class="head"><th style="width: 140px;' + inline_css + '">&nbsp;</th><th style="width: 22%;' + inline_css + '">' + this.settings.text.item + ' ' + this.settings.text.name + '</th><th style="width: 78%;' + inline_css + '" class="main">' + this.settings.text.description + '</th><th style="width: 110px;' + inline_css + '">' + this.settings.text.price + '</th><th style="width: 150px;' + inline_css + '">&nbsp;</th></tr></thead><tbody class="list-content">';
 
 				var counter = 0;
 

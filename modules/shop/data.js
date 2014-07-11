@@ -10,7 +10,11 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			// Gifts
 
-			g: []
+			g: [],
+			
+			// Trades / Gifts
+			
+			t: []
 
 		};
 
@@ -158,6 +162,26 @@ pixeldepth.monetary.shop.Data = (function(){
 				self.update(skip_update, opts);
 			}
 
+		};
+		
+		this.trade = {
+			
+			send: function(from, to){
+				if(from){
+					var request = {};
+					
+					if(to){
+						
+					}
+					
+					console.log(from);
+					console.log(to);
+					
+				}
+				
+				return false;
+			}
+			
 		};
 
 		return this;

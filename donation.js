@@ -627,13 +627,13 @@ money.donation = (function(){
 
 			if(!donation_amount.match(/^\d+(\.\d{1,2})?$/)){
 				this.donation_error(this.settings.text.donation + " amount must be a number.");
-			} else if(donation_amount > current_amount){
+			} else if(parseFloat(donation_amount) > current_amount){
 				this.donation_error("Not enough money to cover " + this.settings.text.donation.toLowerCase() + ".");
 			} else {
-				if(donation_amount < this.settings.minimum_donation){
+				if(parseFloat(donation_amount) < this.settings.minimum_donation){
 					this.donation_error("Minimum " + this.settings.text.donation.toLowerCase() + " amount is " + money.format(this.settings.minimum_donation, true) + ".");
 				} else {
-					if(this.settings.maximum_donation && donation_amount > this.settings.maximum_donation){
+					if(this.settings.maximum_donation && parseFloat(donation_amount) > this.settings.maximum_donation){
 						this.donation_error("Maximum " + this.settings.text.donation.toLowerCase() + " amount is " + money.format(this.settings.maximum_donation, true) + ".");
 					} else {
 						$(".monetary-donation-button button").attr("disabled", true);
@@ -641,7 +641,7 @@ money.donation = (function(){
 						var the_donation = {
 
 							to: money.data(yootil.page.member.id()),
-							amount: donation_amount,
+							amount: parseFloat(donation_amount),
 
 							message: {
 								text: message,

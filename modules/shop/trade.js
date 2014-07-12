@@ -12,7 +12,12 @@ pixeldepth.monetary.shop.trade = (function(){
 
 				gift_trade: "Gift / Trade",
 				request: "Request",
-				sent: "Sent"				
+				sent: "Sent",
+				received: "Received",
+				sending: "Sending",
+				receiving: "Receiving",
+				requesting: "Requesting",
+				item: "Item"	
 
 			}
 
@@ -34,6 +39,8 @@ pixeldepth.monetary.shop.trade = (function(){
 				return;
 			}
 			
+			yootil.bar.add("/user/" + yootil.user.id() + "?monetaryshop&tradeview=1", this.shop.images.trade, this.settings.text.gift_trade + " " + this.settings.text.request + "s", "pdmstrade");
+			
 			if(yootil.location.check.profile_home()){
 				if(location.href.match(/\?monetaryshop&tradeview=(\d+)/i) && RegExp.$1){
 					var view = ~~ RegExp.$1;
@@ -41,14 +48,14 @@ pixeldepth.monetary.shop.trade = (function(){
 					
 					switch(view){
 
-						// Sent Trades
+						// Sent / Received Trades
 
 						case 1:
 							if(yootil.page.member.id() == user_id){
-								yootil.create.page(new RegExp("\\/user\\/" + user_id + "\\?monetaryshop&tradeview=1"), this.settings.text.sent + " " + this.settings.text.gift_trade + " " + this.settings.text.request +  "s");
-								yootil.create.nav_branch("/user/" + user_id + "?monetaryshop&tradeview=1", this.settings.text.sent + " " + this.settings.text.gift_trade + " " + this.settings.text.request +  "s");
+								yootil.create.page(new RegExp("\\/user\\/" + user_id + "\\?monetaryshop&tradeview=1"), this.settings.text.gift_trade + " " + this.settings.text.request +  "s");
+								yootil.create.nav_branch("/user/" + user_id + "?monetaryshop&tradeview=1", this.settings.text.gift_trade + " " + this.settings.text.request +  "s");
 
-								this.build_sent_trade_requests_html();
+								this.build_sent_received_trade_requests_html();
 							}
 							
 							break;
@@ -264,53 +271,41 @@ pixeldepth.monetary.shop.trade = (function(){
 									var to_details = [viewing_id, yootil.page.member.name()];
 									var from_details = [yootil.user.id(), yootil.user.name()];
 									
-									if(self.shop.data(viewing_id).trade.send(owner_items, from_details, with_items, to_details, true)){
-										self.timer_paused = true;
-																														
-										for(var k in owner_items){
-											self.shop.data(yootil.user.id()).reduce.quantity(k, owner_items[k].quantity, true);
-										}
-										
-										self.shop.data(viewing_id).update(false);
-										self.shop.data(yootil.user.id()).update(false);
-										
-										$(this).dialog("close");
-										
-										var msg = "You have successfully sent a " + self.settings.text.gift_trade.toLowerCase();
-										
-										msg += " " + self.settings.text.request.toLowerCase();
-										msg += " to <a href='/user/" + yootil.html_encode(viewing_id) + "'>";
-										msg += yootil.html_encode(yootil.page.member.name()) + "</a>.";										
-										   
-										proboards.dialog("monetaryshop-trade-sent-dialog", {
-										
-											modal: true,
-											height: 200,
-											width: 380,
-											title: self.settings.text.trade,
-											html: msg,
-											resizable: false,
-											draggable: false,
-											buttons: {
-										
-												Close: function(){
-													$(this).dialog("close");
-													self.timer_paused = false;
-												}
-												
+									self.shop.data(yootil.user.id()).trade.send(owner_items, from_details, with_items, to_details, true);
+									self.timer_paused = true;
+																		
+									self.shop.data(viewing_id).update(false);
+									self.shop.data(yootil.user.id()).update(false);
+									
+									$(this).dialog("close");
+									
+									var msg = "You have successfully sent a " + self.settings.text.gift_trade.toLowerCase();
+									
+									msg += " " + self.settings.text.request.toLowerCase();
+									msg += " to <a href='/user/" + yootil.html_encode(viewing_id) + "'>";
+									msg += yootil.html_encode(yootil.page.member.name()) + "</a>.";										
+									   
+									proboards.dialog("monetaryshop-trade-sent-dialog", {
+									
+										modal: true,
+										height: 200,
+										width: 420,
+										title: self.settings.text.gift_trade + " " + self.settings.text.sent,
+										html: msg,
+										resizable: false,
+										draggable: false,
+										buttons: {
+									
+											Close: function(){
+												$(this).dialog("close");
+												self.timer_paused = false;
 											}
-										
-										});
-									} else {
-										proboards.alert("An Error Has Occurred", "Could not send request (#1).", {
-											modal: true,
-											height: 160,
-											resizable: false,
-											draggable: false
-										});																	
-									}
+											
+										}
+									
+									});
 								} else {
-									proboards.alert("An Error Has Occurred", "Could not send request (#2).", {
+									proboards.alert("An Error Has Occurred", "Could not send request (#1).", {
 										modal: true,
 										height: 160,
 										resizable: false,
@@ -424,15 +419,33 @@ pixeldepth.monetary.shop.trade = (function(){
 			return (count > 0)? grouped_items : false;
 		},
 		
-		build_sent_trade_requests_html: function(){
-			var trades_sent = this.shop.data(yootil.user.id()).get.trades.sent();
+		get_total_items: function(items, receiving){
+			var counter = 0;
+			var the_items = {};
+			
+			if(receiving && items.i){
+				the_items = items.i;
+			} else if(items.i){
+				the_items = items.i;	
+			}
+			
+			for(var k in the_items){
+				counter ++;	
+			}
+			
+			return counter;
+		},
+		
+		build_sent_requests: function(trades_sent){
 			var html = "";
-
-			html = "<table class='monetary-shop-trades-sent-list list'>";
+					
+			html += '<div id="trade_requests_sent">';
+			html = "<table class='monetary-shop-trades-list list'>";
 			html += "<thead><tr class='head'>";
 			html += "<th class='monetary-shop-trade-list-icon'> </th>";
-			html += "<th class='main'>...........</th>";
-			html += "<th class='monetary-shop-trade-list-to'>" + this.settings.text.gift_trade + " To</th>";
+			html += "<th class='monetary-shop-trade-list-sending'>" + this.settings.text.sending + "</th>";
+			html += "<th class='monetary-shop-trade-list-requesting'>" + this.settings.text.requesting + "</th>";
+			html += "<th class='monetary-shop-trade-list-to'>" + this.settings.text.request + " To</th>";
 			html += "<th class='monetary-shop-trade-list-date'>Date Sent</th>";
 			html += "<th></th></tr></thead>";
 			html += "<tbody class='list-content'>";
@@ -459,16 +472,20 @@ pixeldepth.monetary.shop.trade = (function(){
 						hours = (hours)? hours : 12;
 					}
 
+					var total_items_sending = this.get_total_items(trades_sent[t].s, false);
+					var total_items_requesting = this.get_total_items(trades_sent[t].r, true);
+					
 					date_str += hours + ":" + mins + am_pm;
 
 					klass = (counter == 0)? " first" : ((counter == (l - 1))? " last" : "");
 
 					html += "<tr class='item conversation" + klass + "'>";
-					html += "<td>---</td>";
-					html += "<td>---</td>";
+					html += "<td><img src='" + this.shop.images.trade_32 + "' /></td>";
+					html += "<td>" + total_items_sending + " " + this.settings.text.item.toLowerCase() + ((total_items_sending == 1)? "" : "s") + "</td>";
+					html += "<td>" + total_items_requesting + " " + this.settings.text.item.toLowerCase() + ((total_items_requesting == 1)? "" : "s") + "</td>";
 					html += "<td><a href='/user/" + yootil.html_encode(trades_sent[t].r.u[0]) + "'>" + yootil.html_encode(trades_sent[t].r.u[1]) + "</a></td>";
 					html += "<td>" + date_str + "</td>";
-					html += "<td>---</td>";
+					html += "<td class='monetary-shop-trade-list-button'><button>View " + this.settings.text.request + "</button></td>";
 					html += "</tr>";
 
 					counter ++;
@@ -477,9 +494,84 @@ pixeldepth.monetary.shop.trade = (function(){
 				html += "<tr class='item conversation last'><td colspan='5'><em>You have not " + this.settings.text.sent.toLowerCase() + " any " + this.settings.text.gift_trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + "s.</em></td></tr>";
 			}
 
-			html += "</tbody></table>";
+			html += "</tbody></table></div>";
+			
+			return html;
+		},
+		
+		build_received_requests: function(trades_received){
+			var html = "";
+					
+			html += '<div id="trade_requests_received" style="display: none">';
+			html = "<table class='monetary-shop-trades-list list'>";
+			html += "<thead><tr class='head'>";
+			html += "<th class='monetary-shop-trade-list-icon'> </th>";
+			html += "<th class='main'>...........</th>";
+			html += "<th class='monetary-shop-trade-list-to'>" + this.settings.text.request + " From</th>";
+			html += "<th class='monetary-shop-trade-list-date'>Date Sent</th>";
+			html += "<th></th></tr></thead>";
+			html += "<tbody class='list-content'>";
 
-			var container = yootil.create.container(this.settings.text.sent + " " + this.settings.text.gift_trade + " " + this.settings.text.request + "s (" + trades_sent.length + ")", html).show();
+			var counter = 0;
+			var time_24 = (yootil.user.time_format() == "12hr")? false : true;
+
+			if(trades_received.length){
+				for(var t = 0, l = trades_received.length; t < l; t ++){
+					var date = new Date(trades_received[t].d * 1000);
+					var day = date.getDate() || 1;
+					var month = pixeldepth.monetary.months[date.getMonth()];
+					var year = date.getFullYear();
+					var hours = date.getHours();
+					var mins = date.getMinutes();
+					var date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + "<sup>" + pixeldepth.monetary.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
+					var am_pm = "";
+
+					mins = (mins < 10)? "0" + mins : mins;
+
+					if(!time_24){
+						am_pm = (hours > 11)? "pm" : "am";
+						hours = hours % 12;
+						hours = (hours)? hours : 12;
+					}
+
+					date_str += hours + ":" + mins + am_pm;
+
+					klass = (counter == 0)? " first" : ((counter == (l - 1))? " last" : "");
+
+					html += "<tr class='item conversation" + klass + "'>";
+					html += "<td><img src='" + this.shop.images.trade_32 + "' /></td>";
+					html += "<td>---</td>";
+					html += "<td><a href='/user/" + yootil.html_encode(trades_received[t].r.u[0]) + "'>" + yootil.html_encode(trades_received[t].r.u[1]) + "</a></td>";
+					html += "<td>" + date_str + "</td>";
+					html += "<td class='monetary-shop-trade-list-button'><button>View " + this.settings.text.request + "</button></td>";
+					html += "</tr>";
+
+					counter ++;
+				}
+			} else {
+				html += "<tr class='item conversation last'><td colspan='5'><em>You have not " + this.settings.text.received.toLowerCase() + " any " + this.settings.text.gift_trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + "s.</em></td></tr>";
+			}
+
+			html += "</tbody></table></div>";
+			
+			return html;
+		},
+			
+		build_sent_received_trade_requests_html: function(){
+			var trades_sent = this.shop.data(yootil.user.id()).get.trades.sent();
+			var trades_received = this.shop.data(yootil.user.id()).get.trades.received();
+			
+			var html = '<div class="ui-tabMenu"><ul class="ui-helper-clearfix">';
+			
+			html += '<li class="ui-active" id="trade_requests_sent_tab"><a href="#">' + this.settings.text.sent + ' (' + trades_sent.length + ')</a></li>';
+			html += '<li id="trade_requests_tab_received"><a href="#">' + this.settings.text.received + ' (' + trades_received.length + ')</a></li>';
+			
+			html += "</ul></div>";
+			
+			html += this.build_sent_requests(trades_sent);
+			html += this.build_received_requests(trades_received);
+			
+			var container = yootil.create.container(this.settings.text.gift_trade + " " + this.settings.text.request + "s", html).show();
 
 			container.find("tr.item").mouseenter(function(){
 				$(this).addClass("state-hover");

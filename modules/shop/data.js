@@ -73,7 +73,7 @@ pixeldepth.monetary.shop.Data = (function(){
 				sent: function(){
 					var sent = [];
 					
-					if(self.data.t && self.data.t.length && self.data.t){						
+					if(self.data.t && self.data.t.length){				
 						for(var k in self.data.t){
 							if(self.data.t[k].s && self.data.t[k].s.u && self.data.t[k].s.u[0] == self.user_id){
 								sent.push(self.data.t[k]);
@@ -82,7 +82,21 @@ pixeldepth.monetary.shop.Data = (function(){
 					}
 				
 					return sent;	
-				}	
+				},
+				
+				received: function(){
+					var received = [];
+					
+					if(self.data.t && self.data.t.length){						
+						for(var k in self.data.t){
+							if(self.data.t[k].r && self.data.t[k].r.u && self.data.t[k].r.u[0] == self.user_id){
+								received.push(self.data.t[k]);
+							}
+						}
+					}
+				
+					return received;	
+				}
 				
 			}
 
@@ -218,6 +232,8 @@ pixeldepth.monetary.shop.Data = (function(){
 				if(sending && sending_details && receiving_details){
 					var request = {
 						
+						// Sender
+						
 						s: {
 							
 							u: sending_details,
@@ -225,6 +241,8 @@ pixeldepth.monetary.shop.Data = (function(){
 						
 						},						
 					
+						// Receiver
+						
 						r: {	
 							
 							u: receiving_details
@@ -240,11 +258,18 @@ pixeldepth.monetary.shop.Data = (function(){
 					request.d = (+ new Date()) / 1000;
 					self.data.t.push(request);
 					
-					return true;
+					for(var k in sending){
+						self.reduce.quantity(k, sending[k].quantity, true);
+					}
 					
+					pixeldepth.monetary.shop.data(receiving_details[0]).trade.receive(request);
 				}
 				
 				return false;
+			},
+			
+			receive: function(request){
+				self.data.t.push(request);
 			}
 			
 		};

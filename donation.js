@@ -74,7 +74,7 @@ money.donation = (function(){
 				var self = this;
 				var total_donations = self.get_total_donations();
 
-				if(total_donations && this.can_send_receive()){
+				if(/*total_donations &&*/ this.can_send_receive()){
 					yootil.bar.add("/user/" + yootil.user.id() + "?monetarydonation&view=2", money.images.donate, this.settings.text.donations, "pdmsdonate");
 
 					/*$("#yootil-bar").ready(function(){

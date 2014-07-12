@@ -264,3 +264,14 @@ div.item_shop_category_description {
 	
 }
 
+table.monetary-shop-trades-list .monetary-shop-trade-list-icon {
+
+	width: 55px;
+
+}
+
+table.monetary-shop-trades-list .monetary-shop-trade-list-button {
+
+	text-align: right;
+
+}

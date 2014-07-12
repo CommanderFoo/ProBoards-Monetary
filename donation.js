@@ -373,7 +373,6 @@ money.donation = (function(){
 			}
 		},
 
-
 		build_send_donation_html: function(){
 			var html = "";
 

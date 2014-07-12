@@ -20,6 +20,7 @@ pixeldepth.monetary.shop.Data = (function(){
 
 		this.data.i = (typeof this.data.i == "object" && this.data.i.constructor == Object)? this.data.i : {};
 		this.data.g = (typeof this.data.g == "object" && this.data.g.constructor == Array)? this.data.g : [];
+		this.data.t = (typeof this.data.t == "object" && this.data.t.constructor == Array)? this.data.t : [];
 
 		this.update = function(skip_update, options){
 			if(!skip_update){
@@ -37,6 +38,10 @@ pixeldepth.monetary.shop.Data = (function(){
 
 		var self = this;
 
+		this.fixed = function(val){
+			return parseFloat(parseFloat(val).toFixed(2));		
+		};
+		
 		this.get = {
 
 			items: function(){
@@ -61,6 +66,24 @@ pixeldepth.monetary.shop.Data = (function(){
 				}
 
 				return 0;
+			},
+			
+			trades: {
+			
+				sent: function(){
+					var sent = [];
+					
+					if(self.data.t && self.data.t.length && self.data.t){						
+						for(var k in self.data.t){
+							if(self.data.t[k].s && self.data.t[k].s.u && self.data.t[k].s.u[0] == self.user_id){
+								sent.push(self.data.t[k]);
+							}
+						}
+					}
+				
+					return sent;	
+				}	
+				
 			}
 
 		};
@@ -89,14 +112,14 @@ pixeldepth.monetary.shop.Data = (function(){
 
 						// Use lowest price and update when buying additional
 
-						if(self.data.i[item.id].p > item.price){
-							self.data.i[item.id].p = item.price;
+						if(parseFloat(self.data.i[item.id].p) > parseFloat(item.price)){
+							self.data.i[item.id].p = self.fixed(item.price);
 						}
 					} else {
 						self.data.i[item.id] = {
 
 							q: item.quantity,
-							p: item.price,
+							p: self.fixed(item.price),
 							t: item.time
 
 						};
@@ -121,6 +144,26 @@ pixeldepth.monetary.shop.Data = (function(){
 				return false;
 			}
 
+		};
+		
+		this.reduce = {
+			
+			quantity: function(item_id, quantity, skip_update, opts){
+				if(item_id && self.data.i[item_id]){
+					self.data.i[item_id].q -= ~~ quantity;
+					
+					if(self.data.i[item_id].q <= 0){
+						delete self.data.i[item_id];	
+					}
+					
+					self.update(skip_update, opts);
+
+					return true;
+				}
+
+				return false;
+			}
+			
 		};
 
 		this.refund = {
@@ -151,6 +194,11 @@ pixeldepth.monetary.shop.Data = (function(){
 			gifts: function(skip_update, opts){
 				self.data.g = [];
 				self.update(skip_update, opts);
+			},
+			
+			trades: function(skip_update, opts){
+				self.data.t = [];
+				self.update(skip_update, opts);
 			}
 
 		};
@@ -166,16 +214,33 @@ pixeldepth.monetary.shop.Data = (function(){
 		
 		this.trade = {
 			
-			send: function(from, to){
-				if(from){
-					var request = {};
-					
-					if(to){
+			send: function(sending, sending_details, receiving, receiving_details){
+				if(sending && sending_details && receiving_details){
+					var request = {
 						
+						s: {
+							
+							u: sending_details,
+							i: sending	
+						
+						},						
+					
+						r: {	
+							
+							u: receiving_details
+							
+						}
+						
+					};
+					
+					if(receiving){
+						request.r.i = receiving;	
 					}
 					
-					console.log(from);
-					console.log(to);
+					request.d = (+ new Date()) / 1000;
+					self.data.t.push(request);
+					
+					return true;
 					
 				}
 				

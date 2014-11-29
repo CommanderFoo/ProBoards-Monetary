@@ -768,8 +768,8 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.investmemts
-			* 	Clear the users investmemts object
+			* Method: clear.investments
+			* 	Clear the users investments object
 			*
 			* Parameters:
 			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
@@ -777,7 +777,7 @@ money.Data = (function(){
 			*	sync - *boolean* To sync up data across tabs / windows, pass true.
 			*/
 
-			investmemts: function(skip_update, opts, sync){
+			investments: function(skip_update, opts, sync){
 				self.data.s = {};
 				self.update(skip_update, opts, sync);
 			},

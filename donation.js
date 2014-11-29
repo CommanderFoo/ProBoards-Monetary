@@ -90,8 +90,8 @@ money.donation = (function(){
 
 				if(yootil.location.check.profile_home()){
 					if(location.href.match(/\?monetarydonation&view=(\d+)/i) && RegExp.$1 && parseInt(RegExp.$1) >= 1 && parseInt(RegExp.$1) <= 3){
-						var id = parseInt(yootil.page.member.id());
-						var view = parseInt(RegExp.$1);
+						var id = ~~ yootil.page.member.id();
+						var view = ~~ RegExp.$1;
 
 						switch(view){
 
@@ -503,7 +503,7 @@ money.donation = (function(){
 			container.find("div.pad-all").removeClass("pad-all").addClass("cap-bottom");
 			container.find(".monetary-donation-button button").click(function(){
 				var id = $(this).attr("data-donation-id");
-				var from = $(this).parent().parent().attr("data-donation-from");
+				var from = ~~ $(this).parent().parent().attr("data-donation-from");
 
 				location.href = "/user/" + from + "?monetarydonation&view=3&id=" + id;
 			});

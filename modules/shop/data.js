@@ -75,7 +75,7 @@ pixeldepth.monetary.shop.Data = (function(){
 					
 					if(self.data.t && self.data.t.length){				
 						for(var k in self.data.t){
-							if(self.data.t[k].s && self.data.t[k].s.u && self.data.t[k].s.u[0] == self.user_id){
+							if(self.data.t[k].f && self.data.t[k].f.u && self.data.t[k].f.u[0] == self.user_id){
 								sent.push(self.data.t[k]);
 							}
 						}
@@ -89,7 +89,7 @@ pixeldepth.monetary.shop.Data = (function(){
 					
 					if(self.data.t && self.data.t.length){						
 						for(var k in self.data.t){
-							if(self.data.t[k].r && self.data.t[k].r.u && self.data.t[k].r.u[0] == self.user_id){
+							if(self.data.t[k].t && self.data.t[k].t.u && self.data.t[k].t.u[0] == self.user_id){
 								received.push(self.data.t[k]);
 							}
 						}
@@ -234,16 +234,14 @@ pixeldepth.monetary.shop.Data = (function(){
 						
 						// Sender
 						
-						s: {
+						f: {
 							
 							u: sending_details,
-							i: sending	
+							i: sending
 						
-						},						
-					
-						// Receiver
+						},
 						
-						r: {	
+						t: {
 							
 							u: receiving_details
 							
@@ -252,10 +250,10 @@ pixeldepth.monetary.shop.Data = (function(){
 					};
 					
 					if(receiving){
-						request.r.i = receiving;	
+						request.t.i = receiving;	
 					}
 					
-					request.d = (+ new Date()) / 1000;
+					request.d = (+ new Date())
 					self.data.t.push(request);
 					
 					for(var k in sending){
@@ -270,6 +268,16 @@ pixeldepth.monetary.shop.Data = (function(){
 			
 			receive: function(request){
 				self.data.t.push(request);
+			},
+			
+			accept: function(id, skip_update, opts){
+				console.log(id);
+				console.log("accept");	
+			},
+			
+			reject: function(id, skip_update, opts){
+				console.log(id);
+				console.log("reject");	
 			}
 			
 		};

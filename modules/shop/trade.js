@@ -856,30 +856,63 @@ pixeldepth.monetary.shop.trade = (function(){
 			}
 			
 			container.find("button#reject_trade").click(function(){				
-				self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
+				proboards.dialog("shop-trade-decline-confirm", {
 					
-					complete: function(){
-						proboards.alert("Request Declined", "This request was successfully declined.", {
+					title: "Confirm",
+					html: "Are you sure you want to decline this request?",
+					modal: true,
+					width: 350,
+					height: 170,
+					resizable: false,
+					draggable: false,
+					buttons: [
 					
-							buttons: [
-						
-								{
-									text: "Ok",
-									click: function(){
-										$(this).dialog("close");
-										location.href = "/user/" + yootil.user.id() + "?monetaryshop&tradeview=1";			
-									}
-								}
+						{
 							
-							]
+							text: "Cancel",
+							click: function(){
+								$(this).dialog("close");	
+							}
+							
+						},
 						
-						});
-					},
-					
-					error: function(){
-						proboards.alert("An Error Occurred", "Could not decline request, please try again.");
-					}
-					
+						{
+							
+							text: "Decline Request",
+							click: function(){	
+								var what = $(this);
+								
+								self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
+									
+									complete: function(){
+										what.dialog("close");
+										
+										proboards.alert("Request Declined", "This request was successfully declined.", {
+									
+											buttons: [
+										
+												{
+													text: "Ok",
+													click: function(){
+														$(this).dialog("close");
+														location.href = "/user/" + yootil.user.id() + "?monetaryshop&tradeview=1";			
+													}
+												}
+											
+											]
+										
+										});
+									},
+									
+									error: function(){
+										proboards.alert("An Error Occurred", "Could not decline request, please try again.");
+									}
+									
+								});
+							}
+						
+						}
+					]
 				});
 			});	
 			

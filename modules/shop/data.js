@@ -61,7 +61,7 @@ pixeldepth.monetary.shop.Data = (function(){
 
 			quantity: function(id){
 				if(self.data.i[id]){
-					return self.data.i[id].q | 0;
+					return self.data.i[id].q || 0;
 				}
 
 				return 0;
@@ -349,7 +349,7 @@ pixeldepth.monetary.shop.Data = (function(){
 							// entry for the item
 							
 							var item_qty = pixeldepth.monetary.shop.data(from_user_id).get.quantity(item_id);
-							 
+							
 							if(item_qty){
 								
 								// Has item, so we now need to up the quantity
@@ -359,7 +359,7 @@ pixeldepth.monetary.shop.Data = (function(){
 								
 								// No item, so insert new item with correct data
 								
-								pixeldepth.monetary.shop.data(from_user_id).set.item(item_id, shop_item.item_price, from_items[item_id].q, true);								
+								pixeldepth.monetary.shop.data(from_user_id).set.item(item_id, from_items[item_id].q, shop_item.item_price, true);								
 							}							
 						} else {
 							var amount = (parseFloat(shop_item.item_price) * (pixeldepth.monetary.shop.settings.refund_percent / 100)) * from_items[item_id].q;
@@ -384,9 +384,9 @@ pixeldepth.monetary.shop.Data = (function(){
 					
 					pixeldepth.monetary.shop.data(from_user_id).update(false);
 					
-					// Update users data now
+					// Update the users data now
 					
-					self.update(false);
+					self.update(false, opts);					
 				}
 					
 			},

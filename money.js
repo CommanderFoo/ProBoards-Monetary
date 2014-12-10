@@ -252,6 +252,14 @@ var money = {
 			yootil.ajax.after_search(this.show_in_members_list, this);
 		}
 	},
+	
+	correct_date: function(the_date){
+		if(the_date.toString().indexOf(".") != -1){
+			return new Date(the_date * 1000);	
+		}
+		
+		return new Date(the_date);
+	},		
 
 	/**
 	* Method: setup_user_data_table
@@ -1087,7 +1095,7 @@ var money = {
 
 								type: ((bank_edit)? 2 : 1),
 								amount: [old_money, value, 1],
-								time: ((+ new Date()) / 1000),
+								time: (+ new Date()),
 								user: [yootil.user.name(), yootil.user.id()]
 
 							}, true);
@@ -1129,7 +1137,7 @@ var money = {
 
 								type: ((bank_edit)? 2 : 1),
 								amount: [old_money, value, 2],
-								time: ((+ new Date()) / 1000),
+								time: (+ new Date()),
 								user: [yootil.user.name(), yootil.user.id()]
 
 							}, true);
@@ -1187,7 +1195,7 @@ var money = {
 
 								type: ((bank_edit)? 2 : 1),
 								amount: [old_money, value, act_type],
-								time: ((+ new Date()) / 1000),
+								time: (+ new Date()),
 								user: [yootil.user.name(), yootil.user.id()]
 
 							}, true);
@@ -1603,7 +1611,7 @@ var money = {
 				}
 
 				if(this.settings.notification.show_date){
-					var date = new Date(notifications[n].t * 1000);
+					var date = this.correct_date(notifications[n].t);
 					var day = date.getDate() || 1;
 					var month = pixeldepth.monetary.months[date.getMonth()];
 					var year = date.getFullYear();

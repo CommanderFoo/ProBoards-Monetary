@@ -689,7 +689,7 @@ money.Data = (function(){
 			* 	Sets the users last interest timestamp
 			*
 			* Parameters:
-			* 	interest - *integer* Must be Timestamp / 1000 as it gets converted when used
+			* 	interest - *integer* Must be Timestamp
 			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
 			* 	options - *object* ProBoards key options that get passed on to the set method.
 			*	sync - *boolean* To sync up data across tabs / windows, pass true.
@@ -999,7 +999,7 @@ money.Data = (function(){
 					if(don.to && don.amount && parseFloat(don.amount) > 0 && don.from && don.from.id && parseInt(don.from.id) > 0 && don.from.name && don.from.name.length){
 						var the_donation = {
 
-							t: (+ new Date() / 1000),
+							t: (+ new Date()),
 							a: parseFloat(don.amount),
 							f: [don.from.id, don.from.name]
 

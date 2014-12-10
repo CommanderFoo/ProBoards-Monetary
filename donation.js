@@ -455,7 +455,7 @@ money.donation = (function(){
 			if(donations.length){
 				for(var d = 0, l = donations.length; d < l; d ++){
 					var amount = money.format(donations[d].a, true);
-					var date = new Date(donations[d].t * 1000);
+					var date = money.correct_date(donations[d].t);
 					var day = date.getDate() || 1;
 					var month = money.months[date.getMonth()];
 					var year = date.getFullYear();

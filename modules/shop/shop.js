@@ -5,7 +5,7 @@ pixeldepth.monetary.shop = (function(){
 
 	return {
 
-		required_monetary_version: "0.7.7",
+		required_monetary_version: "0.8.6",
 
 		VERSION: "{VER}",
 
@@ -149,7 +149,7 @@ pixeldepth.monetary.shop = (function(){
 		version: function(){
 			return this.VERSION;
 		},
-
+		
 		check_monetary_version: function(){
 			var versions = yootil.convert_versions(pixeldepth.monetary.version(), this.required_monetary_version);
 
@@ -383,7 +383,7 @@ pixeldepth.monetary.shop = (function(){
 					var date_str = "";
 
 					if(this.settings.show_bought_date){
-						var date = new Date(items[key].t * 1000);
+						var date = new Date(pixeldepth.monetary.correct_date(items[key].t));
 						var day = date.getDate() || 1;
 						var month = pixeldepth.monetary.months[date.getMonth()];
 						var year = date.getFullYear();
@@ -521,7 +521,7 @@ pixeldepth.monetary.shop = (function(){
 			if(self.settings.show_bought_date){
 				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
 				var date_str = "";
-				var date = new Date(bought_item.t * 1000);
+				var date = new Date(pixeldepth.monetary.correct_date(bought_item.t));
 				var day = date.getDate() || 1;
 				var month = pixeldepth.monetary.months[date.getMonth()];
 				var year = date.getFullYear();
@@ -1403,7 +1403,7 @@ pixeldepth.monetary.shop = (function(){
 							id: key,
 							quantity: grouped_items[key].quantity,
 							price: price,
-							time: ((+ new Date()) / 1000)
+							time: (+ new Date())
 
 						}, true);
 

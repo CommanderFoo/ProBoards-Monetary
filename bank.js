@@ -495,7 +495,7 @@ money.bank = (function(){
 
 		create_transaction: function(type, in_amount, out_amount, skip_key_update, force_previous_balance, user_id){
 			var current_transactions = this.get_transactions(user_id);
-			var now = +new Date();
+			var now = (+ new Date());
 
 			in_amount = parseFloat(in_amount);
 			out_amount = parseFloat(out_amount);

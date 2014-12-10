@@ -138,14 +138,14 @@ money.wages = (function(){
 
 			if(!amount_per_period){
 				if(!data.s){
-					data.s = (today.getTime() / 1000);
+					data.s = today.getTime();
 					money.data(yootil.user.id()).set.wages(data, true);
 				}
 
 				return;
 			}
 
-			var last_paid = (data.s)? (data.s * 1000) : today.getTime();
+			var last_paid = (data.s)? (money.correct_date(data.s)) : today.getTime();
 			var when = (data.w)? data.w : this.settings.how_often;
 			var diff = Math.abs(today - last_paid);
 			var amount = 0;
@@ -193,7 +193,7 @@ money.wages = (function(){
 
 				var data = money.data(yootil.user.id()).get.wages();
 
-				data.s = (today.getTime() / 1000);
+				data.s = today.getTime();
 				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},
@@ -217,7 +217,7 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (data.e * 1000);
+					var expires = data.e;
 
 					if(today.getTime() >= (expires - this.ms.day) && today.getTime() <= expires){
 						data.p ++;
@@ -233,7 +233,7 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (data.e * 1000);
+					var expires = data.e;
 
 					if(today.getTime() >= (expires - this.ms.week) && today.getTime() <= expires){
 						data.p ++;
@@ -249,7 +249,7 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (data.e * 1000);
+					var expires = data.e;
 
 					if(today.getTime() >= (expires - (this.ms.week * 2)) && today.getTime() <= expires){
 						data.p ++;
@@ -265,7 +265,7 @@ money.wages = (function(){
 
 					this.set_default(today, this.settings.how_often);
 
-					var expires = (data.e * 1000);
+					var expires = data.e;
 					var expires_date = new Date(expires);
 					var new_expires_ts = new Date(expires_date.getFullYear(), expires_date.getMonth() - 1, expires_date.getDate()).getTime();
 
@@ -340,7 +340,7 @@ money.wages = (function(){
 			var data = money.data(yootil.user.id()).get.wages();
 
 			if(!data.e || !data.e.toString().length || typeof parseInt(data.e) != "number" || reset){
-				data.e = (new Date(todays_date.getFullYear(), todays_date.getMonth() + months, todays_date.getDate() + days) / 1000);
+				data.e = new Date(todays_date.getFullYear(), todays_date.getMonth() + months, todays_date.getDate() + days);
 				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},

@@ -737,7 +737,7 @@ pixeldepth.monetary.shop.trade = (function(){
   			html += "<div class='trade_with trade_profile' style='height: 140px; width: 250px; margin-top: 3px; margin-right: 40px; cursor: default;'>";
   			
   			var trading_content = "";
-  			var missing_shop_items = true;
+  			var missing_shop_items = false;
   			  			
 	  		if(valid_trade){
 	  			for(var id in the_trade.f.i){
@@ -855,10 +855,8 @@ pixeldepth.monetary.shop.trade = (function(){
 				});
 			}
 			
-			container.find("button#reject_trade").click(function(){
-				var trade_id = the_trade.d;
-				
-				self.shop.data(yootil.user.id()).trade.decline(trade_id, false, {
+			container.find("button#reject_trade").click(function(){				
+				self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
 					
 					complete: function(){
 						proboards.alert("Request Declined", "This request was successfully declined.", {

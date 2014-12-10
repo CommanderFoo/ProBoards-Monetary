@@ -308,6 +308,17 @@ pixeldepth.monetary.shop.Data = (function(){
 				console.log("accept");	
 			},
 			
+			remove: function(the_trade, skip_update, opts){
+				for(var i = 0, l = self.data.t.length; i < l; i ++){
+					if(self.data.t[i].d == the_trade.d){
+						self.data.t.splice(i, 1);
+						break;						
+					}	
+				}
+				
+				self.update(skip_update, opts);
+			},
+			
 			decline: function(the_trade, skip_update, opts){
 				
 				// We need add the item / quantity back to the
@@ -367,6 +378,7 @@ pixeldepth.monetary.shop.Data = (function(){
 					// Finally we need to remove the trade request from both sets of data
 					
 					pixeldepth.monetary.shop.data(from_user_id).trade.remove(the_trade, true);
+					self.trade.remove(the_trade, true);
 					
 					// Update "from" data
 					

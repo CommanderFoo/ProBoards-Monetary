@@ -334,10 +334,7 @@ pixeldepth.monetary.shop.Data = (function(){
 					var from_user_id = from.u[0];
 					var from_items = from.i;
 					var refund_total = 0;
-					
-					// Loop through items, see if they exist in the shop, if not
-					// we will refund the money.
-					
+										
 					for(var item_id in from_items){
 						var shop_item = pixeldepth.monetary.shop.lookup[item_id];
 						 
@@ -362,10 +359,10 @@ pixeldepth.monetary.shop.Data = (function(){
 								pixeldepth.monetary.shop.data(from_user_id).set.item(item_id, from_items[item_id].q, shop_item.item_price, true);								
 							}							
 						} else {
-							var amount = (parseFloat(shop_item.item_price) * (pixeldepth.monetary.shop.settings.refund_percent / 100)) * from_items[item_id].q;
+							/*var amount = (parseFloat(shop_item.item_price) * (pixeldepth.monetary.shop.settings.refund_percent / 100)) * from_items[item_id].q;
 							
 							refund_total += amount;
-							pixeldepth.monetary.shop.data(from_user_id).refund(item_id, from_items[item_id].q, true); 
+							pixeldepth.monetary.shop.data(from_user_id).refund(item_id, from_items[item_id].q, true);*/ 
 						}
 					}
 										

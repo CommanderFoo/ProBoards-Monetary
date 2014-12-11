@@ -25,7 +25,7 @@ pixeldepth.monetary.shop.trade = (function(){
 		},
 
 		page_timer: 0,
-		PAGE_TIME_EXPIRY: 45,
+		PAGE_TIME_EXPIRY: 5,
 		interval: 0,
 		expired: false,
 		timer_running: false,
@@ -174,7 +174,7 @@ pixeldepth.monetary.shop.trade = (function(){
 			return html;
 		},
 
-		monitor_time_on_page: function(){
+		monitor_time_on_page: function(objs){
 			var self = this;
 			
 			if(this.timer_paused){
@@ -188,9 +188,14 @@ pixeldepth.monetary.shop.trade = (function(){
 			this.interval = setInterval(function(){
 				if(self.page_timer >= self.PAGE_TIME_EXPIRY){
 					self.expired = true;
-					$("#monetaryshop-trade-dialog div.trade_wrapper").css("opacity", .5);
+					
+					if(objs){
+						for(var o = 0, l = objs.length; o < l; o ++){
+							objs[o].css("opacity", .5);	
+						}	
+					}
+					
 					$("#monetary-trade-page-expiry").html("Page Expires In: expired");
-					$("#trade_accept_btn").css("opacity", .5);
 
 					proboards.alert("Page Expired", "This page has expired, please refresh.", {
 						modal: true,
@@ -243,7 +248,11 @@ pixeldepth.monetary.shop.trade = (function(){
 			}
 
 			if(this.settings.page_timer_enabled){
-				this.monitor_time_on_page();
+				this.monitor_time_on_page([
+					$("#monetaryshop-trade-dialog div.trade_wrapper"),
+					$("#trade_accept_btn").css("opacity", .5)
+				]);
+				
 				this.timer_running = true;
 			}
 
@@ -471,7 +480,7 @@ pixeldepth.monetary.shop.trade = (function(){
 
 					};
 				} else {
-					grouped_items[item_id].quantity ++;
+					grouped_items[item_id].q ++;
 				}
 			});
 
@@ -748,6 +757,29 @@ pixeldepth.monetary.shop.trade = (function(){
 	  					
 	  					if(item){	  						
 	  						trading_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' /></span>';				
+	  						/*var num = "";
+	  						
+	  						if(qty > 1){
+	  							
+								num = '<span class="shop_item">';
+								num += '<img' + disp + ' class="shop_item_x" src="' + this.shop.images.x + '" />';
+		
+								if(qty >= 99){
+									num += 	'<img' + disp + ' class="shop_item_num" src="' + this.shop.images["9"] + '" /><img class="shop_item_num shop_item_num_last" src="' + this.shop.images["9"] + '" />';
+								} else {
+									var str = qty.toString();
+		
+									for(var s = 0; s < str.length; s ++){
+										var klass = (s > 0)? " shop_item_num_last" : "";
+		
+										num += 	'<img' + disp + ' class="shop_item_num' + klass + '" src="' + this.shop.images[str.substr(s, 1)] + '" />';
+									}
+								}
+		
+								num += '</span>';
+							}
+	  						
+	  						trading_content += '<div class="shop_items_list" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' />' + num + '</div>';*/
 	  					} else {
 	  						missing_shop_items = true;
 	  						break;	
@@ -829,10 +861,26 @@ pixeldepth.monetary.shop.trade = (function(){
     		 
     		html += "<button id='accept_trade'" + trade_disabled + ">Accept " + trade_gift_txt + "</button> <button id='reject_trade'" + decline_disabled + ">Decline " + trade_gift_txt + "</button></div></div>";
 
+			if(this.settings.page_timer_enabled){
+				var expiry_str = (this.expired)? "expired" : ((this.PAGE_TIME_EXPIRY  - this.page_timer) + " seconds");
+								
+				title += " - <span id='monetary-trade-page-expiry'>Page Expires In: " + expiry_str + "</span>";
+			}
+			
 			var container = yootil.create.container(title, html).show();
 			
 			if(can_trade){
 				container.find("button#accept_trade").click(function(){
+					if(self.expired){
+						proboards.alert("Page Expired", "This page has expired, please refresh.", {
+							modal: true,
+							height: 160,
+							resizable: false,
+							draggable: false
+						});
+		
+						return;
+					}
 					
 					// Need to make sure all items that are in this request still exist
 					// for both parties
@@ -855,11 +903,22 @@ pixeldepth.monetary.shop.trade = (function(){
 				});
 			}
 			
-			container.find("button#reject_trade").click(function(){				
+			container.find("button#reject_trade").click(function(){
+				if(self.expired){
+					proboards.alert("Page Expired", "This page has expired, please refresh.", {
+						modal: true,
+						height: 160,
+						resizable: false,
+						draggable: false
+					});
+	
+					return;
+				}
+				
 				proboards.dialog("shop-trade-decline-confirm", {
 					
 					title: "Confirm",
-					html: "Are you sure you want to decline this request?",
+					html: "Are you sure you want to decline this " + trade_gift_txt.toLowerCase() + "?",
 					modal: true,
 					width: 350,
 					height: 170,
@@ -878,8 +937,21 @@ pixeldepth.monetary.shop.trade = (function(){
 						
 						{
 							
-							text: "Decline Request",
-							click: function(){	
+							text: "Decline " + trade_gift_txt,
+							click: function(){
+								if(self.expired){
+									$(this).dialog("close");
+									
+									proboards.alert("Page Expired", "This page has expired, please refresh.", {
+										modal: true,
+										height: 160,
+										resizable: false,
+										draggable: false
+									});
+					
+									return;	
+								}
+								
 								var what = $(this);
 								
 								self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
@@ -887,8 +959,11 @@ pixeldepth.monetary.shop.trade = (function(){
 									complete: function(){
 										what.dialog("close");
 										
-										proboards.alert("Request Declined", "This request was successfully declined.", {
+										proboards.alert(trade_gift_txt + " Declined", "This " + trade_gift_txt.toLowerCase() + " was successfully declined.", {
 									
+											modal: true,
+											resizable: false,
+											draggable: false,
 											buttons: [
 										
 												{
@@ -905,7 +980,7 @@ pixeldepth.monetary.shop.trade = (function(){
 									},
 									
 									error: function(){
-										proboards.alert("An Error Occurred", "Could not decline request, please try again.");
+										proboards.alert("An Error Occurred", "Could not decline " + trade_gift_txt.toLowerCase() + ", please try again.");
 									}
 									
 								});
@@ -917,6 +992,15 @@ pixeldepth.monetary.shop.trade = (function(){
 			});	
 			
 			container.appendTo("#content");
+			
+			if(this.settings.page_timer_enabled){
+				this.monitor_time_on_page([
+					$("button#accept_trade"),
+					$("button#reject_trade")	
+				]);
+				
+				this.timer_running = true;	
+			}
 		},
 		
 		has_items_for_trade: function(trade_id){

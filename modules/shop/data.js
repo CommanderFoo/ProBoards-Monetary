@@ -359,6 +359,9 @@ pixeldepth.monetary.shop.Data = (function(){
 								pixeldepth.monetary.shop.data(from_user_id).set.item(item_id, from_items[item_id].q, shop_item.item_price, true);								
 							}							
 						} else {
+						
+							// Not needed anymore, because if the item isn't in the shop, then how do we know the price?
+							
 							/*var amount = (parseFloat(shop_item.item_price) * (pixeldepth.monetary.shop.settings.refund_percent / 100)) * from_items[item_id].q;
 							
 							refund_total += amount;

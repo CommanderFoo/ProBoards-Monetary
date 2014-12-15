@@ -25,7 +25,7 @@ pixeldepth.monetary.shop.trade = (function(){
 		},
 
 		page_timer: 0,
-		PAGE_TIME_EXPIRY: 5,
+		PAGE_TIME_EXPIRY: 45,
 		interval: 0,
 		expired: false,
 		timer_running: false,
@@ -1003,15 +1003,40 @@ pixeldepth.monetary.shop.trade = (function(){
 			}
 		},
 		
-		has_items_for_trade: function(trade_id){
-			if(!trade_id){
+		has_items_for_trade: function(the_trade){
+			if(!the_trade){
 				return false;
 			}
 			
-			var the_trade = this.shop.data(yootil.user.id()).get.trade(trade_id);
+			var total_items_requesting = this.get_total_items(the_trade.f, true);
 			
-			console.log(the_trade);
+			// Need to check if items exist if this is not a gift
+			// If they don't, then we can't allow the user to accept
+			// the trade request
 			
+			if(total_items_requesting > 0){
+				var items = the_trade.t.i;
+				var current_items = this.shop.data(yootil.user.id()).get.items();
+				var can_accept = true;
+				
+				for(var id in items){
+					if(!current_items[id] || current_items[id].q < items[id].q){
+						can_accept = false;
+						break;	
+					}
+				}
+				
+				if(can_accept){
+					if(this.shop.data(yootil.user.id()).trade.accept(the_trade, false)){
+						return true;	
+					}	
+				}				
+			} else {
+				if(this.shop.data(yootil.user.id()).trade.accept(the_trade, true)){
+					return true;	
+				}	
+			}
+						
 			return false;
 		},
 		

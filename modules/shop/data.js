@@ -304,8 +304,20 @@ pixeldepth.monetary.shop.Data = (function(){
 				self.data.t.push(request);
 			},
 			
-			accept: function(the_trade, skip_update, opts){
-				console.log("accept");	
+			accept: function(the_trade, gift, skip_update, opts){
+				var from_user_id = from.u[0];
+				var from_items = from.i;
+				
+														
+				for(var item_id in from_items){
+					var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+					
+					// Ok, so shop item exists
+					 
+					if(shop_item){
+						
+					}
+				}
 			},
 			
 			remove: function(the_trade, skip_update, opts){

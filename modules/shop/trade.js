@@ -891,6 +891,10 @@ pixeldepth.monetary.shop.trade = (function(){
 					}
 					
 					if(can_trade){
+						
+						// Need to disable buttons and add complete event
+						// Once accepted, send back to requests page
+						
 						self.shop.data(yootil.user.id()).trade.accept(trade_id);
 					} else {
 						proboards.alert("An Error Has Occurred", "There is an error (error code: " + error_code + ") with this request, it can only be declined.", {

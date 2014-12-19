@@ -895,7 +895,53 @@ pixeldepth.monetary.shop.trade = (function(){
 						// Need to disable buttons and add complete event
 						// Once accepted, send back to requests page
 						
-						self.shop.data(yootil.user.id()).trade.accept(trade_id);
+						var return_obj = self.shop.data(yootil.user.id()).trade.accept(the_trade, gift, true);
+						
+						if(return_obj.can_accept){
+							self.timer_paused = true;
+							self.shop.data(yootil.user.id()).update(false);
+							self.shop.data(the_trade.f.u[0]).update(false, {
+																	
+								complete: function(){
+									var msg = "You have successfully accepted this request ";
+																		   
+									proboards.dialog("monetaryshop-trade-accept-success-dialog", {
+									
+										modal: true,
+										height: 200,
+										width: 420,
+										title: self.settings.text.gift + " / " + self.settings.text.trade + " Accepted",
+										html: msg,
+										resizable: false,
+										draggable: false,
+										buttons: {
+									
+											Close: function(){
+												$(this).dialog("close");
+												location.href = "/user/" + yootil.user.id() + "?monetaryshop&tradeview=1";
+											}
+											
+										}
+									
+									});	
+								}
+								
+							});
+						} else {
+							var error = "An unknown error has occurred (error code: 1003).";
+							
+							if(return_obj.error.length){
+								error = return_obj.error;
+							}
+							
+							proboards.alert("The following error has occurred.", error, {
+								modal: true,
+								height: 180,
+								width: 400,
+								resizable: false,
+								draggable: false
+						});
+						}
 					} else {
 						proboards.alert("An Error Has Occurred", "There is an error (error code: " + error_code + ") with this request, it can only be declined.", {
 							modal: true,
@@ -1031,16 +1077,10 @@ pixeldepth.monetary.shop.trade = (function(){
 				}
 				
 				if(can_accept){
-					if(this.shop.data(yootil.user.id()).trade.accept(the_trade, false)){
-						return true;	
-					}	
-				}				
-			} else {
-				if(this.shop.data(yootil.user.id()).trade.accept(the_trade, true)){
 					return true;	
-				}	
+				}				
 			}
-						
+
 			return false;
 		},
 		

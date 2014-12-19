@@ -305,19 +305,119 @@ pixeldepth.monetary.shop.Data = (function(){
 			},
 			
 			accept: function(the_trade, gift, skip_update, opts){
-				var from_user_id = from.u[0];
-				var from_items = from.i;
-				
+				var receive_user_id = the_trade.f.u[0];
+				var receive_items = the_trade.f.i;
+				var return_obj = {
+					
+					can_accept: true,
+					error: "",
+					
+				};
 														
-				for(var item_id in from_items){
+				for(var item_id in receive_items){
 					var shop_item = pixeldepth.monetary.shop.lookup[item_id];
 					
-					// Ok, so shop item exists
-					 
-					if(shop_item){
+					if(!shop_item){
+						return_obj.can_accept = false;
+						return_obj.error = "An item being sent for this request no longer exists in the shop.";
 						
+						break;
 					}
 				}
+				
+				// If not a gift, we need to make sure the
+				// user has the items, otherwise we can't
+				// accept this request only decline it
+				
+				if(return_obj.can_accept){
+					var can_swap = true;
+					
+					if(!gift){
+						var to_user_id = yootil.user.id();
+						var send_items = the_trade.t.i;
+						var receiver_data = pixeldepth.monetary.shop.data(the_trade.f.u[0]).data;
+						
+						for(var item_id in send_items){
+							var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+						
+							if(!shop_item){
+								return_obj.can_accept = can_swap = false;
+								return_obj.error = "An item being requested from you no longer exists in the shop.";
+								
+								break;
+							} else {
+								if(!self.data.i[item_id]){
+									return_obj.can_accept = can_swap = false;
+									return_obj.error = "An item being requested no longer exists, you must have lost it.";
+									
+									break;
+								} else if(self.data.i[item_id].q < send_items[item_id].q){
+									return_obj.can_accept = can_swap = false;
+									return_obj.error = "An item being requested from doesn't have enough quantity to meet the request.";
+									
+									break;
+								} else {
+									if(receiver_data.i[item_id]){
+										receiver_data.i[item_id].q += send_items[item_id].q;
+									} else {
+										receiver_data.i[item_id] = {
+										
+											q: send_items[item_id].q,
+											p: ~~ shop_item.item_price,
+											t: (+ new Date())
+											
+										};
+									}
+									
+									self.reduce.quantity(item_id, send_items[item_id].q, true);
+								}
+							}		
+						}
+						
+						if(can_swap){
+							for(var item_id in receive_items){
+								if(self.data.i[item_id]){
+									self.data.i[item_id].q += receive_items[item_id].q;	
+								} else {
+									var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+									
+									self.data.i[item_id] = {
+									
+										q: receive_items[item_id].q,
+										p: ~~ shop_item.item_price,
+										t: (+ new Date())
+										
+									};
+								}
+								
+								
+							}						
+						}
+					} else {
+						for(var item_id in receive_items){
+							if(self.data.i[item_id]){
+								self.data.i[item_id].q += receive_items[item_id].q;	
+							} else {
+								var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+								
+								self.data.i[item_id] = {
+								
+									q: receive_items[item_id].q,
+									p: ~~ shop_item.item_price,
+									t: (+ new Date())
+									
+								};
+							}
+						}
+					}
+					
+					if(return_obj.can_accept && can_swap){
+						self.trade.remove(the_trade);
+						pixeldepth.monetary.shop.data(the_trade.f.u[0]).trade.remove(the_trade);
+					}
+				}
+				
+				return return_obj;
 			},
 			
 			remove: function(the_trade, skip_update, opts){

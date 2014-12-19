@@ -390,7 +390,7 @@ pixeldepth.monetary.shop = (function(){
 						var hours = date.getHours();
 						var mins = date.getMinutes();
 
-						date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year + " at ";
+						//date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year + " at ";
 						var am_pm = "";
 
 						mins = (mins < 10)? "0" + mins : mins;
@@ -401,9 +401,9 @@ pixeldepth.monetary.shop = (function(){
 							hours = (hours)? hours : 12;
 						}
 
-						date_str += hours + ":" + mins + am_pm;
+						//date_str += hours + ":" + mins + am_pm;
 
-						date_str = " (" + this.settings.text.last_bought + ": " + date_str + ")";
+						//date_str = " (" + this.settings.text.last_bought + ": " + date_str + ")";
 					}
 
 					if(items[key].q > 1 && this.settings.show_total_bought){
@@ -541,7 +541,7 @@ pixeldepth.monetary.shop = (function(){
 				}
 
 				date_str += hours + ":" + mins + am_pm;
-				msg += "<p><strong>" + self.settings.text.last_bought + ": </strong>" + date_str + "</p>";
+				//msg += "<p><strong>" + self.settings.text.last_bought + ": </strong>" + date_str + "</p>";
 			}
 
 			msg += "<p class='item_info_desc'>" + pb.text.nl2br(shop_item.item_description) + "</p>";

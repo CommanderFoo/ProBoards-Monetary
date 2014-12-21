@@ -234,7 +234,20 @@ pixeldepth.monetary.shop = (function(){
 
 						this.categories.sort();
 					}
-
+					
+					// Support for extra items
+					// Current we support 1 extra plugin, but it does allow for more
+					
+					var extra_items_plugin_1 = proboards.plugin.get("monetary_shop_extra_items_1");
+					
+					if(extra_items_plugin_1 && extra_items_plugin_1.settings){
+						var extra_1_settings = extra_items_plugin_1.settings;
+						
+						if(extra_1_settings.shop_items && extra_1_settings.shop_items.length){
+							this.items = this.items.concat(extra_1_settings.shop_items);
+						}
+					}
+					
 					for(var i = 0, l = this.items.length; i < l; i ++){
 						this.lookup[this.items[i].item_id] = this.items[i];
 

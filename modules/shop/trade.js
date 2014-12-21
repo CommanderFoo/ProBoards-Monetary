@@ -64,7 +64,7 @@ pixeldepth.monetary.shop.trade = (function(){
 						// Received request
 						
 						case 2:
-							var trade_id = (location.href.match(/tradeview=2&id=([\d\.]+)/))? RegExp.$1 : -1;
+							var trade_id = (location.href.match(/tradeview=2&id=(\d+)/))? RegExp.$1 : -1;
 
 							if(trade_id){
 								var id = ~~ yootil.page.member.id();
@@ -100,14 +100,34 @@ pixeldepth.monetary.shop.trade = (function(){
 						// Sent request
 						
 						case 3:
-							var trade_id = (location.href.match(/tradeview=2&id=([\d\.]+)/))? RegExp.$1 : -1;
+							var trade_id = (location.href.match(/tradeview=3&id=(\d+)/))? RegExp.$1 : -1;
 
 							if(trade_id){
 								var id = ~~ yootil.page.member.id();
+								var the_trade = this.shop.data(yootil.user.id()).get.trade(trade_id);
+								var valid_trade = (the_trade && the_trade.f && the_trade.f.i)? true : false;
+								var title = "Viewing Sent ";
+								var gift = false;
 								
-								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=2&id=[\\d\\.]+"), "Viewing " + this.settings.text.request);
-								yootil.create.nav_branch("/user/" + user_id + "?monetaryshop&tradeview=1", "Viewing " + this.settings.text.request);
-								this.build_sent_trade_request_html(trade_id);
+								if(valid_trade){
+									var total_items_requesting = this.get_total_items(the_trade.f, true);
+									var total_items_receiving = this.get_total_items(the_trade.t, true);
+									
+									if(total_items_requesting && !total_items_receiving){
+										title += this.settings.text.gift;
+										gift = true;
+									} else {
+										title += this.settings.text.trade + " " + this.settings.text.request;	
+									}
+								} else {
+									title = "An Error Has Occurred";
+									proboards.alert("An Error Has Occurred", "The trade request could not be found.");									
+								}
+								
+								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=3&id=[\\d\\.]+"), title);
+								yootil.create.nav_branch("/user/" + user_id + "?monetaryshop&tradeview=1", title);
+								
+								this.build_sent_trade_request_html(the_trade, title, gift);
 							} else {
 								pixeldepth.monetary.show_default();
 							}
@@ -1084,13 +1104,225 @@ pixeldepth.monetary.shop.trade = (function(){
 			return false;
 		},
 		
-		build_sent_trade_request_html: function(trade_id){
-			var the_trade = this.shop.data(yootil.user.id()).get.trade(trade_id);
+		build_sent_trade_request_html: function(the_trade, title, gift){
+			var self = this;
+			var can_trade = true;
 			var member_id = yootil.page.member.id();
-			var html = "sent";
-			var container = yootil.create.container("Viewing " + this.settings.text.sent + " " + this.settings.text.gift + " / " + this.settings.text.trade + " " + this.settings.text.request, html).show();
+			var html = "";
+			var img_size = this.shop.get_size_css(true);
+			var disp = (!img_size.length && parseInt(this.shop.settings.mini_image_percent) > 0)? " style='display: none;'" : "";
+			var valid_trade = (the_trade && the_trade.f && the_trade.f.i)? true : false;
+			var trader_name = "You";
+			var trade_gift_img = (gift)? this.shop.images.gift_big : this.shop.images.trade_big;
+			var trade_gift_txt = (gift)? this.settings.text.gift : this.settings.text.trade;
+			var receiver_name = "";
+			
+			html += "<div style='float: left; margin-top: 35px; width: 160px; text-align: center;'>";
+			html += "<img src='" + trade_gift_img + "'>";
+  			html += "</div>";
+  			  			
+  			if(valid_trade){
+	  			receiver_name = "<a class='trader-requester-name' href='/user/" + yootil.html_encode(the_trade.t.u[0]) + "'>" + yootil.html_encode(the_trade.t.u[1]) + "</a>";  	
+	  		}
+	  		
+  			html += "<div class='trade_wrapper' style='float: left; margin-top: 10px;'><div style='float: left;'>";
+  			html += "<strong style='padding-left: 2px;'>" + trader_name + "</strong> want to " + trade_gift_txt.toLowerCase() + ":<br />";
+  			html += "<div class='trade_with trade_profile' style='height: 140px; width: 250px; margin-top: 3px; margin-right: 40px; cursor: default;'>";
+  			
+  			var trading_content = "";
+  			var missing_shop_items = false;
+  			  			
+	  		if(valid_trade){
+	  			for(var id in the_trade.f.i){
+	  				var qty = the_trade.f.i[id].q;
+	  				
+	  				for(var q = 0; q < qty; q ++){
+	  					var item = this.shop.lookup[id];
+	  					
+	  					if(item){	  						
+	  						trading_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' /></span>';	
+	  					} else {
+	  						missing_shop_items = true;
+	  						break;	
+	  					}
+	  				}
+	  			}
+  			}
+  			
+  			if(!trading_content.length){
+  				can_trade = false;
+  				trading_content = "<em>An error has occurred.</em>";
+  			}
+  			
+  			if(missing_shop_items){
+  				can_trade = false;
+  				trading_content = "<em>Missing shop items.</em>";
+  			}
+  			
+  			html += trading_content;
+  			
+  			html += "</div>";
+    		html += "</div>";
+    		html += "<div style='float: left; margin-top: 15px;'>";
+    		html += "<img src='" + this.shop.images.arrow_right + "' /><br />";
+    		html += "<img src='" + this.shop.images.arrow_left + "' /></div>";
+    		html += "<div style='float: left; margin-left: 40px;'>";
+    		
+    		var f_case = "F";
+    		
+    		if(receiver_name){
+    			if(!gift){
+    				html += "With " + receiver_name + ", ";
+    				f_case.toLowerCase();
+    			}	
+    		}
+
+    		html += "<strong style='padding-left: 2px;'>" + f_case + "or</strong> the following:<br><div class='trade_with trade_profile' style='height: 140px; width: 250px; margin-top: 3px; cursor: default;'>";
+    				
+    		var requesting_content = "";
+  			
+  			if(valid_trade){
+	  			for(var id in the_trade.t.i){
+	  				var qty = the_trade.t.i[id].q;
+	  				
+	  				for(var q = 0; q < qty; q ++){
+	  					var item = this.shop.lookup[id];
+	  					
+	  					if(item){
+	  						requesting_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' /></span>';				
+	  					} else {
+	  						missing_shop_items = true;
+	  						break;	
+	  					}
+	  				}
+	  			}
+  			}
+  			
+  			if(gift){
+  				requesting_content = "<span class='trader-not-requesting'>You are not requesting any items from " + receiver_name + ".</span>";
+  			} else if(!requesting_content.length){
+  				can_trade = false;
+  				requesting_content = "<em>An error has occurred</em>";
+  			}
+  			
+  			if(missing_shop_items){
+  				can_trade = false;
+  				requesting_content = "<em>Missing shop items.</em>";
+  				
+  				setTimeout(function(){
+	  				proboards.alert("An Error Has Occurred", "There are items in this request that no longer exist in the shop, so this request can not be accepted, only declined.", {
+  				
+		  				modal: true,
+						height: 180,
+						width: 350,
+						resizable: false,
+						draggable: false	
+	  					
+  					});
+  				}, 500);
+  			}
+  			
+  			html += requesting_content;
+    		
+    		html += "</div></div><br style='clear: both' />";
+    		html += "<div style='margin-top: 25px; margin-bottom: 10px; text-align: center;'>";
+    		
+    		var decline_disabled = (can_trade)? "" : ((missing_shop_items)? "" : " style='opacity: 0.5;'");
+    		 
+    		html += "<button id='reject_trade'" + decline_disabled + ">Cancel " + trade_gift_txt + "</button></div></div>";
+
+			if(this.settings.page_timer_enabled){
+				var expiry_str = (this.expired)? "expired" : ((this.PAGE_TIME_EXPIRY  - this.page_timer) + " seconds");
+								
+				title += " - <span id='monetary-trade-page-expiry'>Page Expires In: " + expiry_str + "</span>";
+			}
+			
+			var container = yootil.create.container(title, html).show();
+			
+			container.find("button#reject_trade").click(function(){
+				if(self.expired){
+					proboards.alert("Page Expired", "This page has expired, please refresh.", {
+						modal: true,
+						height: 160,
+						resizable: false,
+						draggable: false
+					});
+	
+					return;
+				}
+				
+				proboards.dialog("shop-trade-decline-confirm", {
+					
+					title: "Confirm",
+					html: "Are you sure you want to cancel this " + trade_gift_txt.toLowerCase() + "?",
+					modal: true,
+					width: 350,
+					height: 170,
+					resizable: false,
+					draggable: false,
+					buttons: [
+					
+						{
+							
+							text: "Cancel",
+							click: function(){
+								$(this).dialog("close");
+							}
+							
+						},
+						
+						{
+							
+							text: "Yes, Cancel Request",
+							click: function(){
+								var what = $(this);
+								$(this).dialog("close");
+								
+								self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
+									
+									complete: function(){
+										what.dialog("close");
+										
+										proboards.alert(trade_gift_txt + " Cancel", "This " + trade_gift_txt.toLowerCase() + " was successfully cancelled.", {
+									
+											modal: true,
+											resizable: false,
+											draggable: false,
+											buttons: [
+										
+												{
+													text: "Ok",
+													click: function(){
+														$(this).dialog("close");
+														location.href = "/user/" + yootil.user.id() + "?monetaryshop&tradeview=1";			
+													}
+												}
+											
+											]
+										
+										});
+									},
+									
+									error: function(){
+										proboards.alert("An Error Occurred", "Could not cancel " + trade_gift_txt.toLowerCase() + ", please try again.");
+									}
+								});
+							}
+							
+						}
+					]
+				});
+			});	
 			
 			container.appendTo("#content");
+			
+			if(this.settings.page_timer_enabled){
+				this.monitor_time_on_page([
+					$("button#reject_trade")	
+				]);
+				
+				this.timer_running = true;	
+			}
 		}
 
 	};

@@ -431,6 +431,41 @@ pixeldepth.monetary.shop.Data = (function(){
 				self.update(skip_update, opts);
 			},
 			
+			cancel: function(the_trade, skip_update, opts){
+				var from = the_trade.f;
+				
+				if(!from){
+					proboards.alert("An Error Has Occurred", "Could not cancel request, no from data.");
+				} else {
+					var from_user_id = yootil.user.id();
+					var from_items = from.i;
+										
+					for(var item_id in from_items){
+						var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+						 
+						if(shop_item){
+							var item_qty = self.get.quantity(item_id);
+							
+							if(item_qty){
+								self.set.quantity(item_id, item_qty + from_items[item_id].q, true);									
+							} else {
+								self.set.item(item_id, from_items[item_id].q, shop_item.item_price, true);								
+							}					
+						}
+					}
+					
+					// Remove the trade request from both sets of data
+					
+					var to_user = the_trade.t.u[0];
+					
+					pixeldepth.monetary.shop.data(to_user).trade.remove(the_trade, true);
+					self.trade.remove(the_trade, true);
+					
+					pixeldepth.monetary.shop.data(to_user).update(false);
+					self.update(false, opts);	
+				}				
+			},
+			
 			decline: function(the_trade, skip_update, opts){
 				
 				// We need add the item / quantity back to the

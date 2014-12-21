@@ -1,5 +1,6 @@
 // @TODO
 // make it not look for "Posts" on the profile when injecting into the DOM
+// Change the cat and board check to not return until the end (710)
 
 /**
 * Namespace: money

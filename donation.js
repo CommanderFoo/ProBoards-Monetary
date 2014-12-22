@@ -366,7 +366,7 @@ money.donation = (function(){
 
 			if(send_button.length){
 				var clone = send_button.clone();
-				var id = parseInt(yootil.page.member.id());
+				var id = ~~ yootil.page.member.id();
 
 				clone.attr("href", "/user/" + id + "?monetarydonation&view=1").text("Send " + this.settings.text.donation);
 				clone.insertAfter(send_button);

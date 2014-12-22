@@ -276,7 +276,7 @@ pixeldepth.monetary.shop = (function(){
 		},
 
 		safe_id: function(id){
-			return id.toString().replace(/\D+/g, "");
+			return id.toString().replace(/[^\d\.\_]+/g, "");
 		},
 
 		can_use_shop: function(){
@@ -1084,7 +1084,7 @@ pixeldepth.monetary.shop = (function(){
 		},
 
 		at_max_quantity: function(id){
-			var current_qty = this.data(yootil.user.id()).get.quantity(id);
+			var current_qty = ~~ this.data(yootil.user.id()).get.quantity(id);
 			var cart_quantity = 0;
 
 			for(var c = 0; c < this.cart.length; c ++){

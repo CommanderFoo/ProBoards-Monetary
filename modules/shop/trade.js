@@ -1071,6 +1071,19 @@ pixeldepth.monetary.shop.trade = (function(){
 				
 				this.timer_running = true;	
 			}
+			
+			if(parseInt(self.shop.settings.mini_image_percent) > 0){
+				$("div.trade_profile span.pd_shop_mini_item img").bind("load", function(){
+					var width = this.width;
+					var height = this.height;
+					var percent = parseInt(self.shop.settings.mini_image_percent);
+
+					this.width = (width - (width * (percent / 100)));
+					this.height = (height - (height * (percent / 100)));
+
+					$(this).fadeIn("slow");
+				});
+			}
 		},
 		
 		has_items_for_trade: function(the_trade){
@@ -1322,6 +1335,19 @@ pixeldepth.monetary.shop.trade = (function(){
 				]);
 				
 				this.timer_running = true;	
+			}
+			
+			if(parseInt(self.shop.settings.mini_image_percent) > 0){
+				$("div.trade_profile span.pd_shop_mini_item img").bind("load", function(){
+					var width = this.width;
+					var height = this.height;
+					var percent = parseInt(self.shop.settings.mini_image_percent);
+
+					this.width = (width - (width * (percent / 100)));
+					this.height = (height - (height * (percent / 100)));
+
+					$(this).fadeIn("slow");
+				});
 			}
 		}
 

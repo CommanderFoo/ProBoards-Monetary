@@ -294,7 +294,7 @@ pixeldepth.monetary.shop.trade = (function(){
 					var klass = (this.shop.lookup[key].item_tradable == 1)? "" : " trade_item_disabled";
 					var title = (klass.length)? " (Not Tradable)" : "";
 					
-					owner_html += '<span class="pd_shop_mini_item' + klass + '" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
+					owner_html += '<span class="pd_shop_mini_item' + klass + '" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '"><img src="' + this.shop.get_image_src(this.shop.lookup[key]) + '"' + img_size + disp + ' /></span>';
 				}
 			}
 
@@ -311,7 +311,7 @@ pixeldepth.monetary.shop.trade = (function(){
 					var klass = (this.shop.lookup[key].item_tradable == 1)? "" : " trade_item_disabled";
 					var title = (klass.length)? " (Not Tradable)" : "";
 
-					with_html += '<span class="pd_shop_mini_item' + klass + '" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '"><img src="' + this.shop.settings.base_image + this.shop.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
+					with_html += '<span class="pd_shop_mini_item' + klass + '" data-shop-item-id="' + this.shop.lookup[key].item_id + '" title="' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '"><img src="' + this.shop.get_image_src(this.shop.lookup[key]) + '"' + img_size + disp + ' /></span>';
 				}
 			}
 
@@ -776,7 +776,7 @@ pixeldepth.monetary.shop.trade = (function(){
 	  					var item = this.shop.lookup[id];
 	  					
 	  					if(item){	  						
-	  						trading_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' /></span>';				
+	  						trading_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.get_image_src(item) + '"' + img_size + disp + ' /></span>';				
 	  						/*var num = "";
 	  						
 	  						if(qty > 1){
@@ -838,7 +838,7 @@ pixeldepth.monetary.shop.trade = (function(){
 	  					var item = this.shop.lookup[id];
 	  					
 	  					if(item){
-	  						requesting_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' /></span>';				
+	  						requesting_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.get_image_src(item) + '"' + img_size + disp + ' /></span>';				
 	  					} else {
 	  						missing_shop_items = true;
 	  						break;	
@@ -1153,7 +1153,7 @@ pixeldepth.monetary.shop.trade = (function(){
 	  					var item = this.shop.lookup[id];
 	  					
 	  					if(item){	  						
-	  						trading_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' /></span>';	
+	  						trading_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.get_image_src(item) + '"' + img_size + disp + ' /></span>';	
 	  					} else {
 	  						missing_shop_items = true;
 	  						break;	
@@ -1202,7 +1202,7 @@ pixeldepth.monetary.shop.trade = (function(){
 	  					var item = this.shop.lookup[id];
 	  					
 	  					if(item){
-	  						requesting_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.settings.base_image + item.item_image + '"' + img_size + disp + ' /></span>';				
+	  						requesting_content += '<span class="pd_shop_mini_item" data-shop-item-id="' + item.item_id + '" title="' + yootil.html_encode(item.item_name) + '"><img src="' + this.shop.get_image_src(item) + '"' + img_size + disp + ' /></span>';				
 	  					} else {
 	  						missing_shop_items = true;
 	  						break;	

@@ -60,7 +60,9 @@ pixeldepth.monetary.shop = (function(){
 
 			welcome_message_enabled: false,
 			welcome_message_title: "",
-			welcome_message_message: ""
+			welcome_message_message: "",
+			
+			random_image: null
 
 		},
 
@@ -269,8 +271,42 @@ pixeldepth.monetary.shop = (function(){
 							}
 						}
 					}
+					
+					this.settings.random_image = this.images.hidden;
+					
+					if(settings.random_items && settings.random_items.length){
+						this.prepare_random_items(settings.random_items);	
+					}
 
 					//this.setup_specials();
+				}
+			}
+		},
+		
+		prepare_random_items: function(items){
+			for(var i = 0, l = items.length; i < l; i ++){
+				items[i].item_id = "___" + i + "___";
+				items[i].item_discount = 0;
+				items[i].item_show = 1;
+				items[i].item_tradable = 1;
+				items[i].item_refundable = 1;
+				
+				this.lookup[items[i].item_id] = items[i];
+
+				if(typeof items[i].item_max_quantity === "undefined"){
+					this.lookup[items[i].item_id].item_max_quantity = 0;
+				}
+
+				if(typeof items[i].item_show === "undefined" || !items[i].item_show.length){
+					this.lookup[items[i].item_id].item_show = 1;
+				}
+				
+				if(this.category_lookup[items[i].item_category]){
+					if(!this.category_items[items[i].item_category]){
+						this.category_items[items[i].item_category] = [];
+					}
+
+					this.category_items[items[i].item_category].push(items[i]);
 				}
 			}
 		},
@@ -369,6 +405,16 @@ pixeldepth.monetary.shop = (function(){
 			return "";
 		},
 
+		get_image_src: function(item){
+			var img = (item.item_image && item.item_image.length)? item.item_image : this.settings.random_image;
+			
+			if(!img.match(/^http/i)){
+				img = this.settings.base_image + img;	
+			}
+			
+			return img;
+		},
+		
 		create_shop_item_box: function(){
 			if(!this.has_items()){
 				return;
@@ -439,7 +485,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					if(this.lookup[key]){
-						items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.settings.base_image + this.lookup[key].item_image + '"' + img_size + disp + ' />' + num + '</div>';
+						items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.get_image_src(this.lookup[key]) + '"' + img_size + disp + ' />' + num + '</div>';
 					}
 				}
 
@@ -523,7 +569,7 @@ pixeldepth.monetary.shop = (function(){
 
 			msg += "<div>";
 
-			msg += "<div class='item_info_img'><img src='" + self.settings.base_image + shop_item.item_image + "' /></div>";
+			msg += "<div class='item_info_img'><img src='" + self.get_image_src(shop_item) + "' /></div>";
 			msg += "<div class='item_info_info'>";
 
 			msg += "<p><strong>" + self.settings.text.item + " " + self.settings.text.name + ":</strong> " + shop_item.item_name + "</p>";
@@ -818,7 +864,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					html += '<tr class="item' + klass + '">';
-					html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + this.category_items[key][i].item_image + '"' + img_size + disp + ' alt="' + yootil.html_encode(this.category_items[key][i].item_name) + '" title="' + yootil.html_encode(this.category_items[key][i].item_name) + '" /></td>';
+					html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.get_image_src(this.category_items[key][i]) + '"' + img_size + disp + ' alt="' + yootil.html_encode(this.category_items[key][i].item_name) + '" title="' + yootil.html_encode(this.category_items[key][i].item_name) + '" /></td>';
 					html += '<td>' + this.category_items[key][i].item_name + '</td>';
 					html += '<td>' + pb.text.nl2br(this.category_items[key][i].item_description) + '</td>';
 					html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
@@ -1044,7 +1090,7 @@ pixeldepth.monetary.shop = (function(){
 						}
 
 						result_html += '<tr class="item' + klass + '">';
-						result_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + results[r].item_image + '"' + img_size + disp + ' alt="' + yootil.html_encode(results[r].item_name) + '" title="' + yootil.html_encode(results[r].item_name) + '" /></td>';
+						result_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.get_image_src(results[r]) + '"' + img_size + disp + ' alt="' + yootil.html_encode(results[r].item_name) + '" title="' + yootil.html_encode(results[r].item_name) + '" /></td>';
 						result_html += '<td>' + results[r].item_name + '</td>';
 						result_html += '<td>' + pb.text.nl2br(results[r].item_description) + '</td>';
 						result_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
@@ -1192,7 +1238,7 @@ pixeldepth.monetary.shop = (function(){
 				}
 
 				basket_html += '<tr class="item' + klass + '">';
-				basket_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.settings.base_image + item.item_image + '"' + img_size + disp + ' alt="' + yootil.html_encode(item.item_name) + '" title="' + yootil.html_encode(item.item_name) + '" /></td>';
+				basket_html += '<td style="text-align: center;' + ribbon + '" class="shop_ribbon' + extra_ribbon_class + '"><img src="' + this.get_image_src(item) + '"' + img_size + disp + ' alt="' + yootil.html_encode(item.item_name) + '" title="' + yootil.html_encode(item.item_name) + '" /></td>';
 				basket_html += '<td>' + item.item_name + '</td>';
 				basket_html += '<td>' + pb.text.nl2br(item.item_description) + '</td>';
 				basket_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
@@ -1371,7 +1417,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					msg += "<tr class='item'>";
-					msg += "<td style='width: 130px;" + ribbon + "' class='monetaryshop_item_img shop_ribbon" + extra_ribbon_class + "'><img src='" + this.settings.base_image + item.item_image + "'' + img_size + disp + ' /></td>";
+					msg += "<td style='width: 130px;" + ribbon + "' class='monetaryshop_item_img shop_ribbon" + extra_ribbon_class + "'><img src='" + this.get_image_src(item) + "'' + img_size + disp + ' /></td>";
 					msg += "<td>" + item.item_name + "</td>";
 					msg += "<td style='width: 80px;'>" + grouped_items[key].quantity + "</td>";
 					msg += "<td>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + "</td>";
@@ -1530,7 +1576,7 @@ pixeldepth.monetary.shop = (function(){
 								}
 
 								if(self.lookup[key]){
-									str += '<span class="pd_shop_mini_item" data-shop-item-id="' + self.lookup[key].item_id + '" title="' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')"><img src="' + self.settings.base_image + self.lookup[key].item_image + '"' + img_size + disp + ' /></span>';
+									str += '<span class="pd_shop_mini_item" data-shop-item-id="' + self.lookup[key].item_id + '" title="' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')"><img src="' + self.get_image_src(self.lookup[key]) + '"' + img_size + disp + ' /></span>';
 
 									counter ++;
 								}

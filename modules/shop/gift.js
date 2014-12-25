@@ -112,7 +112,7 @@ pixeldepth.monetary.shop.gift = (function(){
 
 							msg += "<div>";
 
-							msg += "<div class='item_info_img'><img src='" + self.shop.settings.base_image + shop_item.item_image + "' /></div>";
+							msg += "<div class='item_info_img'><img src='" + self.shop.get_image_src(shop_item) + "' /></div>";
 							msg += "<div class='item_info_info'>";
 
 							msg += "<p><strong>" + self.shop.settings.text.item + " " + self.shop.settings.text.name + ":</strong> " + shop_item.item_name + "</p>";

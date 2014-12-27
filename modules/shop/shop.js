@@ -15,7 +15,6 @@ pixeldepth.monetary.shop = (function(){
 			icon_enabled: true,
 			base_image: "",
 			show_total_bought: true,
-			show_bought_date: true,
 			items_private: false,
 			refund_percent: 50,
 			allow_removing: false,
@@ -86,6 +85,8 @@ pixeldepth.monetary.shop = (function(){
 		KEY: "pixeldepth_money_shop",
 
 		modules: [],
+		
+		random_id_pool: {},
 
 		init: function(){
 			if(typeof yootil == "undefined"){
@@ -180,7 +181,6 @@ pixeldepth.monetary.shop = (function(){
 					this.settings.base_image = (settings.item_image_base && settings.item_image_base.length)? settings.item_image_base : this.settings.base_image;
 					this.settings.refund_percent = (settings.refund_percent && settings.refund_percent.length)? settings.refund_percent : this.settings.refund_amount;
 					this.settings.show_total_bought = (settings.show_total_bought && settings.show_total_bought == "0")? false : this.settings.show_total_bought;
-					this.settings.show_bought_date = (settings.show_bought_date && settings.show_bought_date == "0")? false : this.settings.show_bought_date;
 					this.settings.items_private = (settings.items_private && settings.items_private == "1")? true : this.settings.items_private;
 					this.settings.allow_removing = (settings.allow_removing && settings.allow_removing == "1")? true : this.settings.allow_removing;
 					this.settings.no_members = settings.no_members || [];
@@ -283,8 +283,34 @@ pixeldepth.monetary.shop = (function(){
 			}
 		},
 		
+		// If there is no id pool, then we don't add the random item
+		// to the lookup table
+		
 		prepare_random_items: function(items){
 			for(var i = 0, l = items.length; i < l; i ++){
+				var id_pool = [];
+				
+				if(items[i].item_ids.length){
+					id_pool = items[i].item_ids.replace(/\s+/g, "").split(",");/*.sort(function(a, b){
+						return a - b;
+					});*/
+				} else if(items[i].minimum_price && items[i].maximum_price && items[i].minimum_price.length && items[i].maximum_price.length){
+					var min_price = parseFloat(items[i].minimum_price);
+					var max_price = parseFloat(items[i].maximum_price);
+					
+					for(var key in this.lookup){
+						if(parseFloat(this.lookup[key].item_price) >= min_price && parseFloat(this.lookup[key].item_price) <= max_price){
+							id_pool.push(key);
+						}	
+					}
+				}
+				
+				if(id_pool.length){
+					this.random_id_pool["___" + i + "___"] = id_pool;
+				} else {
+					continue;	
+				}
+				
 				items[i].item_id = "___" + i + "___";
 				items[i].item_discount = 0;
 				items[i].item_show = 1;
@@ -439,31 +465,6 @@ pixeldepth.monetary.shop = (function(){
 
 				for(var key in items){
 					var num = "";
-					var date_str = "";
-
-					if(this.settings.show_bought_date){
-						var date = new Date(pixeldepth.monetary.correct_date(items[key].t));
-						var day = date.getDate() || 1;
-						var month = pixeldepth.monetary.months[date.getMonth()];
-						var year = date.getFullYear();
-						var hours = date.getHours();
-						var mins = date.getMinutes();
-
-						//date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year + " at ";
-						var am_pm = "";
-
-						mins = (mins < 10)? "0" + mins : mins;
-
-						if(!time_24){
-							am_pm = (hours > 11)? "pm" : "am";
-							hours = hours % 12;
-							hours = (hours)? hours : 12;
-						}
-
-						//date_str += hours + ":" + mins + am_pm;
-
-						//date_str = " (" + this.settings.text.last_bought + ": " + date_str + ")";
-					}
 
 					if(items[key].q > 1 && this.settings.show_total_bought){
 						num = '<span class="shop_item">';
@@ -485,7 +486,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					if(this.lookup[key]){
-						items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + date_str + '" class="shop_items_list"><img src="' + this.get_image_src(this.lookup[key]) + '"' + img_size + disp + ' />' + num + '</div>';
+						items_html += '<div data-shop-item-id="' + this.lookup[key].item_id + '" title="' + yootil.html_encode(this.lookup[key].item_name) + '" class="shop_items_list"><img src="' + this.get_image_src(this.lookup[key]) + '"' + img_size + disp + ' />' + num + '</div>';
 					}
 				}
 
@@ -577,32 +578,6 @@ pixeldepth.monetary.shop = (function(){
 			msg += "<p><strong>" + self.settings.text.price + " " + self.settings.text.paid + ":</strong> " + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(bought_item.p, true)) + "</p>";
 			msg += "<p><strong>" + self.settings.text.total_cost + ":</strong> <span id='shop_item_total_cost'>" + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(bought_item.p * bought_item.q, true)) + "</span></p>";
 
-			if(self.settings.show_bought_date){
-				var time_24 = (yootil.user.time_format() == "12hr")? false : true;
-				var date_str = "";
-				var date = new Date(pixeldepth.monetary.correct_date(bought_item.t));
-				var day = date.getDate() || 1;
-				var month = pixeldepth.monetary.months[date.getMonth()];
-				var year = date.getFullYear();
-				var hours = date.getHours();
-				var mins = date.getMinutes();
-
-				date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year + " at ";
-
-				var am_pm = "";
-
-				mins = (mins < 10)? "0" + mins : mins;
-
-				if(!time_24){
-					am_pm = (hours > 11)? "pm" : "am";
-					hours = hours % 12;
-					hours = (hours)? hours : 12;
-				}
-
-				date_str += hours + ":" + mins + am_pm;
-				//msg += "<p><strong>" + self.settings.text.last_bought + ": </strong>" + date_str + "</p>";
-			}
-
 			msg += "<p class='item_info_desc'>" + pb.text.nl2br(shop_item.item_description) + "</p>";
 
 			msg += "</div>";
@@ -648,9 +623,9 @@ pixeldepth.monetary.shop = (function(){
 					proboards.dialog("monetaryshop-item-remove-dialog", {
 						modal: true,
 						height: 160,
-						width: 400,
-						title: "Remove " + self.settings.text.item,
-						html: "Are you sure you want to remove this " + self.settings.text.item.toLowerCase() + " from this member?",
+						width: 350,
+						title: self.settings.text.remove,
+						html: self.build_remove_msg(item_id),
 						resizable: false,
 						draggable: false,
 						buttons: {
@@ -659,34 +634,12 @@ pixeldepth.monetary.shop = (function(){
 								$(this).dialog("close");
 							},
 
-							"Remove": function(){
-								var user = yootil.page.member.id() || yootil.user.id();
-
-								if(user && self.data(user).remove.item(item_id)){
-									var item_elem = $(".shop_items_list[data-shop-item-id='" + self.safe_id(item_id) + "']");
-
-									item_elem.hide("slow", function(){
-										item_elem.remove();
-									});
-								} else {
-									proboards.alert("Error", "An error has occurred, refresh and try again.");
-								}
-
-								$(this).dialog("close");
-								$(elem).dialog("close");
-							}
+							"Remove": self.build_remove_dialog(item_id)
 
 						}
 					});
 				};
 			}
-
-			/*if(shop_item.item_tradable == "1" && pixeldepth.monetary.shop.trade.settings.enabled && yootil.user.id() != owner){
-				info_buttons[pixeldepth.monetary.shop.trade.settings.text.gift + " / " + pixeldepth.monetary.shop.trade.settings.text.trade] = function(){
-					$(this).dialog("close");
-					pixeldepth.monetary.shop.trade.request();
-				};
-			}*/
 
 			var refund_txt = "";
 
@@ -708,6 +661,66 @@ pixeldepth.monetary.shop = (function(){
 
 		},
 
+		build_remove_msg: function(item_id){
+			var self = this;
+			var item_counter = 0;
+			var remove_msg = "<strong>" + self.settings.text.quantity + " to " + self.settings.text.remove.toLowerCase() + ":</strong> ";
+			var	bought_item = self.data(yootil.user.id()).get.item(item_id);
+			var one_remove = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * 1;
+
+			remove_msg += "<select id='shop_item_remove_quantity'>";
+
+			while(item_counter < bought_item.q){
+				item_counter ++;
+				remove_msg += "<option value='" + item_counter + "'> " + item_counter + " </option>";
+			}
+
+			remove_msg += "</select>";
+			remove_msg = $("<div>" + remove_msg + "</div>");
+
+			return remove_msg;
+		},
+		
+		build_remove_dialog: function(item_id){
+			var self = this;
+
+			return function(){
+				var remove_quantity = parseInt($("#shop_item_remove_quantity option:selected").val());
+				var bought_item = self.data(yootil.user.id()).get.item(item_id);
+
+				if(remove_quantity <= bought_item.q){
+					var info_dialog = $("#monetaryshop-item-info-dialog");
+
+					self.data(yootil.user.id()).reduce.quantity(item_id, remove_quantity);
+
+					bought_item = self.data(yootil.user.id()).get.item(item_id);
+
+					if(!bought_item){
+						var item_elem = $(".shop_items_list[data-shop-item-id='" + self.safe_id(item_id) + "']");
+
+						item_elem.hide("slow", function(){
+							item_elem.remove();
+						});
+
+						info_dialog.dialog("close");
+
+						if(!$(".shop_items_list").length){
+							$(".monetary_shop_profile_box").hide();
+						}
+					} else {
+						info_dialog.find("span#shop_item_quantity").html(bought_item.q);
+						info_dialog.find("span#shop_item_total_cost").html(pixeldepth.monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(pixeldepth.monetary.format(bought_item.q * bought_item.p, true))));
+						self.update_item_count(item_id, bought_item.q);
+
+					}
+				} else {
+					self.error("Could not remove item");
+				}
+
+				$(this).dialog("destroy").remove();
+			};
+		},
+			
 		build_refund_msg: function(item_id){
 			var self = this;
 			var item_counter = 0;
@@ -830,7 +843,13 @@ pixeldepth.monetary.shop = (function(){
 
 			var img_size = this.get_size_css();
 			var disp = (!img_size.length && parseInt(this.settings.image_percent) > 0)? " style='display: none;'" : "";
-
+			var quantity_options = "";
+			var q_counter = 0;
+			
+			while(q_counter < 100){
+				quantity_options += "<option value='" + (++ q_counter) + "'>" + q_counter + "</option>";	
+			}
+			
 			for(var key in this.category_items){
 				var cat_id = parseInt(key);
 				var inline_css = "";
@@ -877,7 +896,11 @@ pixeldepth.monetary.shop = (function(){
 						disabled_button = " style='opacity: 0.5;'";
 					}
 
-					html += '<td style="text-align: center;"><button' + disabled_button + ' class="add_to_cart" data-item-id="' + this.category_items[key][i].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
+					html += '<td style="text-align: center;">';
+					html += '<select class="monetary-shop-cart-quantity" name="quantity" data-item-id="' + this.category_items[key][i].item_id + '">';
+					html += quantity_options;
+					html += "</select><br />";
+					html += '<button' + disabled_button + ' class="add_to_cart" data-item-id="' + this.category_items[key][i].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
 
 					counter ++;
 				}
@@ -920,12 +943,29 @@ pixeldepth.monetary.shop = (function(){
 				return false;
 			});
 
+			// fix quantity
+			
 			container.find("div[id*=item_category_] button[data-item-id]").click(function(){
 				var id = $(this).attr("data-item-id");
 				var current_qty = self.data(yootil.user.id()).get.quantity(id);
-
-				if(self.lookup[id].item_max_quantity == 0 || current_qty < self.lookup[id].item_max_quantity){
-					self.add_to_cart(this, id);
+				var wanted_quantity = ~~ $("select.monetary-shop-cart-quantity[data-item-id=" + id + "]").val();
+				var item_max_quantity = ~~ self.lookup[id].item_max_quantity;
+				
+				if(item_max_quantity == 0 || current_qty < item_max_quantity){
+					if(item_max_quantity != 0 && wanted_quantity >= item_max_quantity){
+						wanted_quantity = item_max_quantity;
+						
+						if((wanted_quantity + current_qty) > item_max_quantity){
+							wanted_quantity = Math.abs(item_max_quantity - current_qty);	
+						}
+						
+						if(wanted_quantity > item_max_quantity){
+							wanted_quantity = 0;	
+						}
+					}
+					
+					console.log(wanted_quantity);
+					self.add_to_cart(this, id, wanted_quantity);
 				}
 			});
 
@@ -1146,14 +1186,17 @@ pixeldepth.monetary.shop = (function(){
 			return false;
 		},
 
-		add_to_cart: function(button, item_id){
+		add_to_cart: function(button, item_id, quantity){
 			if(button && this.lookup[item_id] && this.lookup[item_id].item_show == 1){
 				var add_button = $(".container_monetaryshop button.add_to_cart[data-item-id=" + item_id + "]");
 
 				if(this.lookup[item_id].item_max_quantity != 0 && this.at_max_quantity(item_id)){
 					return;
 				} else {
-					this.cart.push(item_id);
+					while(quantity){
+						this.cart.push(item_id);
+						quantity --;
+					}
 
 					if(this.lookup[item_id].item_max_quantity != 0 && this.at_max_quantity(item_id)){
 						add_button.css("opacity", .5);
@@ -1437,6 +1480,10 @@ pixeldepth.monetary.shop = (function(){
 
 				};
 
+				var return_data = self.check_and_give_random_items(grouped_items);
+				
+				grouped_items = return_data[0];
+				
 				buttons[this.settings.text.purchase] = function(){
 					var total = 0;
 
@@ -1447,7 +1494,7 @@ pixeldepth.monetary.shop = (function(){
 							continue;
 						}
 
-						var price = parseFloat(item.item_price);
+						var price = (grouped_items[key].temp_price)? parseFloat(grouped_items[key].temp_price) : parseFloat(item.item_price);
 
 						if(item.item_discount && item.item_discount > 0){
 							var discount = item.item_discount | 0;
@@ -1457,14 +1504,15 @@ pixeldepth.monetary.shop = (function(){
 							}
 						}
 
-						self.data(yootil.user.id()).add.item({
+						var the_item = {
 
 							id: key,
 							quantity: grouped_items[key].quantity,
-							price: price,
-							time: (+ new Date())
+							price: parseFloat(item.item_price)
 
-						}, true);
+						};
+						
+						self.data(yootil.user.id()).add.item(the_item, true);
 
 						total += price * grouped_items[key].quantity;
 					}
@@ -1490,11 +1538,31 @@ pixeldepth.monetary.shop = (function(){
 						msg = "Your " + self.settings.text.item + "s were successfully " + self.settings.text.purchased + ".<br /><br />You can view your " + self.settings.text.purchased + " " + self.settings.text.item + "s from the profile page <a href='/user/" + yootil.user.id() + "/'>here</a>.";
 					}
 
+					var height = 200;
+										
+					if(return_data[1] && return_data[1].length){
+						var random_items = return_data[1];
+						
+						height = 280;
+						
+						msg += "<br /><br /><strong>Your random items:</strong><div style='margin-top: 3px;'>";
+						
+						for(var index in random_items){
+							var item = self.lookup[random_items[index].item_id];
+							
+							if(item){
+								msg += "<img src='" + self.get_image_src(item) + "'' + img_size + disp + ' /> ";
+							}	
+						}
+						
+						msg += "</div>";
+					}
+
 					$(this).dialog("close");
 
 					proboards.dialog("monetaryshop-thanks-dialog", {
 						modal: true,
-						height: 200,
+						height: height,
 						width: 460,
 						title: "Thank You",
 						html: msg,
@@ -1515,7 +1583,7 @@ pixeldepth.monetary.shop = (function(){
 				var confirm = proboards.dialog("monetaryshop-buy-dialog", {
 					modal: true,
 					height: 380,
-					width: 650,
+					width: 680,
 					title: title,
 					html: msg,
 					resizable: false,
@@ -1539,6 +1607,46 @@ pixeldepth.monetary.shop = (function(){
 			}
 		},
 
+		check_and_give_random_items: function(grouped_items){
+			var random_items = [];
+
+			for(var key in grouped_items){
+				var item = this.lookup[key];
+				
+				if(item.item_ids || (item.maximum_price && item.minimum_price)){
+					if(key.match(/^___\d+___$/)){						
+						var total = grouped_items[key].quantity;
+						var id_pool = this.random_id_pool[key];
+						
+						while(total --){
+							var rand = Math.floor(Math.random() * id_pool.length);
+							var random_id = id_pool[rand];
+							
+							if(random_id && this.lookup[random_id]){
+								random_items.push(this.lookup[random_id]);
+								
+								if(!grouped_items[random_id]){
+									grouped_items[random_id] = {
+										
+										quantity: 1
+										
+									};
+								} else {
+									grouped_items[random_id].quantity ++;
+								}
+								
+								grouped_items[random_id].temp_price = item.item_price;
+							}	
+						}
+						
+						delete grouped_items[key];
+					}
+				} 
+			}
+			
+			return [grouped_items, random_items];				
+		},
+		
 		show_in_mini_profile: function(){
 			var minis = $("div.mini-profile");
 

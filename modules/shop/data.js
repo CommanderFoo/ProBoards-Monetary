@@ -140,8 +140,7 @@ pixeldepth.monetary.shop.Data = (function(){
 				self.data.i[id] = {
 					
 					p: price,
-					q: qty,
-					t: (+ new Date())
+					q: qty
 					
 				};
 				
@@ -156,7 +155,6 @@ pixeldepth.monetary.shop.Data = (function(){
 				if(item && item.id){
 					if(self.data.i[item.id]){
 						self.data.i[item.id].q = parseInt(self.data.i[item.id].q) + parseInt(item.quantity);
-						self.data.i[item.id].t = item.time;
 
 						// Use lowest price and update when buying additional
 
@@ -167,8 +165,7 @@ pixeldepth.monetary.shop.Data = (function(){
 						self.data.i[item.id] = {
 
 							q: item.quantity,
-							p: self.fixed(item.price),
-							t: item.time
+							p: self.fixed(item.price)
 
 						};
 					}
@@ -363,8 +360,7 @@ pixeldepth.monetary.shop.Data = (function(){
 										receiver_data.i[item_id] = {
 										
 											q: send_items[item_id].q,
-											p: ~~ shop_item.item_price,
-											t: (+ new Date())
+											p: ~~ shop_item.item_price
 											
 										};
 									}
@@ -384,8 +380,7 @@ pixeldepth.monetary.shop.Data = (function(){
 									self.data.i[item_id] = {
 									
 										q: receive_items[item_id].q,
-										p: ~~ shop_item.item_price,
-										t: (+ new Date())
+										p: ~~ shop_item.item_price
 										
 									};
 								}
@@ -403,8 +398,7 @@ pixeldepth.monetary.shop.Data = (function(){
 								self.data.i[item_id] = {
 								
 									q: receive_items[item_id].q,
-									p: ~~ shop_item.item_price,
-									t: (+ new Date())
+									p: ~~ shop_item.item_price
 									
 								};
 							}

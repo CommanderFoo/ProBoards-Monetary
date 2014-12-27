@@ -254,8 +254,7 @@ pixeldepth.monetary.shop.gift = (function(){
 
 					id: gift.item_id,
 					quantity: gift.quantity,
-					price: item.item_price,
-					time: (+ new Date())
+					price: item.item_price
 
 				});
 

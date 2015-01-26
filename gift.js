@@ -88,8 +88,8 @@ money.gift = (function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
 
-				this.settings.enabled = (settings.free_money_enabled && settings.free_money_enabled == "0")? false : this.settings.enabled;
-				this.settings.paid_into = (settings.free_money_paid_into && settings.free_money_paid_into == "1")? 1 : this.settings.paid_into;
+				this.settings.enabled = (!! ~~ settings.free_money_enabled)? true : false;
+				this.settings.paid_into = (!! ~~ settings.free_money_paid_into)? 1 : 0;
 				this.settings.codes = (settings.free_money_codes && settings.free_money_codes.length)? settings.free_money_codes : [];
 
 				if(!money.bank.settings.enabled){

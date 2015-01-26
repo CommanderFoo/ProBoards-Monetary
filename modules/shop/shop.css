@@ -22,6 +22,18 @@ div#monetaryshop-buy-dialog table.list tr td, .container_monetaryshop table.list
 
 }
 
+div#monetaryshop-buy-dialog table.list th {
+
+	text-align: left;	
+	
+}
+
+div#monetaryshop-buy-dialog table.list tr th:nth-child(n+3) {
+
+	width: 110px;
+
+}
+
 span.shop_item {
 
 	position: absolute;

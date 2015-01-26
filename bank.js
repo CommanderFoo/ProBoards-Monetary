@@ -296,7 +296,7 @@ money.bank = (function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
 
-				this.settings.enabled = (settings.bank_enabled == "0")? false : this.settings.enabled;
+				this.settings.enabled = (!! ~~ settings.bank_enabled)? true : false;
 				this.settings.interest = (settings.interest_rate.toString().length)? settings.interest_rate : "1.00";
 				this.settings.minimum_deposit = money.format(settings.minimum_deposit);
 				this.settings.minimum_withdraw = money.format(settings.minimum_withdraw);
@@ -345,9 +345,9 @@ money.bank = (function(){
 				this.settings.text.types.STAFFWAGES = (settings.type_staff_wages_text && settings.type_staff_wages_text.length)? settings.type_staff_wages_text : this.settings.text.types.STAFFWAGES;
 				this.settings.text.types.GIFTMONEY = (settings.type_gift_money_text && settings.type_gift_money_text.length)? settings.type_gift_money_text : this.settings.text.types.GIFTMONEY;
 
-				this.settings.show_bank_mini_profile = (settings.bank_mini_profile == "1")? true : this.settings.show_bank_mini_profile;
-				this.settings.show_bank_profile = (settings.bank_profile == "0")? false : this.settings.show_bank_profile;
-				this.settings.show_bank_staff_only = (settings.bank_view_staff_only == "0")? false : this.settings.show_bank_staff_only;
+				this.settings.show_bank_mini_profile = (!! ~~ settings.bank_mini_profile)? true : false;
+				this.settings.show_bank_profile = (!! ~~ settings.bank_profile)? true : false;
+				this.settings.show_bank_staff_only = (!! ~~ settings.bank_view_staff_only)? true : false;
 			}
 		},
 

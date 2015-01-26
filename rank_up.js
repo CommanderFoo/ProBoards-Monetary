@@ -36,9 +36,9 @@ money.rank_up = (function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
 
-				this.settings.enabled = (settings.rank_up_enabled && settings.rank_up_enabled == "0")? false : this.settings.enabled;
+				this.settings.enabled = (!! ~~ settings.rank_up_enabled)? true : false;
 				this.settings.amount = (settings.rank_up_how_much && parseInt(settings.rank_up_how_much) > 0)? parseInt(settings.rank_up_how_much) : this.settings.amount;
-				this.settings.paid_into = (settings.rank_up_paid_into && settings.rank_up_paid_into == "1")? 1 : this.settings.paid_into;
+				this.settings.paid_into = (!! ~~ settings.rank_up_paid_into)? 1 : 0;
 
 				if(!money.bank.settings.enabled){
 					this.settings.paid_into = 1;

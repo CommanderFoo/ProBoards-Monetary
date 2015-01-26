@@ -66,11 +66,11 @@ money.wages = (function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
 
-				this.settings.enabled = (settings.wages_enabled && settings.wages_enabled == "0")? false : this.settings.enabled;
+				this.settings.enabled = (!! ~~ settings.wages_enabled)? true : false;
 				this.settings.how_often = (settings.wages_how_often && parseInt(settings.wages_how_often) > 0)? parseInt(settings.wages_how_often) : this.settings.how_often;
-				this.settings.bonuses_enabled = (settings.wages_enable_bonuses && settings.wages_enable_bonuses == "0")? false : this.settings.bonuses_enabled;
+				this.settings.bonuses_enabled = (!! ~~ settings.wages_enable_bonuses)? true : false;
 				this.settings.bonus_amount = (settings.wages_bonus_amount && parseInt(settings.wages_bonus_amount) > 0)? parseInt(settings.wages_bonus_amount) : this.settings.bonus_amount;
-				this.settings.paid_into = (settings.wages_paid_into && settings.wages_paid_into == "1")? 1 : this.settings.paid_into;
+				this.settings.paid_into = (!! ~~ settings.wages_paid_into)? 1 : 0;
 				this.settings.rules = (settings.wage_rules && settings.wage_rules.length)? settings.wage_rules : [];
 				this.settings.staff_rules = (settings.staff_wage_rules && settings.staff_wage_rules.length)? settings.staff_wage_rules : [];
 

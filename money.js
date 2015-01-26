@@ -883,23 +883,23 @@ var money = {
 
 			var settings = this.plugin.settings;
 
-			this.settings.show_in_mini_profile = (settings.show_in_mini_profile == "0")? false : this.settings.show_in_mini_profile;
-			this.settings.show_money_text_mini = (settings.show_money_text_mini == "0")? false : this.settings.show_money_text_mini;
-			this.settings.show_money_symbol_mini = (settings.show_money_symbol_mini == "0")? false : this.settings.show_money_symbol_mini;
+			this.settings.show_in_mini_profile = (!! ~~ settings.show_in_mini_profile)? true : false;
+			this.settings.show_money_text_mini = (!! ~~ settings.show_money_text_mini)? true : false;
+			this.settings.show_money_symbol_mini = (!! ~~ settings.show_money_symbol_mini)? true : false;
 
-			this.settings.show_in_profile = (settings.show_in_profile == "0")? false : this.settings.show_in_profile;
-			this.settings.show_money_text_profile = (settings.show_money_text_profile == "0")? false : this.settings.show_money_text_profile;
-			this.settings.show_money_symbol_profile = (settings.show_money_symbol_profile == "0")? false : this.settings.show_money_symbol_profile;
+			this.settings.show_in_profile = (!! ~~ settings.show_in_profile)? true : false;
+			this.settings.show_money_text_profile = (!! ~~ settings.show_money_text_profile)? true : false;
+			this.settings.show_money_symbol_profile = (!! ~~ settings.show_money_symbol_profile)? true : false;
 
-			this.settings.show_in_members_list = (settings.show_in_members_list == "0")? false : this.settings.show_in_members_list;
-			this.settings.show_money_symbol_members = (settings.show_money_symbol_members == "0")? false : this.settings.show_money_symbol_members;
-			this.settings.show_bank_balance_members = (settings.show_bank_balance_members == "1")? true : this.settings.show_bank_balance_members;
+			this.settings.show_in_members_list = (!! ~~ settings.show_in_members_list)? true : false;
+			this.settings.show_money_symbol_members = (!! ~~ settings.show_money_symbol_members)? true : false;
+			this.settings.show_bank_balance_members = (!! ~~ settings.show_bank_balance_members)? true : false;
 
 			this.settings.text.money_column = (settings.member_list_text && settings.member_list_text.length)? settings.member_list_text : ((settings.money_text && settings.money_text.length)? settings.money_text : this.settings.text.money_column);
 			this.settings.text.bank_column = (settings.bank_column_text && settings.bank_column_text.length)? settings.bank_column_text : this.settings.text.bank_column;
 
-			this.settings.staff_edit_money = (settings.staff_edit_money == "0")? false : this.settings.staff_edit_money;
-			this.settings.show_edit_money_image = (settings.show_edit_money_image == "0")? false : this.settings.show_edit_money_image;
+			this.settings.staff_edit_money = (!! ~~ settings.staff_edit_money)? true : false;
+			this.settings.show_edit_money_image = (!! ~~ settings.show_edit_money_image)? true : false;
 
 			if(settings.edit_money_image && settings.edit_money_image.length){
 				this.images.edit_money = settings.edit_money_image;
@@ -909,22 +909,22 @@ var money = {
 				this.settings.who_can_edit_money = settings.who_can_edit_money;
 			}
 
-			this.settings.check_for_update = (settings.check_for_update && settings.check_for_update == "0")? false : true;
+			this.settings.check_for_update = (!! ~~ settings.check_for_update)? true : false;
 			this.settings.check_how_often = (settings.check_how_often && settings.check_how_often.length)? settings.check_how_often : 2;
 
-			this.bank.settings.enabled = (settings.bank_enabled == "0")? false : this.bank.settings.enabled;
+			this.bank.settings.enabled = (!! ~~ settings.bank_enabled)? true : false;
 
 			this.settings.money_text = settings.money_text;
 			this.settings.money_symbol = settings.money_symbol;
 			this.settings.money_separator = (settings.separator && settings.separator.length)? settings.separator : this.settings.money_separator;
 
-			this.settings.money_separator += (settings.separator_space && settings.separator_space == "0")? "" : " ";
+			this.settings.money_separator += (!! ~~ settings.separator_space)? " " : "";
 
 			if(settings.money_symbol_image && settings.money_symbol_image.length){
 				this.settings.money_symbol = "<img class='money-sym-img' src='" + settings.money_symbol_image + "' />";
 			}
 
-			this.settings.decimal_money = (settings.decimal_money == "0")? false : this.settings.decimal_money;
+			this.settings.decimal_money = (!! ~~ settings.decimal_money)? true : false;
 
 			this.settings.posting.earn_from_quick_reply = (parseInt(settings.earn_from_quick_reply) || this.settings.posting.earn_from_quick_reply);
 
@@ -975,11 +975,11 @@ var money = {
 
 			this.settings.text.wallet = (settings.wallet_text && settings.wallet_text.length)? settings.wallet_text : this.settings.text.wallet;
 
-			this.settings.notification.show = (settings.n_show_notification && settings.n_show_notification == "1")? true : false;
+			this.settings.notification.show = (!! ~~ settings.n_show_notification)? true : false;
 			this.settings.notification.title = (settings.n_notification_title && settings.n_notification_title.length)? settings.n_notification_title : this.settings.notification.title;
 			this.settings.notification.msg = (settings.n_notification_msg && settings.n_notification_msg.length)? settings.n_notification_msg : this.settings.notification.msg;
-			this.settings.notification.show_edited = (settings.n_show_edited_by && settings.n_show_edited_by == "0")? false : true;
-			this.settings.notification.show_date = (settings.n_show_date && settings.n_show_date == "0")? false : true;
+			this.settings.notification.show_edited = (!! ~~ settings.n_show_edited_by)? true : false;
+			this.settings.notification.show_date = (!! ~~ settings.n_show_date)? true : false;
 		}
 	},
 
@@ -1241,12 +1241,12 @@ var money = {
 		var table = $("div.content.cap-bottom table.list");
 
 		if(table.find("th.pd_money_th").length == 0){
-			$("<th class=\"pd_money_th\" style=\"width: 12%\">" + this.settings.text.money_column + "</th>").insertAfter(table.find("tr.head th.posts"));
+			$("<th class=\"pd_money_th sortable\" style=\"width: 12%\">" + this.settings.text.money_column + "</th>").insertAfter(table.find("tr.head th.posts"));
 		}
 
 		if(this.bank.settings.enabled && this.settings.show_bank_balance_members && yootil.user.is_staff()){
 			if(table.find("th.pd_money_bank_th").length == 0){
-				$("<th class=\"pd_money_bank_th\" style=\"width: 12%\">" + this.settings.text.bank_column + "</th>").insertAfter(table.find("tr.head th.pd_money_th"));
+				$("<th class=\"pd_money_bank_th sortable\" style=\"width: 12%\">" + this.settings.text.bank_column + "</th>").insertAfter(table.find("tr.head th.pd_money_th"));
 			}
 		}
 

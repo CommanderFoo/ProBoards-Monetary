@@ -48,7 +48,7 @@ pixeldepth.monetary.shop.gift = (function(){
 			this.images = plugin.images;
 
 			this.settings.text.gift = (settings.txt_gift && settings.txt_gift.length)? settings.txt_gift : this.settings.text.gift;
-			this.settings.gifts_enabled = (settings.gifts_enabled && settings.gifts_enabled == "0")? false : this.settings.gifts_enabled;
+			this.settings.gifts_enabled = (!! ~~ settings.gifts_enabled)? true : false;
 			this.settings.gift_codes = (settings.gift_codes && settings.gift_codes.length)? settings.gift_codes : [];
 
 			for(var c = 0, l = this.settings.gift_codes.length; c < l; c ++){

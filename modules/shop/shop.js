@@ -30,6 +30,8 @@ pixeldepth.monetary.shop = (function(){
 			mini_image_height: 0,
 			mini_image_percent: 0,
 			mini_limit_shown: 0,
+			
+			show_quantity_drop_down: false,
 
 			text: {
 
@@ -175,14 +177,14 @@ pixeldepth.monetary.shop = (function(){
 				this.images = this.plugin.images;
 
 				if(this.plugin && this.plugin.settings){
-					this.settings.enabled = (settings.shop_enabled && settings.shop_enabled == "0")? false : this.settings.enabled;
-					this.settings.icon_enabled = (settings.shop_icon_enabled && settings.shop_icon_enabled == "0")? false : this.settings.icon_enabled;
+					this.settings.enabled = (!! ~~ settings.shop_enabled)? true : false;
+					this.settings.icon_enabled = (!! ~~ settings.shop_icon_enabled)? true : false;
 					this.items = (settings.shop_items && settings.shop_items.length)? settings.shop_items : this.items;
 					this.settings.base_image = (settings.item_image_base && settings.item_image_base.length)? settings.item_image_base : this.settings.base_image;
 					this.settings.refund_percent = (settings.refund_percent && settings.refund_percent.length)? settings.refund_percent : this.settings.refund_amount;
-					this.settings.show_total_bought = (settings.show_total_bought && settings.show_total_bought == "0")? false : this.settings.show_total_bought;
-					this.settings.items_private = (settings.items_private && settings.items_private == "1")? true : this.settings.items_private;
-					this.settings.allow_removing = (settings.allow_removing && settings.allow_removing == "1")? true : this.settings.allow_removing;
+					this.settings.show_total_bought = (!! ~~ settings.show_total_bought)? true : false;
+					this.settings.items_private = (!! ~~ settings.items_private)? true : false;
+					this.settings.allow_removing = (!! ~~ settings.allow_removing)? true : false;
 					this.settings.no_members = settings.no_members || [];
 					this.settings.no_groups = settings.no_groups || [];
 
@@ -208,7 +210,7 @@ pixeldepth.monetary.shop = (function(){
 					this.settings.text.paid = (settings.txt_paid && settings.txt_paid.length)? settings.txt_paid : this.settings.text.paid;
 					this.settings.text.refund = (settings.txt_refund && settings.txt_refund.length)? settings.txt_refund : this.settings.text.refund;
 
-					this.settings.welcome_message_enabled = (settings.show_message && settings.show_message == "1")? true : this.settings.welcome_message_enabled;
+					this.settings.welcome_message_enabled = (!! ~~ settings.show_message)? true : false;
 					this.settings.welcome_message_title = (settings.welcome_title && settings.welcome_title.length)? settings.welcome_title : this.settings.welcome_message_title;
 					this.settings.welcome_message_message = (settings.welcome_message && settings.welcome_message.length)? settings.welcome_message : this.settings.welcome_message_message;
 
@@ -216,11 +218,13 @@ pixeldepth.monetary.shop = (function(){
 					this.settings.image_height = (settings.item_img_height && settings.item_img_height.length)? settings.item_img_height : 0;
 					this.settings.image_percent = (settings.img_size_percent && settings.img_size_percent.length)? settings.img_size_percent : 0;
 
-					this.settings.show_in_mini_profile = (settings.show_in_mini_profile == "0")? false : this.settings.show_in_mini_profile;
+					this.settings.show_in_mini_profile = (!! ~~ settings.show_in_mini_profile)? true : false;
 					this.settings.mini_image_width = (settings.mini_img_width && settings.mini_img_width.length)? settings.mini_img_width : 0;
 					this.settings.mini_image_height = (settings.mini_img_height && settings.mini_img_height.length)? settings.mini_img_height : 0;
 					this.settings.mini_image_percent = (settings.mini_img_percent && settings.mini_img_percent.length)? settings.mini_img_percent : 0;
-					this.settings.mini_limit_shown = (settings.limit_shown && settings.limit_shown.length)? settings.limit_shown : 0;
+					this.settings.mini_limit_shown = (!! ~~ settings.limit_shown)? (~~ settings.limit_shown) : 0;
+
+					this.settings.show_quantity_drop_down = (!! ~~ settings.show_quantity_select)? true : false;
 
 					var categories = settings.categories;
 
@@ -846,8 +850,10 @@ pixeldepth.monetary.shop = (function(){
 			var quantity_options = "";
 			var q_counter = 0;
 			
-			while(q_counter < 100){
-				quantity_options += "<option value='" + (++ q_counter) + "'>" + q_counter + "</option>";	
+			if(this.settings.show_quantity_drop_down){
+				while(q_counter < 100){
+					quantity_options += "<option value='" + (++ q_counter) + "'>" + q_counter + "</option>";	
+				}
 			}
 			
 			for(var key in this.category_items){
@@ -897,9 +903,13 @@ pixeldepth.monetary.shop = (function(){
 					}
 
 					html += '<td style="text-align: center;">';
-					html += '<select class="monetary-shop-cart-quantity" name="quantity" data-item-id="' + this.category_items[key][i].item_id + '">';
-					html += quantity_options;
-					html += "</select><br />";
+					
+					if(this.settings.show_quantity_drop_down){
+						html += '<select class="monetary-shop-cart-quantity" name="quantity" data-item-id="' + this.category_items[key][i].item_id + '">';
+						html += quantity_options;
+						html += "</select><br />";
+					}
+					
 					html += '<button' + disabled_button + ' class="add_to_cart" data-item-id="' + this.category_items[key][i].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
 
 					counter ++;
@@ -948,8 +958,12 @@ pixeldepth.monetary.shop = (function(){
 			container.find("div[id*=item_category_] button[data-item-id]").click(function(){
 				var id = $(this).attr("data-item-id");
 				var current_qty = self.data(yootil.user.id()).get.quantity(id);
-				var wanted_quantity = ~~ $("select.monetary-shop-cart-quantity[data-item-id=" + id + "]").val();
+				var wanted_quantity = 1;
 				var item_max_quantity = ~~ self.lookup[id].item_max_quantity;
+				
+				if(self.settings.show_quantity_drop_down){
+					wanted_quantity = ~~ $("select.monetary-shop-cart-quantity[data-item-id=" + id + "]").val();
+				}
 				
 				if(item_max_quantity == 0 || current_qty < item_max_quantity){
 					if(item_max_quantity != 0 && wanted_quantity >= item_max_quantity){
@@ -1583,7 +1597,7 @@ pixeldepth.monetary.shop = (function(){
 				var confirm = proboards.dialog("monetaryshop-buy-dialog", {
 					modal: true,
 					height: 380,
-					width: 680,
+					width: 700,
 					title: title,
 					html: msg,
 					resizable: false,

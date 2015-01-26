@@ -309,8 +309,8 @@ money.donation = (function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
 
-				this.settings.enabled = (settings.donations_enabled == "0")? false : this.settings.enabled;
-				this.settings.show_profile_button = (settings.show_profile_button == "0")? false : this.settings.show_profile_button;
+				this.settings.enabled = (!! ~~ settings.donations_enabled)? true : false;
+				this.settings.show_profile_button = (!! ~~ settings.show_profile_button)? true : false;
 				this.settings.minimum_donation = parseFloat(settings.minimum_donation);
 				this.settings.maximum_donation = parseFloat(settings.maximum_donation);
 
@@ -329,10 +329,10 @@ money.donation = (function(){
 					this.settings.text.donations += "s";
 				}
 
-				this.settings.show_total_sent_mini_profile = (settings.donations_sent_mp == "1")? true : this.settings.show_total_sent_mini_profile;
-				this.settings.show_total_received_mini_profile = (settings.donations_received_mp == "1")? true : this.settings.show_total_received_mini_profile;
-				this.settings.show_total_sent_profile = (settings.donations_sent_profile == "1")? true : this.settings.show_total_sent_profile;
-				this.settings.show_total_received_profile = (settings.donations_received_profile == "1")? true : this.settings.show_total_received_profile;
+				this.settings.show_total_sent_mini_profile = (!! ~~ settings.donations_sent_mp)? true : false;
+				this.settings.show_total_received_mini_profile = (!! ~~ settings.donations_received_mp)? true : false;
+				this.settings.show_total_sent_profile = (!! ~~ settings.donations_sent_profile)? true : false;
+				this.settings.show_total_received_profile = (!! ~~ settings.donations_received_profile)? true : false;
 
 				this.settings.excluded = (settings.exc_don_grps && settings.exc_don_grps.length)? settings.exc_don_grps : this.settings.excluded;
 			}

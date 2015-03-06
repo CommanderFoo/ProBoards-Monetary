@@ -185,6 +185,26 @@ money.Data = (function(){
 				if(JSON.stringify(this.data).length > proboards.data("plugin_max_key_length")){
 					this.error = "Data length has gone over it's limit of " + proboards.data("plugin_max_key_length");
 
+					proboards.dialog("data_limit", {
+
+						title: "Key Data Limit Reached",
+						modal: true,
+						height: 200,
+						width: 350,
+						resizable: false,
+						draggable: false,
+						html: "Unfortunately we can not save anymore data in the key.<br /><br />Plugin: Monetary System",
+
+						buttons: {
+
+							Close: function () {
+								$(this).dialog("close");
+							}
+
+						}
+
+					});
+
 					return;
 				}
 
@@ -443,7 +463,7 @@ money.Data = (function(){
 			*/
 
 			money: function(amount, skip_update, opts, sync){
-				self.data.m -= parseFloat(amount);
+				self.data.m = parseFloat(self.data.m) - parseFloat(amount);
 				self.data.m = self.fixed(self.data.m);
 				self.update(skip_update, opts, sync);
 			},
@@ -463,7 +483,7 @@ money.Data = (function(){
 			*/
 
 			bank: function(amount, skip_update, opts, sync){
-				self.data.b -= parseFloat(amount);
+				self.data.b = parseFloat(self.data.b) - parseFloat(amount);
 				self.data.b = self.fixed(self.data.b);
 				self.update(skip_update, opts, sync);
 			},
@@ -480,7 +500,7 @@ money.Data = (function(){
 			*/
 
 			donations_sent: function(amount, skip_update, opts, sync){
-				self.data.ds -= parseFloat(amount);
+				self.data.ds = parseFloat(self.data.ds) - parseFloat(amount);
 				self.data.ds = self.fixed(self.data.ds);
 				self.data.ds = (self.data.ds < 0)? 0 : self.data.ds;
 				self.update(skip_update, opts, sync);
@@ -498,7 +518,7 @@ money.Data = (function(){
 			*/
 
 			donations_received: function(amount, skip_update, opts, sync){
-				self.data.dr -= parseFloat(amount);
+				self.data.dr = parseFloat(self.data.dr) - parseFloat(amount);
 				self.data.dr = self.fixed(self.data.dr);
 				self.data.dr = (self.data.dr < 0)? 0 : self.data.dr;
 				self.update(skip_update, opts, sync);
@@ -523,7 +543,7 @@ money.Data = (function(){
 			*/
 
 			money: function(amount, skip_update, opts, sync){
-				self.data.m += parseFloat(amount);
+				self.data.m = parseFloat(self.data.m) + parseFloat(amount);
 				self.data.m = self.fixed(self.data.m);
 				self.update(skip_update, opts, sync);
 			},
@@ -543,7 +563,7 @@ money.Data = (function(){
 			*/
 
 			bank: function(amount, skip_update, opts, sync){
-				self.data.b += parseFloat(amount);
+				self.data.b = parseFloat(self.data.b) + parseFloat(amount);
 				self.data.b = self.fixed(self.data.b);
 				self.update(skip_update, opts, sync);
 			},
@@ -560,7 +580,7 @@ money.Data = (function(){
 			*/
 
 			donations_sent: function(amount, skip_update, opts, sync){
-				self.data.ds += parseFloat(amount);
+				self.data.ds = parseFloat(self.data.ds) + parseFloat(amount);
 				self.data.ds = self.fixed(self.data.ds);
 				self.update(skip_update, opts, sync);
 			},
@@ -577,7 +597,7 @@ money.Data = (function(){
 			*/
 
 			donations_received: function(amount, skip_update, opts, sync){
-				self.data.dr += parseFloat(amount);
+				self.data.dr = parseFloat(self.data.dr) + parseFloat(amount);
 				self.data.dr = self.fixed(self.data.dr);
 				self.update(skip_update, opts, sync);
 			}

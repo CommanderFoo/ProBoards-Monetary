@@ -519,6 +519,8 @@ money.bank = (function(){
 				}
 			}
 
+			total_balance = (Math.floor(100 * total_balance) / 100);
+
 			current_transactions.unshift([type, in_amount, out_amount, now, total_balance]);
 
 			this.add_new_transaction_row(type, in_amount, out_amount, now, total_balance);

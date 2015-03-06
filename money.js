@@ -847,11 +847,11 @@ var money = {
 		}
 
 		if(this.is_poll){
-			money_to_add += this.format(this.settings.posting.amounts.per_poll);
+			money_to_add += parseFloat(this.format(this.settings.posting.amounts.per_poll));
 		}
 
 		if(this.is_new_thread){
-			money_to_add += this.format(this.settings.posting.amounts.per_thread);
+			money_to_add += parseFloat(this.format(this.settings.posting.amounts.per_thread));
 		}
 
 		if(!this.processed){

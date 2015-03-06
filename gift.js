@@ -60,7 +60,7 @@ money.gift = (function(){
 
 				this.add_to_yootil_bar();
 
-				if(location.href.match(/\?monetarygift=(.+?)$/i)){
+				if(location.href.match(/\?monetarygift=(.+?)?$/i)){
 					var unsafe_code = decodeURIComponent(RegExp.$1);
 
 					yootil.create.nav_branch(yootil.html_encode(location.href), "Gift Money");

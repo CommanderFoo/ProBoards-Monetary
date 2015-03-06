@@ -242,7 +242,7 @@ pixeldepth.monetary.shop = (function(){
 					}
 					
 					// Support for extra items
-					// Current we support 1 extra plugin, but it does allow for more
+					// Current we support 3 extra plugins, but it does allow for more
 					
 					var extra_items_plugin_1 = proboards.plugin.get("monetary_shop_extra_items_1");
 					
@@ -251,6 +251,26 @@ pixeldepth.monetary.shop = (function(){
 						
 						if(extra_1_settings.shop_items && extra_1_settings.shop_items.length){
 							this.items = this.items.concat(extra_1_settings.shop_items);
+						}
+					}
+
+					var extra_items_plugin_2 = proboards.plugin.get("monetary_shop_extra_items_2");
+
+					if(extra_items_plugin_2 && extra_items_plugin_2.settings){
+						var extra_2_settings = extra_items_plugin_2.settings;
+
+						if(extra_2_settings.shop_items && extra_2_settings.shop_items.length){
+							this.items = this.items.concat(extra_2_settings.shop_items);
+						}
+					}
+
+					var extra_items_plugin_3 = proboards.plugin.get("monetary_shop_extra_items_3");
+
+					if(extra_items_plugin_3 && extra_items_plugin_3.settings){
+						var extra_3_settings = extra_items_plugin_3.settings;
+
+						if(extra_3_settings.shop_items && extra_3_settings.shop_items.length){
+							this.items = this.items.concat(extra_3_settings.shop_items);
 						}
 					}
 					
@@ -524,8 +544,52 @@ pixeldepth.monetary.shop = (function(){
 				}
 
 				this.bind_refundable_dialog();
+
+				/*if(yootil.user.id() == yootil.page.member.id()){
+					this.setup_reordering();
+				}*/
 			}
 		},
+
+		// Browsers reorder the elements if the keys look like numbers
+		// It's too later to be changing the type, and I don't really
+		// want to start storing indexes in the key to allow ordering.
+		// Disabled for now.
+
+		/*setup_reordering: function(){
+			var self = this;
+			var box = $(".monetary_shop_profile_box");
+
+			if(box.length){
+				box.sortable({
+
+					axis: "x",
+					cursor: "move",
+					items: " > div",
+					opacity: 0.5,
+					revert: true,
+					helper: "clone",
+					update: function(evt, ui){
+						var item_id = ui.item.attr("data-shop-item-id");
+						var items = self.data(yootil.user.id()).get.items();
+						var tmp_obj = {};
+
+						if(items[item_id]){
+							tmp_obj[item_id.toString()] = items[item_id];
+
+							for(var k in items){
+								if(k != item_id){
+									tmp_obj[k.toString()] = items[k];
+								}
+							}
+
+							console.log(tmp_obj);
+						}
+					}
+
+				});
+			}
+		},*/
 
 		update_item_count: function(item_id, quantity){
 			if(!this.settings.show_total_bought){
@@ -594,6 +658,8 @@ pixeldepth.monetary.shop = (function(){
 				}
 
 			};
+
+
 
 			if(shop_item.item_refundable == "1" && yootil.user.id() == owner){
 				var refund_buttons = {
@@ -952,8 +1018,6 @@ pixeldepth.monetary.shop = (function(){
 
 				return false;
 			});
-
-			// fix quantity
 			
 			container.find("div[id*=item_category_] button[data-item-id]").click(function(){
 				var id = $(this).attr("data-item-id");
@@ -977,8 +1041,7 @@ pixeldepth.monetary.shop = (function(){
 							wanted_quantity = 0;	
 						}
 					}
-					
-					console.log(wanted_quantity);
+
 					self.add_to_cart(this, id, wanted_quantity);
 				}
 			});
@@ -1120,6 +1183,15 @@ pixeldepth.monetary.shop = (function(){
 					var img_size = this.get_size_css();
 					var disp = (!img_size.length && parseInt(this.settings.image_percent) > 0)? " style='display: none;'" : "";
 
+					var quantity_options = "";
+					var q_counter = 0;
+
+					if(this.settings.show_quantity_drop_down){
+						while(q_counter < 100){
+							quantity_options += "<option value='" + (++ q_counter) + "'>" + q_counter + "</option>";
+						}
+					}
+
 					for(var r = 0; r < results.length; r ++){
 						klass = (counter == 0)? " first" : ((counter == (results.length - 1))? " last" : "");
 
@@ -1148,7 +1220,16 @@ pixeldepth.monetary.shop = (function(){
 						result_html += '<td>' + results[r].item_name + '</td>';
 						result_html += '<td>' + pb.text.nl2br(results[r].item_description) + '</td>';
 						result_html += '<td>' + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(price, true)) + '</td>';
-						result_html += '<td style="text-align: center;"><button' + disabled_button + ' class="add_to_cart" data-item-id="' + results[r].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
+
+						result_html += '<td style="text-align: center;">';
+
+						if(this.settings.show_quantity_drop_down){
+							result_html += '<select class="monetary-shop-cart-quantity monetary-shop-search-quantity" name="quantity" data-item-id="' + results[r].item_id + '">';
+							result_html += quantity_options;
+							result_html += "</select><br />";
+						}
+
+						result_html += '<button' + disabled_button + ' class="add_to_cart" data-item-id="' + results[r].item_id + '">' + this.settings.text.add_to_cart + '</button></td>';
 
 						counter ++;
 					}
@@ -1156,12 +1237,31 @@ pixeldepth.monetary.shop = (function(){
 					var result_items_table = $("div.container_monetaryshop table#search_results_items");
 
 					result_items_table.find("tbody").html(result_html);
+
 					result_items_table.find("button[data-item-id]").click(function(){
 						var id = $(this).attr("data-item-id");
 						var current_qty = self.data(yootil.user.id()).get.quantity(id);
+						var wanted_quantity = 1;
+						var item_max_quantity = ~~ self.lookup[id].item_max_quantity;
 
-						if(self.lookup[id].item_max_quantity == 0 || current_qty < self.lookup[id].item_max_quantity){
-							self.add_to_cart(this, id);
+						if(self.settings.show_quantity_drop_down){
+							wanted_quantity = ~~ $("select.monetary-shop-search-quantity[data-item-id=" + id + "]").val();
+						}
+
+						if(item_max_quantity == 0 || current_qty < item_max_quantity){
+							if(item_max_quantity != 0 && wanted_quantity >= item_max_quantity){
+								wanted_quantity = item_max_quantity;
+
+								if((wanted_quantity + current_qty) > item_max_quantity){
+									wanted_quantity = Math.abs(item_max_quantity - current_qty);
+								}
+
+								if(wanted_quantity > item_max_quantity){
+									wanted_quantity = 0;
+								}
+							}
+
+							self.add_to_cart(this, id, wanted_quantity);
 						}
 					});
 
@@ -1557,9 +1657,9 @@ pixeldepth.monetary.shop = (function(){
 					if(return_data[1] && return_data[1].length){
 						var random_items = return_data[1];
 						
-						height = 280;
+						height = 300;
 						
-						msg += "<br /><br /><strong>Your random items:</strong><div style='margin-top: 3px;'>";
+						msg += "<br /><br /><strong>Your random items:</strong><div style='margin-top: 10px; margin-left: 10px;'>";
 						
 						for(var index in random_items){
 							var item = self.lookup[random_items[index].item_id];

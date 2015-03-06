@@ -94,6 +94,12 @@ money.wages = (function(){
 
 				if(data.e){
 					data.e = parseInt(data.e);
+
+					// Fix expire bug, set correct day if it's invalid
+
+					if(data.e.toString().length < 6){
+						data.e = (+ new Date());
+					}
 				}
 
 				if(!data.w){
@@ -294,7 +300,7 @@ money.wages = (function(){
 				wage_bonus = 0;
 			}
 
-			this.total_earned_amount = (wage_amount + wage_bonus);
+			this.total_earned_amount = (parseFloat(wage_amount) + parseFloat(wage_bonus));
 
 			money.data(yootil.user.id()).set.wages(data, true);
 
@@ -340,7 +346,7 @@ money.wages = (function(){
 			var data = money.data(yootil.user.id()).get.wages();
 
 			if(!data.e || !data.e.toString().length || typeof parseInt(data.e) != "number" || reset){
-				data.e = new Date(todays_date.getFullYear(), todays_date.getMonth() + months, todays_date.getDate() + days);
+				data.e = new Date(todays_date.getFullYear(), todays_date.getMonth() + months, todays_date.getDate() + days).getTime();
 				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},

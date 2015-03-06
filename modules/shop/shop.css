@@ -66,6 +66,12 @@ div.shop_items_list {
 
 }
 
+.monetary_shop_profile_box .shop_items_list {
+
+	vertical-align:  middle;
+
+}
+
 div.monetary-shop-notice-icon {
 
 	float: left;
@@ -303,5 +309,5 @@ span.trader-not-requesting {
 select.monetary-shop-cart-quantity {
 
 	margin-bottom: 3px;
-	
+
 }

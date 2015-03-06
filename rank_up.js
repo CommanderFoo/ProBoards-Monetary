@@ -75,10 +75,10 @@ money.rank_up = (function(){
 				into_bank = true;
 			}
 
-			money.data(yootil.user.id()).increase[((into_bank)? "bank" : "money")](this.settings.amount, true);
+			money.data(yootil.user.id()).increase[((into_bank)? "bank" : "money")](parseFloat(this.settings.amount), true);
 
 			if(into_bank){
-				money.bank.create_transaction(6, this.settings.amount, 0, true);
+				money.bank.create_transaction(6, parseFloat(this.settings.amount), 0, true);
 			}
 		},
 

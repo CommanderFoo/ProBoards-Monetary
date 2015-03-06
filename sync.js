@@ -22,7 +22,7 @@ money.sync = (function(){
 				return;
 			}
 
-			yootil.storage.set("monetary_data_sync", money.data(yootil.user.id()).get.data(), true, true);
+			yootil.storage.set("monetary_data_sync_" + yootil.user.id(), money.data(yootil.user.id()).get.data(), true, true);
 
 			var self = this;
 
@@ -35,6 +35,7 @@ money.sync = (function(){
 
 		/**
 		* Method: register
+		* 	Registers this module with the money object.
 		* 	Registers this module with the money object.
 		*/
 
@@ -49,7 +50,7 @@ money.sync = (function(){
 		*/
 
 		handle_syncing: function(evt){
-			if(evt && evt.originalEvent && evt.originalEvent.key == "monetary_data_sync"){
+			if(evt && evt.originalEvent && evt.originalEvent.key == ("monetary_data_sync_" + yootil.user.id())){
 				var self = this;
 
 				// Again, IE causing us to add in extra steps.
@@ -188,7 +189,7 @@ money.sync = (function(){
 			}
 
 			money.trigger_caller = true;
-			yootil.storage.set("monetary_data_sync", money.data(yootil.user.id()).get.data(), true, true);
+			yootil.storage.set("monetary_data_sync_" + yootil.user.id(), money.data(yootil.user.id()).get.data(), true, true);
 		}
 
 	};

@@ -25,6 +25,28 @@ pixeldepth.monetary.shop.Data = (function(){
 		this.update = function(skip_update, options){
 			if(!skip_update){
 				if(JSON.stringify(this.data).length > proboards.data("plugin_max_key_length")){
+					this.error = "Data length has gone over it's limit of " + proboards.data("plugin_max_key_length");
+
+					proboards.dialog("data_limit", {
+
+						title: "Key Data Limit Reached",
+						modal: true,
+						height: 200,
+						width: 350,
+						resizable: false,
+						draggable: false,
+						html: "Unfortunately we can not save anymore data in the key.<br /><br />Plugin: Monetary Shop",
+
+						buttons: {
+
+							Close: function () {
+								$(this).dialog("close");
+							}
+
+						}
+
+					});
+
 					return;
 				}
 

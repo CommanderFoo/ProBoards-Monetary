@@ -215,7 +215,6 @@ var money = {
 
 		this.setup_user_data_table();
 		this.setup();
-		this.check_version();
 
 		if(yootil.user.logged_in()){
 			this.check_for_notifications();
@@ -398,111 +397,6 @@ var money = {
 		}
 
 		return true;
-	},
-
-	/**
-	* Method: check_version
-	* 	Checks the version of the plugin with the version on the pixelDepth.net server.  If there is a new
-	* 	version, it displays a message for the main admin only.  This can be turned off in the settings.
-	*/
-
-	check_version: function(){
-		if(this.settings.check_for_update && yootil.user.logged_in() && yootil.user.is_staff() && yootil.user.id() == 1){
-			var data = yootil.storage.get("monetary_last_check", true);
-			var first_data = false;
-			var self = this;
-
-			if(!data || !data.t){
-				first_data = true;
-
-				data = {
-					t: (+ new Date()),
-					v: this.VERSION
-				};
-			}
-
-			var DAY = (86400 * 1000);
-			var WEEK = (DAY * 7);
-			var WEEK_2 = (WEEK * 2);
-			var WEEK_3 = (WEEK * 3);
-			var MONTH = (WEEK_2 * 2);
-
-			var check_ts = 0;
-
-			switch(parseInt(this.settings.check_how_often)){
-
-				case 1 :
-				case 2 :
-				case 3 :
-				case 4 :
-				case 5 :
-				case 6 :
-				case 7 :
-					check_ts = (DAY * parseInt(this.settings.check_how_often));
-					break;
-
-				case 8 :
-					check_ts = WEEK_2;
-					break;
-
-				case 9 :
-					check_ts = WEEK_3;
-					break;
-
-				case 10 :
-					check_ts = MONTH;
-					break;
-
-			}
-
-			var now = (+ new Date());
-
-			if((data.t + check_ts) < now){
-				var self = this;
-
-				$.ajax({
-					url: "http://pixeldepth.net/proboards/plugins/monetary_system/updates/update_check.php?t=" + (+ new Date),
-					context: this,
-					crossDomain: true,
-					dataType: "json"
-				}).done(function(latest){
-					data.t = (+ new Date());
-
-					var versions = yootil.convert_versions(self.VERSION, latest.v);
-
-					if(versions[0] < versions[1]){
-						data.v = latest.v;
-					} else {
-						data.v = self.VERSION;
-					}
-
-					yootil.storage.set("monetary_last_check", data, true, true);
-				});
-			}
-
-			var versions = yootil.convert_versions(this.VERSION, data.v);
-
-			if(versions[0] < versions[1]){
-				var msg = "<div class='monetary-notification-content'>";
-
-				msg += "<p>There is a new <strong>Monetary System</strong> version available to install for this forum.</p>";
-				msg += "<p>This forum currently has version <strong>" + yootil.html_encode(this.VERSION) + "</strong> installed, the latest version available to install is <strong>" + data.v + "</strong>.</p>";
-
-				msg += "<p style='margin-top: 8px;'>For more information, please visit the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> forum topic on the <a href='http://support.proboards.com'>ProBoards forum</a>.</p>";
-				msg += "<p style='margin-top: 8px;'>This message can be disabled from the Monetary Systemy settings.</p>";
-				msg += "<p style='margin-top: 8px;'><a href='http://proboards.com/library/plugins/item/90'>ProBoards Plugin Library Link</a> | <a href='http://support.proboards.com/thread/429762/'>ProBoards Monetary System Forum Link</a></p>";
-
-				msg += "</div>";
-
-				var notification = yootil.create.container("Staff Notification: Monetary System Update Notice", msg).show().addClass("monetary-notification");
-
-				$("div#content").prepend(notification);
-			}
-
-			if(first_data){
-				yootil.storage.set("monetary_last_check", data, true, true);
-			}
-		}
 	},
 
 	/**

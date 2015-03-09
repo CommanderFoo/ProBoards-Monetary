@@ -29,6 +29,8 @@ money.donation = (function(){
 			show_total_sent_profile: false,
 			show_total_received_profile: false,
 
+			donation_image: null,
+
 			text: {
 
 				donation: "Donation",
@@ -75,7 +77,7 @@ money.donation = (function(){
 				var total_donations = self.get_total_donations();
 
 				if(/*total_donations &&*/ this.can_send_receive()){
-					yootil.bar.add("/user/" + yootil.user.id() + "?monetarydonation&view=2", money.images.donate, this.settings.text.donations, "pdmsdonate");
+					yootil.bar.add("/user/" + yootil.user.id() + "?monetarydonation&view=2", this.settings.donation_image, this.settings.text.donations, "pdmsdonate");
 
 					/*$("#yootil-bar").ready(function(){
 						var bar_link = $("#yootil-bar a[href*=monetarydonation\\&view\\=2]");
@@ -335,6 +337,8 @@ money.donation = (function(){
 				this.settings.show_total_received_profile = (!! ~~ settings.donations_received_profile)? true : false;
 
 				this.settings.excluded = (settings.exc_don_grps && settings.exc_don_grps.length)? settings.exc_don_grps : this.settings.excluded;
+
+				this.settings.donation_image = (settings.don_img && settings.don_img.length)? settings.don_img : money.images.donate;
 			}
 		},
 

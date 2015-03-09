@@ -55,7 +55,8 @@ pixeldepth.monetary.shop = (function(){
 				remove: "Remove",
 				quantity: "Quantity",
 				paid: "Paid",
-				refund: "Refund"
+				refund: "Refund",
+				accept: "Accept"
 
 			},
 
@@ -209,6 +210,7 @@ pixeldepth.monetary.shop = (function(){
 					this.settings.text.quantity = (settings.txt_quantity && settings.txt_quantity.length)? settings.txt_quantity : this.settings.text.quantity;
 					this.settings.text.paid = (settings.txt_paid && settings.txt_paid.length)? settings.txt_paid : this.settings.text.paid;
 					this.settings.text.refund = (settings.txt_refund && settings.txt_refund.length)? settings.txt_refund : this.settings.text.refund;
+					this.settings.text.accept = (settings.txt_accept && settings.txt_accept.length)? settings.txt_accept : this.settings.text.accept;
 
 					this.settings.welcome_message_enabled = (!! ~~ settings.show_message)? true : false;
 					this.settings.welcome_message_title = (settings.welcome_title && settings.welcome_title.length)? settings.welcome_title : this.settings.welcome_message_title;
@@ -659,8 +661,6 @@ pixeldepth.monetary.shop = (function(){
 
 			};
 
-
-
 			if(shop_item.item_refundable == "1" && yootil.user.id() == owner){
 				var refund_buttons = {
 
@@ -670,7 +670,7 @@ pixeldepth.monetary.shop = (function(){
 
 				};
 
-				refund_buttons["Accept " + self.settings.text.refund] = this.build_refund_dialog(item_id);
+				refund_buttons[self.settings.text.accept + " " + self.settings.text.refund] = this.build_refund_dialog(item_id);
 
 				info_buttons[self.settings.text.refund] = function(){
 					proboards.dialog("monetaryshop-item-refund-dialog", {
@@ -735,7 +735,7 @@ pixeldepth.monetary.shop = (function(){
 			var self = this;
 			var item_counter = 0;
 			var remove_msg = "<strong>" + self.settings.text.quantity + " to " + self.settings.text.remove.toLowerCase() + ":</strong> ";
-			var	bought_item = self.data(yootil.user.id()).get.item(item_id);
+			var	bought_item = self.data(yootil.page.member.id()).get.item(item_id);
 			var one_remove = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * 1;
 
 			remove_msg += "<select id='shop_item_remove_quantity'>";
@@ -756,14 +756,14 @@ pixeldepth.monetary.shop = (function(){
 
 			return function(){
 				var remove_quantity = parseInt($("#shop_item_remove_quantity option:selected").val());
-				var bought_item = self.data(yootil.user.id()).get.item(item_id);
+				var bought_item = self.data(yootil.page.member.id()).get.item(item_id);
 
 				if(remove_quantity <= bought_item.q){
 					var info_dialog = $("#monetaryshop-item-info-dialog");
 
-					self.data(yootil.user.id()).reduce.quantity(item_id, remove_quantity);
+					self.data(yootil.page.member.id()).reduce.quantity(item_id, remove_quantity);
 
-					bought_item = self.data(yootil.user.id()).get.item(item_id);
+					bought_item = self.data(yootil.page.member.id()).get.item(item_id);
 
 					if(!bought_item){
 						var item_elem = $(".shop_items_list[data-shop-item-id='" + self.safe_id(item_id) + "']");
@@ -1646,10 +1646,10 @@ pixeldepth.monetary.shop = (function(){
 					$("div.container_monetaryshop div#basket_no_items").show();
 					$("div.container_monetaryshop li#basket_items_tab a").html("Basket (0)");
 
-					var msg = "Your item was successfully purchased.<br /><br />You can view your " + self.settings.text.purchased + " " + self.settings.text.item + " from the profile page <a href='/user/" + yootil.user.id() + "/'>here</a>.";
+					var msg = "Your " + self.settings.text.item.toLowerCase() + " was successfully " + self.settings.text.purchased + ".<br /><br />You can view your " + self.settings.text.purchased + " " + self.settings.text.item + " from the profile page <a href='/user/" + yootil.user.id() + "/'>here</a>.";
 
 					if(total_items > 1){
-						msg = "Your " + self.settings.text.item + "s were successfully " + self.settings.text.purchased + ".<br /><br />You can view your " + self.settings.text.purchased + " " + self.settings.text.item + "s from the profile page <a href='/user/" + yootil.user.id() + "/'>here</a>.";
+						msg = "Your " + self.settings.text.item.toLowerCase() + "s were successfully " + self.settings.text.purchased + ".<br /><br />You can view your " + self.settings.text.purchased + " " + self.settings.text.item + "s from the profile page <a href='/user/" + yootil.user.id() + "/'>here</a>.";
 					}
 
 					var height = 200;
@@ -1659,7 +1659,7 @@ pixeldepth.monetary.shop = (function(){
 						
 						height = 300;
 						
-						msg += "<br /><br /><strong>Your random items:</strong><div style='margin-top: 10px; margin-left: 10px;'>";
+						msg += "<br /><br /><strong>Your random " + self.settings.text.item.toLowerCase() + "s:</strong><div style='margin-top: 10px; margin-left: 10px;'>";
 						
 						for(var index in random_items){
 							var item = self.lookup[random_items[index].item_id];

@@ -18,7 +18,8 @@ pixeldepth.monetary.shop.trade = (function(){
 				sending: "Sending",
 				receiving: "Receiving",
 				requesting: "Requesting",
-				item: "Item"	
+				item: "Item",
+				send: "Send"
 
 			}
 
@@ -85,7 +86,7 @@ pixeldepth.monetary.shop.trade = (function(){
 									}
 								} else {
 									title = "An Error Has Occurred";
-									proboards.alert("An Error Has Occurred", "The trade request could not be found.");									
+									proboards.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
 								}
 								
 								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=2&id=[\\d\\.]+"), title);
@@ -121,7 +122,7 @@ pixeldepth.monetary.shop.trade = (function(){
 									}
 								} else {
 									title = "An Error Has Occurred";
-									proboards.alert("An Error Has Occurred", "The trade request could not be found.");									
+									proboards.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
 								}
 								
 								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=3&id=[\\d\\.]+"), title);
@@ -155,6 +156,17 @@ pixeldepth.monetary.shop.trade = (function(){
 			var settings = plugin.settings;
 
 			this.images = plugin.images;
+
+			this.settings.text.trade = (settings.txt_trade && settings.txt_trade.length)? settings.txt_trade : this.settings.text.trade;
+			this.settings.text.gift = (settings.txt_gift && settings.txt_gift.length)? settings.txt_gift : this.settings.text.gift;
+			this.settings.text.request = (settings.txt_request && settings.txt_request.length)? settings.txt_request : this.settings.text.request;
+			this.settings.text.received = (settings.txt_received && settings.txt_received.length)? settings.txt_received : this.settings.text.received;
+			this.settings.text.sent = (settings.txt_sent && settings.txt_sent.length)? settings.txt_sent : this.settings.text.sent;
+			this.settings.text.sending = (settings.txt_sending && settings.txt_sending.length)? settings.txt_sending : this.settings.text.sending;
+			this.settings.text.receiving = (settings.txt_receiving && settings.txt_receiving.length)? settings.txt_receiving : this.settings.text.receiving;
+			this.settings.text.requesting = (settings.txt_requesting && settings.txt_requesting.length)? settings.txt_requesting : this.settings.text.requesting;
+			this.settings.text.item = (settings.txt_item && settings.txt_item.length)? settings.txt_item : this.settings.text.item;
+			this.settings.text.send = (settings.txt_send && settings.txt_send.length)? settings.txt_send : this.settings.text.send;
 		},
 
 		create_trade_button: function(){
@@ -340,7 +352,7 @@ pixeldepth.monetary.shop.trade = (function(){
 
 					{
 
-						text: "Send " + this.settings.text.gift + " / " + this.settings.text.trade,
+						text: this.settings.text.send + " " + this.settings.text.gift + " / " + this.settings.text.trade,
 						click: function(){
 							if(self.expired){
 								return false;

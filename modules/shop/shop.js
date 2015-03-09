@@ -1604,6 +1604,11 @@ pixeldepth.monetary.shop = (function(){
 					for(var key in grouped_items){
 						var item = self.lookup[key];
 
+						// This line breaks "secret" items
+						// Is there a reason we need this?
+						// If yes, then lookup in the pool to see
+						// if it is in a secret item.
+
 						if(item.item_show != 1){
 							continue;
 						}

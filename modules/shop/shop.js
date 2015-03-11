@@ -317,12 +317,24 @@ pixeldepth.monetary.shop = (function(){
 				var id_pool = [];
 				
 				if(items[i].item_ids.length){
-					id_pool = items[i].item_ids.replace(/\s+/g, "").split(",");/*.sort(function(a, b){
-						return a - b;
-					});*/
-				} else if(items[i].minimum_price && items[i].maximum_price && items[i].minimum_price.length && items[i].maximum_price.length){
+					var tmp_id_pool = items[i].item_ids.replace(/\s+/g, "").split(",");
+
+					// Loop through and make sure the item exists
+
+					for(var e = 0, el = tmp_id_pool.length; e < el; e ++){
+						if(this.lookup[tmp_id_pool[e]]){
+							id_pool.push(tmp_id_pool[e]);
+						}
+					}
+				}
+
+				if(items[i].minimum_price && items[i].maximum_price && items[i].minimum_price.length && items[i].maximum_price.length){
 					var min_price = parseFloat(items[i].minimum_price);
 					var max_price = parseFloat(items[i].maximum_price);
+
+					if(max_price < min_price){
+						max_price = min_price;
+					}
 					
 					for(var key in this.lookup){
 						if(parseFloat(this.lookup[key].item_price) >= min_price && parseFloat(this.lookup[key].item_price) <= max_price){
@@ -330,7 +342,17 @@ pixeldepth.monetary.shop = (function(){
 						}	
 					}
 				}
-				
+
+				if(items[i].use_cat_id && items[i].use_cat_id.length){
+					var the_items = this.category_items[items[i].use_cat_id];
+
+					if(the_items && the_items.length){
+						for(var ci = 0, cil = the_items.length; ci < cil; ci ++){
+							id_pool.push(the_items[ci].item_id);
+						}
+					}
+				}
+
 				if(id_pool.length){
 					this.random_id_pool["___" + i + "___"] = id_pool;
 				} else {
@@ -1597,7 +1619,7 @@ pixeldepth.monetary.shop = (function(){
 				var return_data = self.check_and_give_random_items(grouped_items);
 				
 				grouped_items = return_data[0];
-				
+
 				buttons[this.settings.text.purchase] = function(){
 					var total = 0;
 
@@ -1610,7 +1632,20 @@ pixeldepth.monetary.shop = (function(){
 						// if it is in a secret item.
 
 						if(item.item_show != 1){
-							continue;
+							if(return_data[2]){
+								var random_but_can_buy = false;
+
+								for(var the_pool_id in return_data[2]){
+									if($.inArrayLoose(key, self.random_id_pool[the_pool_id]) != -1){
+										random_but_can_buy = true;
+										break;
+									}
+								}
+							}
+
+							if(!random_but_can_buy) {
+								continue;
+							}
 						}
 
 						var price = (grouped_items[key].temp_price)? parseFloat(grouped_items[key].temp_price) : parseFloat(item.item_price);
@@ -1728,15 +1763,18 @@ pixeldepth.monetary.shop = (function(){
 
 		check_and_give_random_items: function(grouped_items){
 			var random_items = [];
+			var random_item_ids = {};
 
 			for(var key in grouped_items){
 				var item = this.lookup[key];
 				
-				if(item.item_ids || (item.maximum_price && item.minimum_price)){
+				if(item.item_ids || (item.maximum_price && item.minimum_price) || item.use_cat_id){
 					if(key.match(/^___\d+___$/)){						
 						var total = grouped_items[key].quantity;
 						var id_pool = this.random_id_pool[key];
-						
+
+						random_item_ids[key] = key;
+
 						while(total --){
 							var rand = Math.floor(Math.random() * id_pool.length);
 							var random_id = id_pool[rand];
@@ -1763,7 +1801,7 @@ pixeldepth.monetary.shop = (function(){
 				} 
 			}
 			
-			return [grouped_items, random_items];				
+			return [grouped_items, random_items, random_item_ids];
 		},
 		
 		show_in_mini_profile: function(){

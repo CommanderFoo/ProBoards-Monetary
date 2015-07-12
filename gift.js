@@ -208,7 +208,7 @@ money.gift = (function(){
 
 							yootil.bar.remove("gift_" + gift.code);
 						} else {
-							proboards.alert("An Error Occurred", "Could not collect gift.", {
+							pb.window.alert("An Error Occurred", "Could not collect gift.", {
 								modal: true,
 								resizable: false,
 								draggable: false

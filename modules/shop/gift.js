@@ -1,4 +1,4 @@
-pixeldepth.monetary.shop.gift = (function(){
+monetary.shop.gift = (function(){
 
 	return {
 
@@ -35,12 +35,12 @@ pixeldepth.monetary.shop.gift = (function(){
 		},
 
 		register: function(){
-			pixeldepth.monetary.shop.modules.push(this);
+			monetary.shop.modules.push(this);
 			return this;
 		},
 
 		setup: function(){
-			this.shop = pixeldepth.monetary.shop;
+			this.shop = monetary.shop;
 
 			var plugin = this.shop.plugin;
 			var settings = plugin.settings;
@@ -68,7 +68,7 @@ pixeldepth.monetary.shop.gift = (function(){
 
 		gift: function(){
 			if(!this.settings.gifts_enabled){
-				pixeldepth.monetary.show_default();
+				monetary.show_default();
 				return;
 			}
 
@@ -117,13 +117,13 @@ pixeldepth.monetary.shop.gift = (function(){
 
 							msg += "<p><strong>" + self.shop.settings.text.item + " " + self.shop.settings.text.name + ":</strong> " + shop_item.item_name + "</p>";
 							msg += "<p><strong>" + self.shop.settings.text.quantity + ":</strong> <span id='shop_item_quantity'>" + gift.quantity + "</span></p>";
-							msg += "<p><strong>" + self.shop.settings.text.item + " " + self.shop.settings.text.price + ":</strong> " + pixeldepth.monetary.settings.money_symbol + yootil.number_format(pixeldepth.monetary.format(shop_item.item_price, true)) + "</p>";
+							msg += "<p><strong>" + self.shop.settings.text.item + " " + self.shop.settings.text.price + ":</strong> " + monetary.settings.money_symbol + yootil.number_format(monetary.format(shop_item.item_price, true)) + "</p>";
 							msg += "<p class='item_info_desc'>" + pb.text.nl2br(shop_item.item_description) + "</p>";
 
 							msg += "</div>";
 							msg += "</div>";
 
-							proboards.dialog("monetaryshop-item-info-dialog", {
+							pb.window.dialog("monetaryshop-item-info-dialog", {
 								modal: true,
 								height: 280,
 								width: 500,
@@ -141,7 +141,7 @@ pixeldepth.monetary.shop.gift = (function(){
 
 							});
 						} else {
-							proboards.alert("An Error Occurred", "Could not collect " + this.settings.text.gift.toLowerCase() + " " + this.shop.settings.text.item.toLowerCase() + ".", {
+							pb.window.alert("An Error Occurred", "Could not collect " + this.settings.text.gift.toLowerCase() + " " + this.shop.settings.text.item.toLowerCase() + ".", {
 								modal: true,
 								resizable: false,
 								draggable: false
@@ -211,7 +211,7 @@ pixeldepth.monetary.shop.gift = (function(){
 		},
 
 		has_received: function(code){
-			var data = pixeldepth.monetary.shop.data(yootil.user.id());
+			var data = monetary.shop.data(yootil.user.id());
 
 			if($.inArrayLoose(code, data.get.gifts()) != -1){
 				return true;
@@ -247,7 +247,7 @@ pixeldepth.monetary.shop.gift = (function(){
 
 			if(this.current_code && gift){
 				var item = this.shop.lookup[gift.item_id];
-				var data = pixeldepth.monetary.shop.data(yootil.user.id());
+				var data = monetary.shop.data(yootil.user.id());
 
 				data.push.gift(this.current_code, true);
 				data.add.item({
@@ -267,7 +267,7 @@ pixeldepth.monetary.shop.gift = (function(){
 		},
 
 		remove_old_codes: function(){
-			var data = pixeldepth.monetary.shop.data(yootil.user.id());
+			var data = monetary.shop.data(yootil.user.id());
 
 			if(!this.settings.gift_codes.length){
 				data.clear.gifts();

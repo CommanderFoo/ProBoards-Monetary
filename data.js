@@ -177,15 +177,15 @@ money.Data = (function(){
 		*	sync - *boolean* To sync up data across tabs / windows, pass true.
 		*/
 
-		this.update = function(skip_update, options, sync){
+		this.update = function(skip_update, callbacks, sync){
 			if(!skip_update){
 
 				// Lets put in a length check on the data
 
-				if(JSON.stringify(this.data).length > proboards.data("plugin_max_key_length")){
-					this.error = "Data length has gone over it's limit of " + proboards.data("plugin_max_key_length");
+				if(!yootil.key.has_space(money.KEY)){
+					this.error = "Data length has gone over it's limit of " + yootil.forum.plugin_max_key_length();
 
-					proboards.dialog("data_limit", {
+					pb.window.dialog("data_limit", {
 
 						title: "Key Data Limit Reached",
 						modal: true,
@@ -208,14 +208,10 @@ money.Data = (function(){
 					return;
 				}
 
-				var key_obj = proboards.plugin.key(money.KEY);
+				yootil.key.set(money.KEY, this.data, this.user_id, callbacks);
 
-				if(key_obj){
-					key_obj.set(this.user_id, this.data, options);
-
-					if(sync){
-						money.sync.trigger();
-					}
+				if(sync){
+					money.sync.trigger();
 				}
 			}
 		};
@@ -227,10 +223,6 @@ money.Data = (function(){
 		};
 		
 		this.get = {
-
-			data_length_exceeded: function(){
-				return JSON.stringify(self.data).length > proboards.data("plugin_max_key_length");
-			},
 
 			/**
 			* Method: get.error

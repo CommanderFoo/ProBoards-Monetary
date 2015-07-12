@@ -3,77 +3,77 @@
 // Change the cat and board check to not return until the end (710)
 
 /**
-* Namespace: money
-*
-* 	Main class that handles setup, init of sub modules, post event bindings and display of money across the forum.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class money
+ *
+ * Main class that handles setup, init of sub modules, post event bindings and display of money across the forum.
+ *
+ * Git - https://github.com/pixelDepth/monetarysystem/
+ *
+ * Forum Topic - http://support.proboards.com/thread/429762/
+ */
 
 var money = {
 
 	/**
-	* Property: VERSION
-	*	*string* - Holds the latest version of this plugin.
-	*/
+	 * Holds the latest version of this plugin.
+	 * @property {String} VERSION
+	 */
 
 	VERSION: "{VER}",
 
 	/**
-	* Property: KEY
-	*	*string* - This is the ProBoards plugin key.
-	*/
+	 * This is the ProBoards plugin key.
+	 * @property {String} KEY
+	 */
 
 	KEY: "pixeldepth_money",
 
 	/**
-	* Property: required_yootil_version
-	*	*string* - This is the min required Yootil version that is needed
-	*/
+	 * This is the min required Yootil version that is needed.
+	 * @property {String} required_yootil_version
+	 */
 
-	required_yootil_version: "0.9.3",
+	required_yootil_version: "1.0.0",
 
 	/**
-	* Property: plugin
-	*	*object* - This holds a reference to the plugin object returned by ProBoards
-	*/
+	 * This holds a reference to the plugin object returned by ProBoards.
+	 * @property {Object} plugin
+	 */
 
 	plugin: null,
 
 	/**
-	* Property: route
-	*	*string* - Route gets cached here, as it gets wrote over by some AJAX responses.
-	*/
+	 * Route gets cached here, as it gets wrote over by some AJAX responses.
+	 * @property {String} route
+	 */
 
 	route: null,
 
 	/**
-	* Property: params
-	*	*object* - Reference to ProBoards page params.
-	*/
+	 * Reference to ProBoards page params.
+	 * @property {Object} params
+	 */
 
 	params: null,
 
 	/**
-	* Property: images
-	*	*object* - Reference to the images object from ProBoards.
-	*/
+	 * Reference to the images object from ProBoards.
+	 * @property {Object} images
+	 */
 
 	images: null,
 
 	/**
-	* Property: trigger_caller
-	*	*boolean* - Used in the sync class to prevent IE from syncing the master (caller).
-	*/
+	 * Used in the sync class to prevent IE from syncing the master (caller).
+	 * @property {Boolean} trigger_caller
+	 */
 
 	trigger_caller: false,
 
 	/**
-	* Property: settings
-	*	*object* - Holds all settings for this class, these update overwritten by setup.
-	*/
+	 * Holds all settings for this class, these can be overwritten by setup.
+	 * @property {Object} settings
+	 */
 
 	settings: {
 
@@ -146,65 +146,71 @@ var money = {
 	},
 
 	/**
-	* Property: is_new_thread
-	*	*boolean* - Updated when posting to see if it's a new thread to work out money amount.
-	*/
+	 * Updated when posting to see if it's a new thread to work out money amount.
+	 * @property {Boolean} is_new_thread
+	 */
 
 	is_new_thread: false,
 
 	/**
-	* Property: is_editing
-	*	*boolean* - Are we editing a post?  We don't want to update money if editing, so we check.
-	*/
+	 * Are we editing a post?  We don't want to update money if editing, so we check.
+	 * @property {Boolean} is_editing
+	 */
 
 	is_editing: false,
 
 	/**
-	* Property: processed
-	*	*boolean* - If money has been processed, we update here so we don't process again (this is old).
-	*/
+	 * If money has been processed, we update here so we don't process again (this is old).
+	 * @property {Boolean} processed
+	 */
 
 	processed: false,
 
 	/**
-	* Property: using_quick_reply
-	*	*boolean* - We update this if quick reply is being used, this was before key events were added.
-	*/
+	 * We update this if quick reply is being used, this was before key events were added.
+	 * @property {Boolean} using_quick_reply
+	 */
 
 	using_quick_reply: false,
 
 	/**
-	* Property: can_earn_money
-	*	*boolean* - This can be used to prevent money being earnt on the page.
-	*/
+	 * This can be used to prevent money being earnt on the page.
+	 * @property {Boolean} can_earn_money
+	 */
 
 	can_earn_money: true,
 
 	/**
-	* Property: can_show_default
-	*	*boolean* - Used to show the default display of the forum.
-	*/
+	 * Used to show the default display of the forum.
+	 * @property {Boolean} can_show_default
+	 */
 
 	can_show_default: true,
 
 	/**
-	* Property: modules
-	*	*array* - Modules are registered and placed in here and init later.
-	*/
+	 * Modules are registered and placed in here and init later.
+	 * @property {Array} modules
+	 */
 
 	modules: [],
 
 	/**
-	* Property: user_data_table
-	*	*object* - A lookup table for user data objects on the page, always check here first before making a new Data instance.
-	*/
+	 * A lookup table for user data objects on the page, always check here first before making a new Data instance.
+	 * @property {Object} user_data_table
+	 */
 
 	user_data_table: {},
 
 	/**
-	* Method: init
-	* 	Starts the magic.
-	*/
+	 * Instance of our notification class
+	 * @property {Object} notify
+	 */
+
+	notify: null,
+
+	/**
+	 * Starts the magic.
+	 */
 
 	init: function(){
 		$.support.cors = true;
@@ -221,7 +227,7 @@ var money = {
 			this.look_for_wallet();
 			this.can_earn_money = this.can_earn();
 
-			if(yootil.location.check.posting() || (yootil.location.check.thread() && this.settings.posting.earn_from_quick_reply)){
+			if(yootil.location.posting() || (yootil.location.thread() && this.settings.posting.earn_from_quick_reply)){
 				if(this.can_earn_money && this.can_earn_in_cat_board()){
 					this.bind_events();
 				}
@@ -236,18 +242,18 @@ var money = {
 			}
 		}
 
-		var location_check = (yootil.location.check.search_results() || yootil.location.check.message_thread() || yootil.location.check.thread() || yootil.location.check.recent_posts());
+		var location_check = (yootil.location.search_results() || yootil.location.message_thread() || yootil.location.thread() || yootil.location.recent_posts());
 
 		if(this.settings.show_in_mini_profile && location_check){
 			this.show_in_mini_profile();
 			yootil.ajax.after_search(this.show_in_mini_profile, this);
 		}
 
-		if(this.settings.show_in_profile && yootil.location.check.profile_home() && this.params && this.params.user_id != "undefined"){
+		if(this.settings.show_in_profile && yootil.location.profile_home() && this.params && this.params.user_id != "undefined"){
 			this.show_in_profile();
 		}
 
-		if(this.settings.show_in_members_list && yootil.location.check.members()){
+		if(this.settings.show_in_members_list && yootil.location.members()){
 			this.show_in_members_list();
 			yootil.ajax.after_search(this.show_in_members_list, this);
 		}
@@ -364,15 +370,15 @@ var money = {
 			var title = "";
 
 			if(typeof yootil == "undefined"){
-				title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Library Not Found</h2></div>";
-				body = "<p>You do not have the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a> plugin installed.</p>";
-				body += "<p>Without the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a>, the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> will not work.</p>";
+				title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Not Found</h2></div>";
+				body = "<p>You do not have the <a href='http://support.proboards.com/thread/429360/'>Yootil</a> plugin installed.</p>";
+				body += "<p>Without the <a href='http://support.proboards.com/thread/429360/'>Yootil</a>, the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> will not work.</p>";
 			} else {
-				var versions = yootil.convert_versions(yootil.VERSION, this.required_yootil_version);
+				var versions = yootil.convert_versions(yootil.version(), this.required_yootil_version);
 
 				if(versions[0] < versions[1]){
-					title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Library Needs Updating</h2></div>";
-					body += "<p>The <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> requires at least " + yootil.html_encode(this.required_yootil_version) + " of the <a href='http://support.proboards.com/thread/429360/'>Yootil Library</a>.</p>";
+					title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Needs Updating</h2></div>";
+					body += "<p>The <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> requires at least " + yootil.html_encode(this.required_yootil_version) + " of the <a href='http://support.proboards.com/thread/429360/'>Yootil</a>.</p>";
 				}
 			}
 
@@ -647,7 +653,7 @@ var money = {
 		// Check if in thread or posting, then check if thread is disabled
 		// from earning
 
-		if((yootil.location.check.thread() || yootil.location.check.posting()) && this.settings.no_earn_threads.length){
+		if((yootil.location.thread() || yootil.location.posting()) && this.settings.no_earn_threads.length){
 			var thread_id = parseInt(yootil.page.thread.id());
 
 			if(thread_id){
@@ -659,11 +665,11 @@ var money = {
 			}
 		}
 
-		if(yootil.location.check.posting_thread()){
+		if(yootil.location.posting_thread()){
 			this.is_new_thread = true;
 		}
 
-		if(yootil.location.check.editing()){
+		if(yootil.location.editing()){
 			this.is_editing = true;
 		}
 
@@ -671,11 +677,11 @@ var money = {
 		var the_form;
 		var hook;
 
-		if(yootil.location.check.posting()){
-			the_form = yootil.form.post_form();
+		if(yootil.location.posting()){
+			the_form = yootil.form.post();
 			hook = (this.is_new_thread)? "thread_new" : "post_new";
-		} else if(yootil.location.check.thread()){
-			the_form = yootil.form.post_quick_reply_form();
+		} else if(yootil.location.thread()){
+			the_form = yootil.form.post_quick_reply();
 			this.using_quick_reply = true;
 			hook = "post_quick_reply";
 		}
@@ -757,7 +763,7 @@ var money = {
 
 			if(money_to_add > 0 || interest_applied || wages_paid || rank_up_paid){
 				this.data(yootil.user.id()).increase.money(money_to_add, true);
-				yootil.key.get_key(this.KEY).set_on(event, null, this.data(yootil.user.id()).get.data());
+				yootil.key.set_on(this.KEY, this.data(yootil.user.id()).get.data(), yootil.user.id(), event);
 			}
 		}
 	},
@@ -770,7 +776,7 @@ var money = {
 	setup: function(){
 		this.route = (proboards.data("route") && proboards.data("route").name)? proboards.data("route").name.toLowerCase() : "";
 		this.params = (this.route && proboards.data("route").params)? proboards.data("route").params : "";
-		this.plugin = proboards.plugin.get("pixeldepth_monetary");
+		this.plugin = pb.plugin.get("pixeldepth_monetary");
 
 		if(this.plugin && this.plugin.settings){
 			this.images = this.plugin.images;
@@ -937,7 +943,7 @@ var money = {
 			edit_html = $("<span />").html(edit_html);
 
 			element.click(function(event){
-				proboards.dialog("edit_money", {
+				pb.window.dialog("edit_money", {
 
 					title: ("Edit " + title),
 					modal: true,
@@ -1484,92 +1490,18 @@ var money = {
 	},
 
 	check_for_notifications: function(){
-		if(!this.settings.notification.show){
-			return;
-		}
+
+		// Need to check old notifications and remove them
 
 		var notifications = this.data(yootil.user.id()).get.notifications();
 
 		if(notifications.length){
-			var msg = pb.text.nl2br(this.settings.notification.msg) + "<br ><br />";
-			var self = this;
-			var height = 180;
-			var time_24 = (yootil.user.time_format() == "12hr")? false : true;
-
-			for(var n = 0; n < notifications.length; n ++){
-				var type = (notifications[n].k == 1)? this.settings.text.wallet : this.settings.text.bank_column;
-				var user = "";
-				var date_str = "";
-
-				if(this.settings.notification.show_edited){
-					user = ", by <a href='/user/" + parseInt(notifications[n].u[1]) + "'>" + yootil.html_encode(notifications[n].u[0]) + "</a>";
-				}
-
-				if(this.settings.notification.show_date){
-					var date = this.correct_date(notifications[n].t);
-					var day = date.getDate() || 1;
-					var month = pixeldepth.monetary.months[date.getMonth()];
-					var year = date.getFullYear();
-					var hours = date.getHours();
-					var mins = date.getMinutes();
-					var am_pm = "";
-
-					mins = (mins < 10)? "0" + mins : mins;
-					date_str = ", on " + day + pixeldepth.monetary.get_suffix(day) + " of " + month + ", " + year;
-
-					if(!time_24){
-						am_pm = (hours > 11)? "pm" : "am";
-						hours = hours % 12;
-						hours = (hours)? hours : 12;
-					}
-
-					date_str += ", at " + hours + ":" + mins + am_pm;
-				}
-
-				msg += "<p>" + type + " was ";
-
-				switch(notifications[n].a[2]){
-
-					case 3:
-						msg += "increased by ";
-						break;
-
-					case 4:
-						msg += "decreased by ";
-						break;
-
-					case 1:
-					case 2:
-						msg += "set to ";
-						break;
-				}
-
-				msg += "<strong>" + this.settings.money_symbol + yootil.html_encode(this.format(notifications[n].a[1], true)) + "</strong>" + date_str + user + "</p>";
-
-				height += 10;
-			}
-
-			msg = "<span class='monetary-notifications' style='font-size: 11px;'>" + msg + "</span>";
-
-			proboards.dialog("monetaryshop-notification-dialog", {
-				modal: true,
-				height: height,
-				width: 600,
-				title: this.settings.notification.title,
-				html: msg,
-				resizable: false,
-				draggable: false,
-				buttons: {
-
-					"Close": function(){
-						self.data(yootil.user.id()).clear.notifications(false, null, true);
-						$(this).dialog("close");
-					}
-
-				}
-
-			});
+			this.data(yootil.user.id()).clear.notifications(false, null, true);
 		}
+
+		// Now we can setup yootil notifications
+
+		this.notify = new yootil.notifications("monetary_notifications");
 	}
 
 };

@@ -90,7 +90,7 @@ money.donation = (function(){
 
 				this.check_rejected_donations();
 
-				if(yootil.location.check.profile_home()){
+				if(yootil.location.profile_home()){
 					if(location.href.match(/\?monetarydonation&view=(\d+)/i) && RegExp.$1 && parseInt(RegExp.$1) >= 1 && parseInt(RegExp.$1) <= 3){
 						var id = ~~ yootil.page.member.id();
 						var view = ~~ RegExp.$1;
@@ -180,7 +180,7 @@ money.donation = (function(){
 				var donation_id = reject.t + "" + reject.r[0];
 				var content = "Your " + this.settings.text.donation.toLowerCase() + " of " + money.settings.money_symbol + money.format(reject.a, true) + " to <a href='/user/" + yootil.html_encode(reject.r[0]) + "'>" + yootil.html_encode(reject.r[1]) + "</a> was rejected.";
 
-				proboards.dialog("montary-donation-reject-" + r, {
+				pb.window.dialog("montary-donation-reject-" + r, {
 					modal: true,
 					height: 160,
 					resizable: false,
@@ -244,7 +244,7 @@ money.donation = (function(){
 
 					$("#monetary-donation-page-expiry").html("Page Expires In: expired");
 
-					proboards.alert("Page Expired", "This page has expired, please refresh.", {
+					pb.window.alert("Page Expired", "This page has expired, please refresh.", {
 						modal: true,
 						height: 160,
 						resizable: false,
@@ -662,6 +662,10 @@ money.donation = (function(){
 							this.cancel_expiration();
 							this.update_wallet();
 							money.sync.trigger();
+
+							// Create notification of sent donation
+
+							monetary.notify.create("[D:" + the_donation.amount + "|" + the_donation.from.id + "|" + yootil.html_encode(the_donation.from.name) + "]", yootil.page.member.id());
 
 							$("#monetary-donation-page-expiry").html("Sent");
 

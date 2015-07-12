@@ -57,7 +57,7 @@ money.wages = (function(){
 
 			// Basic checking so we don't need to run setup on each page
 
-			if(yootil.user.logged_in() && money.can_earn_money && (yootil.location.check.posting() || yootil.location.check.thread())){
+			if(yootil.user.logged_in() && money.can_earn_money && (yootil.location.posting() || yootil.location.thread())){
 				this.setup();
 			}
 		},

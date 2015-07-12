@@ -69,7 +69,7 @@ money.bank = (function(){
 				}
 			}
 
-			if(yootil.location.check.forum() && location.href.match(/\/\?bank\/?/i)){
+			if(yootil.location.home() && location.href.match(/\/\?bank\/?/i)){
 				if(this.settings.enabled){
 					this.start();
 					money.can_show_default = false;

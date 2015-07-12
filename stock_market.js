@@ -56,7 +56,7 @@ money.stock_market = (function(){
 				this.offer_full_refund();
 			}
 
-			if(yootil.location.check.forum() && location.href.match(/\/?\?stockmarket\/?/i)){
+			if(yootil.location.forum() && location.href.match(/\/?\?stockmarket\/?/i)){
 				if(this.settings.enabled){
 					money.can_show_default = false;
 					this.start();
@@ -208,7 +208,7 @@ money.stock_market = (function(){
 				info += " Stock Market is currently disabled.<br /><br />";
 				info += "Refund: " + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(total_value, true)));
 
-				proboards.dialog("stock-refund-dialog", {
+				pb.window.dialog("stock-refund-dialog", {
 					modal: true,
 					height: 220,
 					width: 320,
@@ -222,7 +222,7 @@ money.stock_market = (function(){
 						"Ignore Refund": function(){
 							var self = this;
 
-							proboards.dialog("stock-ignore-refund-dialog", {
+							pb.window.dialog("stock-ignore-refund-dialog", {
 								modal: true,
 								height: 220,
 								width: 320,
@@ -271,7 +271,7 @@ money.stock_market = (function(){
 			info += " stock has been removed from the market.<br /><br />";
 			info += "Refund: " + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(parseInt(invest_data[stock_id].a) * parseFloat(invest_data[stock_id].b), true)));
 
-			proboards.dialog("stock-refund-dialog", {
+			pb.window.dialog("stock-refund-dialog", {
 				modal: true,
 				height: 220,
 				width: 320,
@@ -391,7 +391,7 @@ money.stock_market = (function(){
 				var total_cost = (bid * amount);
 
 				if(money.data(yootil.user.id()).get.money() < total_cost){
-					proboards.alert("Not Enough " + money.settings.money_text, "You do not have enough " + money.settings.money_text.toLowerCase() + " to make this purchase.", {
+					pb.window.alert("Not Enough " + money.settings.money_text, "You do not have enough " + money.settings.money_text.toLowerCase() + " to make this purchase.", {
 						modal: true,
 						resizable: false,
 						draggable: false
@@ -413,7 +413,7 @@ money.stock_market = (function(){
 					this.save_investments();
 				}
 			} else {
-				proboards.alert("An Error Occurred", "An error occurred, please try again.", {
+				pb.window.alert("An Error Occurred", "An error occurred, please try again.", {
 					modal: true,
 					resizable: false,
 					draggable: false
@@ -542,7 +542,7 @@ money.stock_market = (function(){
 
 			var self = this;
 
-			proboards.dialog("stock-sell-dialog", {
+			pb.window.dialog("stock-sell-dialog", {
 				modal: true,
 				height: 220,
 				width: 320,
@@ -558,7 +558,7 @@ money.stock_market = (function(){
 					},
 
 					"Sell Stock": function(){
-						proboards.dialog("stock-sell-confirm-dialog", {
+						pb.window.dialog("stock-sell-confirm-dialog", {
 							title: "Confirm Selling Stock",
 							html: "Are you sure you want to sell this stock?",
 							modal: true,
@@ -747,7 +747,7 @@ money.stock_market = (function(){
 
 					if(self.has_invested(stock_id) && self.invest_amount(stock_id) > 0){
 						if(invest_data[stock_id].b != self.symbols[stock_id].BidRealtime){
-							proboards.alert("An Error Occurred", "You have already made an investment in " + yootil.html_encode(self.get_stock_name(stock_id)) + " (" + yootil.html_encode(self.get_stock_symbol(stock_id)) + ") at a different price.  You will need to sell your current units before investing into this company again.", {
+							pb.window.alert("An Error Occurred", "You have already made an investment in " + yootil.html_encode(self.get_stock_name(stock_id)) + " (" + yootil.html_encode(self.get_stock_symbol(stock_id)) + ") at a different price.  You will need to sell your current units before investing into this company again.", {
 								modal: true,
 								resizable: false,
 								draggable: false,
@@ -787,7 +787,7 @@ money.stock_market = (function(){
 									info += "Cost Per Unit: " + money.settings.money_symbol + yootil.html_encode(yootil.number_format(self.symbols[stock_id].BidRealtime)) + "<br /><br />";
 									info += "Total Purchase: " + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(amount * parseFloat(self.symbols[stock_id].BidRealtime), true)));
 
-									proboards.dialog("stock-buy-confirm", {
+									pb.window.dialog("stock-buy-confirm", {
 										title: "Confirm Purchase",
 										html: info,
 										modal: true,
@@ -807,7 +807,7 @@ money.stock_market = (function(){
 										}
 									});
 								} else {
-									proboards.alert("Invalid Amount", "You need to enter an amount greater than 0.", {
+									pb.window.alert("Invalid Amount", "You need to enter an amount greater than 0.", {
 										modal: true,
 										resizable: false,
 										draggable: false

@@ -1,4 +1,4 @@
-pixeldepth.monetary.shop.trade = (function(){
+monetary.shop.trade = (function(){
 
 	return {
 
@@ -43,7 +43,7 @@ pixeldepth.monetary.shop.trade = (function(){
 			
 			yootil.bar.add("/user/" + yootil.user.id() + "?monetaryshop&tradeview=1", this.shop.images.trade, this.settings.text.gift + " / " + this.settings.text.trade + " " + this.settings.text.request + "s", "pdmstrade");
 			
-			if(yootil.location.check.profile_home()){
+			if(yootil.location.profile_home()){
 				if(location.href.match(/\?monetaryshop&tradeview=(\d+)/i) && RegExp.$1){
 					var view = ~~ RegExp.$1;
 					var user_id = yootil.user.id();
@@ -86,14 +86,14 @@ pixeldepth.monetary.shop.trade = (function(){
 									}
 								} else {
 									title = "An Error Has Occurred";
-									proboards.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
+									pb.window.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
 								}
 								
 								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=2&id=[\\d\\.]+"), title);
 								yootil.create.nav_branch("/user/" + user_id + "?monetaryshop&tradeview=1", title);
 								this.build_received_trade_request_html(the_trade, title, gift);
 							} else {
-								pixeldepth.monetary.show_default();
+								monetary.show_default();
 							}
 
 							break;
@@ -122,7 +122,7 @@ pixeldepth.monetary.shop.trade = (function(){
 									}
 								} else {
 									title = "An Error Has Occurred";
-									proboards.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
+									pb.window.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
 								}
 								
 								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=3&id=[\\d\\.]+"), title);
@@ -130,7 +130,7 @@ pixeldepth.monetary.shop.trade = (function(){
 								
 								this.build_sent_trade_request_html(the_trade, title, gift);
 							} else {
-								pixeldepth.monetary.show_default();
+								monetary.show_default();
 							}
 
 							break;
@@ -145,12 +145,12 @@ pixeldepth.monetary.shop.trade = (function(){
 		},
 
 		register: function(){
-			pixeldepth.monetary.shop.modules.push(this);
+			monetary.shop.modules.push(this);
 			return this;
 		},
 
 		setup: function(){
-			this.shop = pixeldepth.monetary.shop;
+			this.shop = monetary.shop;
 
 			var plugin = this.shop.plugin;
 			var settings = plugin.settings;
@@ -229,7 +229,7 @@ pixeldepth.monetary.shop.trade = (function(){
 					
 					$("#monetary-trade-page-expiry").html("Page Expires In: expired");
 
-					proboards.alert("Page Expired", "This page has expired, please refresh.", {
+					pb.window.alert("Page Expired", "This page has expired, please refresh.", {
 						modal: true,
 						height: 160,
 						resizable: false,
@@ -253,7 +253,7 @@ pixeldepth.monetary.shop.trade = (function(){
 
 		request: function(){
 			if(this.expired){
-				proboards.alert("Page Expired", "This page has expired, please refresh.", {
+				pb.window.alert("Page Expired", "This page has expired, please refresh.", {
 					modal: true,
 					height: 160,
 					resizable: false,
@@ -265,11 +265,11 @@ pixeldepth.monetary.shop.trade = (function(){
 
 			var self = this;
 			var expiry_str = (this.expired)? "expired" : ((this.PAGE_TIME_EXPIRY  - this.page_timer) + " seconds");
-			var dialog_title = this.settings.text.gift + " / " + this.settings.text.trade + " " + this.settings.text.request + " - <span id='monetary-trade-page-expiry'>Page Expires In: " + expiry_str + "</span>";
+			var dialog_title = this.settings.text.gift + " / " + this.settings.text.trade + " " + this.settings.text.request + " - ";
 			var viewing_id = yootil.page.member.id() || null;
 
 			if(!viewing_id){
-				proboards.alert("An Error Has Occurred", "Could not find user ID.", {
+				pb.window.alert("An Error Has Occurred", "Could not find user ID.", {
 					modal: true,
 					height: 160,
 					resizable: false,
@@ -331,7 +331,16 @@ pixeldepth.monetary.shop.trade = (function(){
 
 			html += owner_html + with_html + this.build_trading_box() + "</div>";
 
-			proboards.dialog("monetaryshop-trade-dialog", {
+			// Due to ProBoards updating the jQuery UI Lib, titles can no longer
+			// have HTML in them.
+			// Possible option is to remove html from titles, or set the html
+			// in the title in the create event.
+
+			//create: function() {
+			//	$(this).find("span.ui-dialog-title").append("....");
+			//} ???
+
+			pb.window.dialog("monetaryshop-trade-dialog", {
 				modal: true,
 				height: 400,
 				width: 700,
@@ -339,6 +348,11 @@ pixeldepth.monetary.shop.trade = (function(){
 				html: html,
 				resizable: false,
 				draggable: false,
+
+				create: function(){
+					$(this).parent().find("span.ui-dialog-title").append($("<span id='monetary-trade-page-expiry'>Page Expires In: " + expiry_str + "</span>"));
+				},
+
 				buttons: [
 
 					{
@@ -390,9 +404,9 @@ pixeldepth.monetary.shop.trade = (function(){
 											}
 											
 											msg += " to <a href='/user/" + yootil.html_encode(viewing_id) + "'>";
-											msg += yootil.html_encode(yootil.page.member.name()) + "</a>.";										
-											   
-											proboards.dialog("monetaryshop-trade-sent-dialog", {
+											msg += yootil.html_encode(yootil.page.member.name()) + "</a>.";
+
+											pb.window.dialog("monetaryshop-trade-sent-dialog", {
 											
 												modal: true,
 												height: 200,
@@ -415,7 +429,7 @@ pixeldepth.monetary.shop.trade = (function(){
 											
 									});
 								} else {
-									proboards.alert("An Error Has Occurred", "Could not send request (#1).", {
+									pb.window.alert("An Error Has Occurred", "Could not send request (#1).", {
 										modal: true,
 										height: 160,
 										resizable: false,
@@ -568,11 +582,11 @@ pixeldepth.monetary.shop.trade = (function(){
 				for(var t = 0, l = trades_sent.length; t < l; t ++){
 					var date = new Date(trades_sent[t].d);
 					var day = date.getDate() || 1;
-					var month = pixeldepth.monetary.months[date.getMonth()];
+					var month = monetary.months[date.getMonth()];
 					var year = date.getFullYear();
 					var hours = date.getHours();
 					var mins = date.getMinutes();
-					var date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + "<sup>" + pixeldepth.monetary.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
+					var date_str = monetary.days[date.getDay()] + " " + day + "<sup>" + monetary.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
 					var am_pm = "";
 
 					mins = (mins < 10)? "0" + mins : mins;
@@ -636,11 +650,11 @@ pixeldepth.monetary.shop.trade = (function(){
 				for(var t = 0, l = trades_received.length; t < l; t ++){
 					var date = new Date(trades_received[t].d);
 					var day = date.getDate() || 1;
-					var month = pixeldepth.monetary.months[date.getMonth()];
+					var month = monetary.months[date.getMonth()];
 					var year = date.getFullYear();
 					var hours = date.getHours();
 					var mins = date.getMinutes();
-					var date_str = pixeldepth.monetary.days[date.getDay()] + " " + day + "<sup>" + pixeldepth.monetary.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
+					var date_str = monetary.days[date.getDay()] + " " + day + "<sup>" + monetary.get_suffix(day) + "</sup> of " + month + ", " + year + " at ";
 					var am_pm = "";
 
 					mins = (mins < 10)? "0" + mins : mins;
@@ -871,7 +885,7 @@ pixeldepth.monetary.shop.trade = (function(){
   				requesting_content = "<em>Missing shop items.</em>";
   				
   				setTimeout(function(){
-	  				proboards.alert("An Error Has Occurred", "There are items in this request that no longer exist in the shop, so this request can not be accepted, only declined.", {
+					pb.window.alert("An Error Has Occurred", "There are items in this request that no longer exist in the shop, so this request can not be accepted, only declined.", {
   				
 		  				modal: true,
 						height: 180,
@@ -904,7 +918,7 @@ pixeldepth.monetary.shop.trade = (function(){
 			if(can_trade){
 				container.find("button#accept_trade").click(function(){
 					if(self.expired){
-						proboards.alert("Page Expired", "This page has expired, please refresh.", {
+						pb.window.alert("Page Expired", "This page has expired, please refresh.", {
 							modal: true,
 							height: 160,
 							resizable: false,
@@ -936,8 +950,8 @@ pixeldepth.monetary.shop.trade = (function(){
 																	
 								complete: function(){
 									var msg = "You have successfully accepted this request ";
-																		   
-									proboards.dialog("monetaryshop-trade-accept-success-dialog", {
+
+									pb.window.dialog("monetaryshop-trade-accept-success-dialog", {
 									
 										modal: true,
 										height: 200,
@@ -965,8 +979,8 @@ pixeldepth.monetary.shop.trade = (function(){
 							if(return_obj.error.length){
 								error = return_obj.error;
 							}
-							
-							proboards.alert("The following error has occurred.", error, {
+
+							pb.window.alert("The following error has occurred.", error, {
 								modal: true,
 								height: 180,
 								width: 400,
@@ -975,7 +989,7 @@ pixeldepth.monetary.shop.trade = (function(){
 						});
 						}
 					} else {
-						proboards.alert("An Error Has Occurred", "There is an error (error code: " + error_code + ") with this request, it can only be declined.", {
+						pb.window.alert("An Error Has Occurred", "There is an error (error code: " + error_code + ") with this request, it can only be declined.", {
 							modal: true,
 							height: 160,
 							resizable: false,
@@ -987,7 +1001,7 @@ pixeldepth.monetary.shop.trade = (function(){
 			
 			container.find("button#reject_trade").click(function(){
 				if(self.expired){
-					proboards.alert("Page Expired", "This page has expired, please refresh.", {
+					pb.window.alert("Page Expired", "This page has expired, please refresh.", {
 						modal: true,
 						height: 160,
 						resizable: false,
@@ -996,8 +1010,8 @@ pixeldepth.monetary.shop.trade = (function(){
 	
 					return;
 				}
-				
-				proboards.dialog("shop-trade-decline-confirm", {
+
+				pb.window.dialog("shop-trade-decline-confirm", {
 					
 					title: "Confirm",
 					html: "Are you sure you want to decline this " + trade_gift_txt.toLowerCase() + "?",
@@ -1023,8 +1037,8 @@ pixeldepth.monetary.shop.trade = (function(){
 							click: function(){
 								if(self.expired){
 									$(this).dialog("close");
-									
-									proboards.alert("Page Expired", "This page has expired, please refresh.", {
+
+									pb.window.alert("Page Expired", "This page has expired, please refresh.", {
 										modal: true,
 										height: 160,
 										resizable: false,
@@ -1040,8 +1054,8 @@ pixeldepth.monetary.shop.trade = (function(){
 									
 									complete: function(){
 										what.dialog("close");
-										
-										proboards.alert(trade_gift_txt + " Declined", "This " + trade_gift_txt.toLowerCase() + " was successfully declined.", {
+
+										pb.window.alert(trade_gift_txt + " Declined", "This " + trade_gift_txt.toLowerCase() + " was successfully declined.", {
 									
 											modal: true,
 											resizable: false,
@@ -1062,7 +1076,7 @@ pixeldepth.monetary.shop.trade = (function(){
 									},
 									
 									error: function(){
-										proboards.alert("An Error Occurred", "Could not decline " + trade_gift_txt.toLowerCase() + ", please try again.");
+										pb.window.alert("An Error Occurred", "Could not decline " + trade_gift_txt.toLowerCase() + ", please try again.");
 									}
 									
 								});
@@ -1235,7 +1249,7 @@ pixeldepth.monetary.shop.trade = (function(){
   				requesting_content = "<em>Missing shop items.</em>";
   				
   				setTimeout(function(){
-	  				proboards.alert("An Error Has Occurred", "There are items in this request that no longer exist in the shop, so this request can not be accepted, only declined.", {
+					pb.window.alert("An Error Has Occurred", "There are items in this request that no longer exist in the shop, so this request can not be accepted, only declined.", {
   				
 		  				modal: true,
 						height: 180,
@@ -1266,7 +1280,7 @@ pixeldepth.monetary.shop.trade = (function(){
 			
 			container.find("button#reject_trade").click(function(){
 				if(self.expired){
-					proboards.alert("Page Expired", "This page has expired, please refresh.", {
+					pb.window.alert("Page Expired", "This page has expired, please refresh.", {
 						modal: true,
 						height: 160,
 						resizable: false,
@@ -1275,8 +1289,8 @@ pixeldepth.monetary.shop.trade = (function(){
 	
 					return;
 				}
-				
-				proboards.dialog("shop-trade-decline-confirm", {
+
+				pb.window.dialog("shop-trade-decline-confirm", {
 					
 					title: "Confirm",
 					html: "Are you sure you want to cancel this " + trade_gift_txt.toLowerCase() + "?",
@@ -1307,8 +1321,8 @@ pixeldepth.monetary.shop.trade = (function(){
 									
 									complete: function(){
 										what.dialog("close");
-										
-										proboards.alert(trade_gift_txt + " Cancel", "This " + trade_gift_txt.toLowerCase() + " was successfully cancelled.", {
+
+										pb.window.alert(trade_gift_txt + " Cancel", "This " + trade_gift_txt.toLowerCase() + " was successfully cancelled.", {
 									
 											modal: true,
 											resizable: false,
@@ -1329,7 +1343,7 @@ pixeldepth.monetary.shop.trade = (function(){
 									},
 									
 									error: function(){
-										proboards.alert("An Error Occurred", "Could not cancel " + trade_gift_txt.toLowerCase() + ", please try again.");
+										pb.window.alert("An Error Occurred", "Could not cancel " + trade_gift_txt.toLowerCase() + ", please try again.");
 									}
 								});
 							}

@@ -1,4 +1,4 @@
-pixeldepth.monetary.shop.Data = (function(){
+monetary.shop.Data = (function(){
 
 	function Data(user_id, data_obj){
 		this.user_id = user_id;
@@ -22,12 +22,12 @@ pixeldepth.monetary.shop.Data = (function(){
 		this.data.g = (typeof this.data.g == "object" && this.data.g.constructor == Array)? this.data.g : [];
 		this.data.t = (typeof this.data.t == "object" && this.data.t.constructor == Array)? this.data.t : [];
 
-		this.update = function(skip_update, options){
+		this.update = function(skip_update, callbacks){
 			if(!skip_update){
-				if(JSON.stringify(this.data).length > proboards.data("plugin_max_key_length")){
-					this.error = "Data length has gone over it's limit of " + proboards.data("plugin_max_key_length");
+				if(!yootil.key.has_space(monetary.shop.KEY)){
+					this.error = "Data length has gone over it's limit of " + yootil.forum.plugin_max_key_length();
 
-					proboards.dialog("data_limit", {
+					pb.window.dialog("data_limit", {
 
 						title: "Key Data Limit Reached",
 						modal: true,
@@ -50,10 +50,7 @@ pixeldepth.monetary.shop.Data = (function(){
 					return;
 				}
 
-				var key_obj = proboards.plugin.key(pixeldepth.monetary.shop.KEY);
-				if(key_obj){
-					key_obj.set(this.user_id, this.data, options);
-				}
+				yootil.key.set(monetary.shop.KEY, this.data, this.user_id, callbacks);
 			}
 		};
 
@@ -313,7 +310,7 @@ pixeldepth.monetary.shop.Data = (function(){
 						self.reduce.quantity(k, sending[k].q, true);
 					}
 					
-					pixeldepth.monetary.shop.data(receiving_details[0]).trade.receive(request);
+					monetary.shop.data(receiving_details[0]).trade.receive(request);
 				}
 				
 				return false;
@@ -334,7 +331,7 @@ pixeldepth.monetary.shop.Data = (function(){
 				};
 														
 				for(var item_id in receive_items){
-					var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+					var shop_item = monetary.shop.lookup[item_id];
 					
 					if(!shop_item){
 						return_obj.can_accept = false;
@@ -354,10 +351,10 @@ pixeldepth.monetary.shop.Data = (function(){
 					if(!gift){
 						var to_user_id = yootil.user.id();
 						var send_items = the_trade.t.i;
-						var receiver_data = pixeldepth.monetary.shop.data(the_trade.f.u[0]).data;
+						var receiver_data = monetary.shop.data(the_trade.f.u[0]).data;
 						
 						for(var item_id in send_items){
-							var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+							var shop_item = monetary.shop.lookup[item_id];
 						
 							if(!shop_item){
 								return_obj.can_accept = can_swap = false;
@@ -397,7 +394,7 @@ pixeldepth.monetary.shop.Data = (function(){
 								if(self.data.i[item_id]){
 									self.data.i[item_id].q += receive_items[item_id].q;	
 								} else {
-									var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+									var shop_item = monetary.shop.lookup[item_id];
 									
 									self.data.i[item_id] = {
 									
@@ -415,7 +412,7 @@ pixeldepth.monetary.shop.Data = (function(){
 							if(self.data.i[item_id]){
 								self.data.i[item_id].q += receive_items[item_id].q;	
 							} else {
-								var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+								var shop_item = monetary.shop.lookup[item_id];
 								
 								self.data.i[item_id] = {
 								
@@ -429,7 +426,7 @@ pixeldepth.monetary.shop.Data = (function(){
 					
 					if(return_obj.can_accept && can_swap){
 						self.trade.remove(the_trade);
-						pixeldepth.monetary.shop.data(the_trade.f.u[0]).trade.remove(the_trade);
+						monetary.shop.data(the_trade.f.u[0]).trade.remove(the_trade);
 					}
 				}
 				
@@ -451,13 +448,13 @@ pixeldepth.monetary.shop.Data = (function(){
 				var from = the_trade.f;
 				
 				if(!from){
-					proboards.alert("An Error Has Occurred", "Could not cancel request, no from data.");
+					pb.window.alert("An Error Has Occurred", "Could not cancel request, no from data.");
 				} else {
 					var from_user_id = yootil.user.id();
 					var from_items = from.i;
 										
 					for(var item_id in from_items){
-						var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+						var shop_item = monetary.shop.lookup[item_id];
 						 
 						if(shop_item){
 							var item_qty = self.get.quantity(item_id);
@@ -474,10 +471,10 @@ pixeldepth.monetary.shop.Data = (function(){
 					
 					var to_user = the_trade.t.u[0];
 					
-					pixeldepth.monetary.shop.data(to_user).trade.remove(the_trade, true);
+					monetary.shop.data(to_user).trade.remove(the_trade, true);
 					self.trade.remove(the_trade, true);
 					
-					pixeldepth.monetary.shop.data(to_user).update(false);
+					monetary.shop.data(to_user).update(false);
 					self.update(false, opts);	
 				}				
 			},
@@ -492,14 +489,14 @@ pixeldepth.monetary.shop.Data = (function(){
 				// There must always be from data, otherwise the request is invalid
 				
 				if(!from){
-					proboards.alert("An Error Has Occurred", "Could not decline request, no from data.");
+					pb.window.alert("An Error Has Occurred", "Could not decline request, no from data.");
 				} else {
 					var from_user_id = from.u[0];
 					var from_items = from.i;
 					var refund_total = 0;
 										
 					for(var item_id in from_items){
-						var shop_item = pixeldepth.monetary.shop.lookup[item_id];
+						var shop_item = monetary.shop.lookup[item_id];
 						 
 						if(shop_item){
 							
@@ -508,18 +505,18 @@ pixeldepth.monetary.shop.Data = (function(){
 							// we update the quantity, otherwise we insert a new
 							// entry for the item
 							
-							var item_qty = pixeldepth.monetary.shop.data(from_user_id).get.quantity(item_id);
+							var item_qty = monetary.shop.data(from_user_id).get.quantity(item_id);
 							
 							if(item_qty){
 								
 								// Has item, so we now need to up the quantity
 								
-								pixeldepth.monetary.shop.data(from_user_id).set.quantity(item_id, item_qty + from_items[item_id].q, true);									
+								monetary.shop.data(from_user_id).set.quantity(item_id, item_qty + from_items[item_id].q, true);
 							} else {
 								
 								// No item, so insert new item with correct data
 								
-								pixeldepth.monetary.shop.data(from_user_id).set.item(item_id, from_items[item_id].q, shop_item.item_price, true);								
+								monetary.shop.data(from_user_id).set.item(item_id, from_items[item_id].q, shop_item.item_price, true);
 							}							
 						} else {
 						
@@ -535,17 +532,17 @@ pixeldepth.monetary.shop.Data = (function(){
 					// Update "from" money
 					
 					if(refund_total){
-						pixeldepth.monetary.data(from_user_id).increase.money(refund_total, true, null, false);
+						monetary.data(from_user_id).increase.money(refund_total, true, null, false);
 					}
 										
 					// Finally we need to remove the trade request from both sets of data
 					
-					pixeldepth.monetary.shop.data(from_user_id).trade.remove(the_trade, true);
+					monetary.shop.data(from_user_id).trade.remove(the_trade, true);
 					self.trade.remove(the_trade, true);
 					
 					// Update "from" data
 					
-					pixeldepth.monetary.shop.data(from_user_id).update(false);
+					monetary.shop.data(from_user_id).update(false);
 					
 					// Update the users data now
 					

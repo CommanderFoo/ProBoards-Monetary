@@ -121,7 +121,7 @@ money.sync = (function(){
 					clearInterval(money.donation.interval);
 					$(".monetary-donation-form").css("opacity", .3);
 					$(".monetary-donation-button").hide();
-					proboards.alert("An Error Has Occurred", "This " + money.donation.settings.text.donation.toLowerCase() + " no longer exists.");
+					pb.window.alert("An Error Has Occurred", "This " + money.donation.settings.text.donation.toLowerCase() + " no longer exists.");
 				}
 			}
 
@@ -134,7 +134,7 @@ money.sync = (function(){
 
 			// Now lets see where we are, and attempt to update visuals
 
-			var location_check = (yootil.location.check.search_results() || yootil.location.check.message_thread() || yootil.location.check.thread() || yootil.location.check.recent_posts() || yootil.location.check.profile_home() || yootil.location.check.members());
+			var location_check = (yootil.location.search_results() || yootil.location.message_thread() || yootil.location.thread() || yootil.location.recent_posts() || yootil.location.profile_home() || yootil.location.members());
 
 			if(location_check){
 				var user_id = yootil.user.id();
@@ -164,13 +164,13 @@ money.sync = (function(){
 			// Don't bother with transactions, it's in the data, but
 			// no need to visually update it, for now.
 
-			if(yootil.location.check.forum() && location.href.match(/\/?bank\/?/i)){
+			if(yootil.location.forum() && location.href.match(/\/?bank\/?/i)){
 				$("#pd_money_bank_balance").text(yootil.number_format(user_bank_money));
 			}
 
 			// Update stock list
 
-			if(yootil.location.check.forum() && location.href.match(/\/?stockmarket\/?/i)){
+			if(yootil.location.forum() && location.href.match(/\/?stockmarket\/?/i)){
 				if(money.stock_market.settings.enabled){
 					money.stock_market.check_for_data();
 					money.stock_market.current_investment_list();

@@ -665,7 +665,7 @@ money.donation = (function(){
 
 							// Create notification of sent donation
 
-							monetary.notify.create("[D:" + the_donation.amount + "|" + the_donation.from.id + "|" + yootil.html_encode(the_donation.from.name) + "]", yootil.page.member.id());
+							monetary.notify.create("[D:" + the_donation.amount + "|" + the_donation.from.id + "|" + the_donation.from.name + "]", yootil.page.member.id());
 
 							$("#monetary-donation-page-expiry").html("Sent");
 

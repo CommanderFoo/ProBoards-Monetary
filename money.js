@@ -258,6 +258,16 @@ var money = {
 			yootil.ajax.after_search(this.show_in_members_list, this);
 		}
 	},
+
+	create_notification: function(msg, user_id){
+		if(!msg || !user_id){
+			return;
+		}
+
+		if(typeof this.notify != "undefined"){
+			this.notify.create(msg, user_id);
+		}
+	},
 	
 	correct_date: function(the_date){
 		if(the_date.toString().indexOf(".") != -1){
@@ -1501,7 +1511,9 @@ var money = {
 
 		// Now we can setup yootil notifications
 
-		this.notify = new yootil.notifications("monetary_notifications");
+		if(typeof yootil.notifications != "undefined"){
+			this.notify = new yootil.notifications("monetary_notifications");
+		}
 	}
 
 };

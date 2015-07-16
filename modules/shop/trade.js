@@ -1,3 +1,10 @@
+/**
+ * @class trade
+ * @static
+ *
+ * 	Allows members to trade or gift with each other.
+ */
+
 monetary.shop.trade = (function(){
 
 	return {
@@ -86,7 +93,7 @@ monetary.shop.trade = (function(){
 									}
 								} else {
 									title = "An Error Has Occurred";
-									pb.window.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
+									pb.window.alert("An Error Has Occurred", "The " + this.settings.text.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
 								}
 								
 								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=2&id=[\\d\\.]+"), title);
@@ -98,7 +105,7 @@ monetary.shop.trade = (function(){
 
 							break;
 						
-						// Sent request
+						// Send request
 						
 						case 3:
 							var trade_id = (location.href.match(/tradeview=3&id=(\d+)/))? RegExp.$1 : -1;
@@ -122,7 +129,7 @@ monetary.shop.trade = (function(){
 									}
 								} else {
 									title = "An Error Has Occurred";
-									pb.window.alert("An Error Has Occurred", "The " + this.settings.test.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
+									pb.window.alert("An Error Has Occurred", "The " + this.settings.text.trade.toLowerCase() + " " + this.settings.text.request.toLowerCase() + " could not be found.");
 								}
 								
 								yootil.create.page(new RegExp("\\/user\\/" + id + "\\?monetaryshop&tradeview=3&id=[\\d\\.]+"), title);
@@ -314,7 +321,7 @@ monetary.shop.trade = (function(){
 
 			var with_html = "<div class='trade_with trade_profile'>";
 
-			with_html += "<div class='trader_name'>" + yootil.html_encode(yootil.page.member.name()) + "</div><br /><div id='trade_with_items'>";
+			with_html += "<div class='trader_name'>" + yootil.page.member.name() + "</div><br /><div id='trade_with_items'>";
 
 			for(var key in with_items){
 				var item = this.shop.lookup[key];
@@ -330,15 +337,6 @@ monetary.shop.trade = (function(){
 			with_html += "</div></div>";
 
 			html += owner_html + with_html + this.build_trading_box() + "</div>";
-
-			// Due to ProBoards updating the jQuery UI Lib, titles can no longer
-			// have HTML in them.
-			// Possible option is to remove html from titles, or set the html
-			// in the title in the create event.
-
-			//create: function() {
-			//	$(this).find("span.ui-dialog-title").append("....");
-			//} ???
 
 			pb.window.dialog("monetaryshop-trade-dialog", {
 				modal: true,
@@ -395,16 +393,21 @@ monetary.shop.trade = (function(){
 											$(dialog).dialog("close");
 									
 											var msg = "You have successfully sent a ";
-											
+											var trade_type = 0;
+
 											if(with_items && owner_items){
 												msg += self.settings.text.trade.toLowerCase();
 												msg += " " + self.settings.text.request.toLowerCase();
+												trade_type = 1;
 											} else {
 											 	msg += self.settings.text.gift.toLowerCase();
+												trade_type = 0;
 											}
+
+											monetary.create_notification("[T:" + trade_type + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", viewing_id);
 											
 											msg += " to <a href='/user/" + yootil.html_encode(viewing_id) + "'>";
-											msg += yootil.html_encode(yootil.page.member.name()) + "</a>.";
+											msg += yootil.page.member.name() + "</a>.";
 
 											pb.window.dialog("monetaryshop-trade-sent-dialog", {
 											
@@ -613,7 +616,7 @@ monetary.shop.trade = (function(){
 					html += "<td><img src='" + icon + "' /></td>";
 					html += "<td>" + total_items_sending + " " + this.settings.text.item.toLowerCase() + ((total_items_sending == 1)? "" : "s") + "</td>";
 					html += "<td>" + total_items_requesting + " " + this.settings.text.item.toLowerCase() + ((total_items_requesting == 1)? "" : "s") + "</td>";
-					html += "<td><a href='/user/" + yootil.html_encode(trades_sent[t].t.u[0]) + "'>" + yootil.html_encode(trades_sent[t].t.u[1]) + "</a></td>";
+					html += "<td><a href='/user/" + yootil.html_encode(trades_sent[t].t.u[0]) + "'>" + trades_sent[t].t.u[1] + "</a></td>";
 					html += "<td>" + date_str + "</td>";
 					html += "<td class='monetary-shop-trade-list-button'><button class='trade-request-sent-button' data-trade-id='" + yootil.html_encode(trades_sent[t].d) + "'>View " + this.settings.text.request + "</button></td>";
 					html += "</tr>";
@@ -681,7 +684,7 @@ monetary.shop.trade = (function(){
 					html += "<td><img src='" + icon + "' /></td>";
 					html += "<td>" + total_items_receiving + " " + this.settings.text.item.toLowerCase() + ((total_items_receiving == 1)? "" : "s") + "</td>";
 					html += "<td>" + total_items_requesting + " " + this.settings.text.item.toLowerCase() + ((total_items_requesting == 1)? "" : "s") + "</td>";
-					html += "<td><a href='/user/" + yootil.html_encode(trades_received[t].f.u[0]) + "'>" + yootil.html_encode(trades_received[t].f.u[1]) + "</a></td>";
+					html += "<td><a href='/user/" + yootil.html_encode(trades_received[t].f.u[0]) + "'>" + trades_received[t].f.u[1] + "</a></td>";
 					html += "<td>" + date_str + "</td>";
 					html += "<td class='monetary-shop-trade-list-button'><button class='trade-request-received-button' data-trade-id='" + yootil.html_encode(trades_received[t].d) + "'>View " + this.settings.text.request + "</button></td>";
 					html += "</tr>";
@@ -775,7 +778,7 @@ monetary.shop.trade = (function(){
 			var img_size = this.shop.get_size_css(true);
 			var disp = (!img_size.length && parseInt(this.shop.settings.mini_image_percent) > 0)? " style='display: none;'" : "";
 			var valid_trade = (the_trade && the_trade.f && the_trade.f.i)? true : false;
-			var trader_name = (valid_trade)? yootil.html_encode(the_trade.f.u[1]) : "Member";
+			var trader_name = (valid_trade)? the_trade.f.u[1] : "Member";
 			var trade_gift_img = (gift)? this.shop.images.gift_big : this.shop.images.trade_big;
 			var trade_gift_txt = (gift)? this.settings.text.gift : this.settings.text.trade;
 						
@@ -784,7 +787,7 @@ monetary.shop.trade = (function(){
   			html += "</div>";
   			
   			if(valid_trade){
-	  			trader_name = "<a class='trader-requester-name' href='/user/" + yootil.html_encode(the_trade.f.u[0]) + "'>" + yootil.html_encode(trader_name) + "</a>";  	
+	  			trader_name = "<a class='trader-requester-name' href='/user/" + yootil.html_encode(the_trade.f.u[0]) + "'>" + trader_name + "</a>";
 	  		}
 	  		
   			html += "<div class='trade_wrapper' style='float: left; margin-top: 10px;'><div style='float: left;'>";
@@ -945,6 +948,9 @@ monetary.shop.trade = (function(){
 						
 						if(return_obj.can_accept){
 							self.timer_paused = true;
+
+							monetary.create_notification("[TAR:" + ((gift)? 2 : 3) + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", the_trade.f.u[0]);
+
 							self.shop.data(yootil.user.id()).update(false);
 							self.shop.data(the_trade.f.u[0]).update(false, {
 																	
@@ -1049,7 +1055,9 @@ monetary.shop.trade = (function(){
 								}
 								
 								var what = $(this);
-								
+
+								monetary.create_notification("[TAR:" + ((gift)? 0 : 1) + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", the_trade.f.u[0]);
+
 								self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
 									
 									complete: function(){
@@ -1161,7 +1169,7 @@ monetary.shop.trade = (function(){
   			html += "</div>";
   			  			
   			if(valid_trade){
-	  			receiver_name = "<a class='trader-requester-name' href='/user/" + yootil.html_encode(the_trade.t.u[0]) + "'>" + yootil.html_encode(the_trade.t.u[1]) + "</a>";  	
+	  			receiver_name = "<a class='trader-requester-name' href='/user/" + yootil.html_encode(the_trade.t.u[0]) + "'>" + the_trade.t.u[1] + "</a>";
 	  		}
 	  		
   			html += "<div class='trade_wrapper' style='float: left; margin-top: 10px;'><div style='float: left;'>";

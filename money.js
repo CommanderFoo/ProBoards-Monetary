@@ -886,8 +886,6 @@ var money = {
 			this.settings.text.wallet = (settings.wallet_text && settings.wallet_text.length)? settings.wallet_text : this.settings.text.wallet;
 
 			this.settings.notification.show = (!! ~~ settings.n_show_notification)? true : false;
-			this.settings.notification.title = (settings.n_notification_title && settings.n_notification_title.length)? settings.n_notification_title : this.settings.notification.title;
-			this.settings.notification.msg = (settings.n_notification_msg && settings.n_notification_msg.length)? settings.n_notification_msg : this.settings.notification.msg;
 			this.settings.notification.show_edited = (!! ~~ settings.n_show_edited_by)? true : false;
 			this.settings.notification.show_date = (!! ~~ settings.n_show_date)? true : false;
 		}

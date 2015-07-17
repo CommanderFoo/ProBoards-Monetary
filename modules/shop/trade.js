@@ -877,7 +877,7 @@ monetary.shop.trade = (function(){
   			}
   			
   			if(gift){
-  				requesting_content = "<span class='trader-not-requesting'>" + yootil.html_encode(trader_name, true) + " is not requesting any items.</span>";
+  				requesting_content = "<span class='trader-not-requesting'>" + trader_name + " is not requesting any items.</span>";
   			} else if(!requesting_content.length){
   				can_trade = false;
   				requesting_content = "<em>An error has occurred</em>";

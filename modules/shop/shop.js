@@ -171,7 +171,7 @@ monetary.shop = (function(){
 
 		setup: function(){
 			if(monetary.plugin){
-				this.plugin = proboards.plugin.get("pixeldepth_monetary_shop");
+				this.plugin = pb.plugin.get("pixeldepth_monetary_shop");
 
 				var settings = this.plugin.settings;
 

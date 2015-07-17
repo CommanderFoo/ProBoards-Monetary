@@ -1000,14 +1000,15 @@ var money = {
 						}
 
 						if(self.settings.notification.show){
-							self.data(user_id).push.notification({
+							self.create_notification("[ME:" + ((bank_edit)? 2 : 1) + "|" + value + "|1|" + yootil.user.id() + "|" + yootil.user.name() + "]", user_id);
+							/*self.data(user_id).push.notification({
 
 								type: ((bank_edit)? 2 : 1),
 								amount: [old_money, value, 1],
 								time: (+ new Date()),
 								user: [yootil.user.name(), yootil.user.id()]
 
-							}, true);
+							}, true);*/
 						}
 
 						self.data(user_id).update();
@@ -1042,14 +1043,16 @@ var money = {
 						}
 
 						if(self.settings.notification.show){
-							self.data(user_id).push.notification({
+							self.create_notification("[ME:" + ((bank_edit)? 2 : 1) + "|" + value + "|2|" + yootil.user.id() + "|" + yootil.user.name() + "]", user_id);
+
+							/*self.data(user_id).push.notification({
 
 								type: ((bank_edit)? 2 : 1),
 								amount: [old_money, value, 2],
 								time: (+ new Date()),
 								user: [yootil.user.name(), yootil.user.id()]
 
-							}, true);
+							}, true);*/
 						}
 
 						self.data(user_id).update();
@@ -1100,14 +1103,16 @@ var money = {
 						if(self.settings.notification.show){
 							var act_type = (action_key == "increase")? 3 : 4;
 
-							self.data(user_id).push.notification({
+							self.create_notification("[ME:" + ((bank_edit)? 2 : 1) + "|" + value + "|" + act_type + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", user_id);
+
+							/*self.data(user_id).push.notification({
 
 								type: ((bank_edit)? 2 : 1),
 								amount: [old_money, value, act_type],
 								time: (+ new Date()),
 								user: [yootil.user.name(), yootil.user.id()]
 
-							}, true);
+							}, true);*/
 						}
 
 						self.data(user_id).update();

@@ -596,7 +596,7 @@ money.donation = (function(){
 		},
 
 		accept_donation: function(donation){
-			monetary.create_notification("[DA:" + yootil.user.id() + "|" + yootil.user.name() + "]", donation.f[0]);
+			monetary.create_notification("[DA:" + donation.a + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", donation.f[0]);
 
 			money.data(yootil.user.id()).donation.accept(donation, false, {
 				complete: function(){

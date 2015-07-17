@@ -175,7 +175,7 @@ money.donation = (function(){
 			if(rejected.length){
 				var reject = rejected[0];
 				var donation_id = reject.t + "" + reject.r[0];
-				var content = "Your " + this.settings.text.donation.toLowerCase() + " of " + money.settings.money_symbol + money.format(reject.a, true) + " to <a href='/user/" + yootil.html_encode(reject.r[0]) + "'>" + reject.r[1] + "</a> was rejected.";
+				var content = "Your " + this.settings.text.donation.toLowerCase() + " of " + money.settings.money_symbol + money.format(reject.a, true) + " to <a href='/user/" + yootil.html_encode(reject.r[0]) + "'>" + yootil.html_encode(reject.r[1], true) + "</a> was rejected.";
 
 				pb.window.dialog("montary-donation-reject-" + r, {
 					modal: true,
@@ -379,13 +379,13 @@ money.donation = (function(){
 
 			var title = "<div class='monetary-donation'>";
 
-			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "'>" + this.donation_to.name + "</a>";
+			var donation_to_user = "<a href='" + yootil.html_encode(this.donation_to.url) + "'>" + yootil.html_encode(this.donation_to.name, true) + "</a>";
 
             title += "<div class='monetary-donation-sending-to-title'>Sending " + this.settings.text.donation + " - <span id='monetary-donation-page-expiry'>Page Expires In: " + this.PAGE_TIME_EXPIRY + " seconds</span></div>";
             title += "<div class='monetary-donation-sending-amount-title' id='pd_money_wallet'>" + money.settings.text.wallet + ': ' + money.settings.money_symbol + "<span id='pd_money_wallet_amount'>" + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + "</span></div>";
 
 			html += "<div class='monetary-donation-form'>";
-			html += "<div class='monetary-donation-avatar-img'><img title='" + this.donation_to.name + "' src='" + yootil.html_encode(this.donation_to.avatar) + "'><p class='monetary-donation-to-current-amount'>" + money.settings.money_symbol + yootil.html_encode(this.donation_to.money) + "</p></div>";
+			html += "<div class='monetary-donation-avatar-img'><img title='" + yootil.html_encode(this.donation_to.name, true) + "' src='" + yootil.html_encode(this.donation_to.avatar) + "'><p class='monetary-donation-to-current-amount'>" + money.settings.money_symbol + yootil.html_encode(this.donation_to.money) + "</p></div>";
 			html += "<div class='monetary-donation-fields'>";
 
 			html += "<dl>";
@@ -480,7 +480,7 @@ money.donation = (function(){
 					html += "<tr class='item conversation" + klass + "' data-donation-from='" + yootil.html_encode(donations[d].f[0]) + "'>";
 					html += "<td><img src='" + money.images.donate_big + "' alt='" + this.settings.text.donation + "' title='" + this.settings.text.donations + "' /></td>";
 					html += "<td>" + money.settings.money_symbol + yootil.html_encode(amount) + "</td>";
-					html += "<td><a href='/user/" + yootil.html_encode(donations[d].f[0]) + "'>" + donations[d].f[1] + "</a></td>";
+					html += "<td><a href='/user/" + yootil.html_encode(donations[d].f[0]) + "'>" + yootil.html_encode(donations[d].f[1], true) + "</a></td>";
 					html += "<td>" + date_str + "</td>";
 					html += "<td class='monetary-donation-button'><button data-donation-id='" + yootil.html_encode(donations[d].t) + "" + yootil.html_encode(donations[d].f[0]) + "'>View " + this.settings.text.donation + "</button></td>";
 					html += "</tr>";
@@ -547,12 +547,12 @@ money.donation = (function(){
 
 				this.collect_donation_from_details();
 
-				var donation_from_user = "<a href='" + yootil.html_encode(this.donation_from.url) + "'>" + this.donation_from.name + "</a>";
+				var donation_from_user = "<a href='" + yootil.html_encode(this.donation_from.url) + "'>" + yootil.html_encode(this.donation_from.name, true) + "</a>";
 
 				var html = "";
 
 				html += "<div class='monetary-donation-form'>";
-				html += "<div class='monetary-donation-avatar-img'><img title='" + this.donation_from.name + "' src='" + yootil.html_encode(this.donation_from.avatar) + "'><p class='monetary-donation-to-current-amount'>" + money.settings.money_symbol + yootil.html_encode(this.donation_from.money) + "</p></div>";
+				html += "<div class='monetary-donation-avatar-img'><img title='" + yootil.html_encode(this.donation_from.name, true) + "' src='" + yootil.html_encode(this.donation_from.avatar) + "'><p class='monetary-donation-to-current-amount'>" + money.settings.money_symbol + yootil.html_encode(this.donation_from.money) + "</p></div>";
 				html += "<div class='monetary-donation-fields'>";
 
 				html += "<dl>";
@@ -596,7 +596,7 @@ money.donation = (function(){
 		},
 
 		accept_donation: function(donation){
-			monetary.create_notification("[DA:" + yootil.user.id() + "|" + yootil.user.name() + "]", donation.from[0]);
+			monetary.create_notification("[DA:" + yootil.user.id() + "|" + yootil.user.name() + "]", donation.f[0]);
 
 			money.data(yootil.user.id()).donation.accept(donation, false, {
 				complete: function(){

@@ -1,12 +1,9 @@
 /**
-* Namespace: money.rank_up
-*
-* 	Awards members money when they rank up.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class monetary.rank_up
+ * @static
+ *
+ * Awards members money when they rank up.
+ */
 
 money.rank_up = (function(){
 

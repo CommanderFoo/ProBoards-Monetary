@@ -1,12 +1,9 @@
 /**
-* Namespace: money.bank
-*
-* 	Allows members to store money in the bank, deposit, withdraw, and earn interest.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class monetary.bank
+ * @static
+ *
+ * Allows members to store money in the bank, deposit, withdraw, and earn interest.
+ */
 
 money.bank = (function(){
 

@@ -1,5 +1,5 @@
 /**
- * @class donation
+ * @class monetary.donation
  * @static
  *
  * 	Allows members to donate money to each other.

@@ -1,5 +1,5 @@
 /**
- * @class trade
+ * @class monetary.shop.trade
  * @static
  *
  * 	Allows members to trade or gift with each other.

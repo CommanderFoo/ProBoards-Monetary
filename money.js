@@ -1,15 +1,8 @@
-// @TODO
-// make it not look for "Posts" on the profile when injecting into the DOM
-// Change the cat and board check to not return until the end (710)
-
 /**
- * @class money
- *
+ * @class monetary
+ * @static
+ * *
  * Main class that handles setup, init of sub modules, post event bindings and display of money across the forum.
- *
- * Git - https://github.com/pixelDepth/monetarysystem/
- *
- * Forum Topic - http://support.proboards.com/thread/429762/
  */
 
 var money = {
@@ -22,7 +15,7 @@ var money = {
 	VERSION: "{VER}",
 
 	/**
-	 * This is the ProBoards plugin key.
+	 * This is the ProBoards plugin key we are using.
 	 * @property {String} KEY
 	 */
 
@@ -44,6 +37,8 @@ var money = {
 
 	/**
 	 * Route gets cached here, as it gets wrote over by some AJAX responses.
+	 * We shouldn't need it, as Yootil does caching as well.
+	 *
 	 * @property {String} route
 	 */
 
@@ -57,7 +52,7 @@ var money = {
 	params: null,
 
 	/**
-	 * Reference to the images object from ProBoards.
+	 * Reference to the images object from ProBoards for this plugin.
 	 * @property {Object} images
 	 */
 
@@ -71,8 +66,48 @@ var money = {
 	trigger_caller: false,
 
 	/**
-	 * Holds all settings for this class, these can be overwritten by setup.
+	 * Holds all default settings for this class, these can be overwritten in setup.
 	 * @property {Object} settings
+	 * @property @deprecated {Boolean} settings.check_for_update This is no longer used.
+	 * @property @deprecated {Boolean} settings.check_how_often This is no longer used.
+	 * @property {String} settings.money_text This is what the money is called.
+	 * @property {String} settings.money_symbol This holds the money symbol.
+	 * @property {String} settings.money_separator The separator between money_text and the money value.
+	 * @property {Boolean} settings.decimal_money Do we want to use decimals or not.
+	 * @property {Boolean} settings.show_in_mini_profile Should money show in the mini profiles.
+	 * @property {Boolean} settings.show_money_text_mini Should we show the money text in mini profiles.
+	 * @property {Boolean} settings.show_money_symbol_mini Should we show the money symbol in mini profiles.
+	 * @property {Boolean} settings.show_in_profile Should we show the money on profile pages.
+	 * @property {Boolean} settings.show_money_text_profile Should we show the money text on profiles.
+	 * @property {Boolean} settings.show_money_symbol_profile Should we show the money symbol on profiles.
+	 * @property {Boolean} settings.show_in_members_list Should we show the money on the members list page.
+	 * @property {Boolean} settings.show_money_symbol_members Should we show the money symbol on the members list page.
+	 * @property {Boolean} settings.member_list_text This is the text for the column on the members page.
+	 * @property {Boolean} settings.show_bank_balance_members Should we show the bank balance on the members page.
+	 * @property {Boolean} settings.staff_edit_money Can staff edit money on the profile page.
+	 * @property {Boolean} settings.show_edit_money_image Should we show the edit image on profile page.
+	 * @property {Array} settings.who_can_edit_money Holds an array of users who can edit money on the profile page.
+	 * @property {Object} settings.posting Holds settings to do with posting.
+	 * @property {Boolean} settings.posting.earn_from_quick_reply Can users earn money from the quick reply.
+	 * @property {Boolean} settings.posting.earn_from_quick_reply.amounts Holds the amounts users can earn from posting.
+	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_thread Amount for a new thread.
+	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_poll Amount for adding a poll to a thread.
+	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_reply Amount for when replying to a thread.
+	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_quick_reply Amount for replying while using the quick reply.
+	 * @property {Object} settings.posting.earn_from_quick_reply.amounts.categories Can override amounts per category.
+	 * @property {Object} settings.posting.earn_from_quick_reply.amounts.boards Can override amounts per board.
+	 * @property {Object} settings.notification Settings for notifications that users get when their money is edited.
+	 * @property {Boolean} settings.notification.show Should the notification show for users.
+	 * @property {Boolean} settings.notification.show_edited If enabled, it will show the user who made the edit to their money.
+	 * @property {Array} settings.no_earn_members Members who are not allowed to earn money.
+	 * @property {Array} settings.no_earn_groups Groups who are not allowed to earn money.
+	 * @property {Array} settings.no_earn_categories Categories where money can not be earned.
+	 * @property {Array} settings.no_earn_boards Boards where money can not be earned.
+	 * @property {Array} settings.no_earn_threads Threads where money can not be earned.
+	 * @property {Object} settings.text Holds text values that can be changed in the plugin admin area.
+	 * @property {String} settings.text.wallet The wallet.
+	 * @property {String} settings.text.money_column This is for the members list page.
+	 * @property {String} settings.text.bank_column This is for the members list page.
 	 */
 
 	settings: {
@@ -122,10 +157,7 @@ var money = {
 		notification: {
 
 			show: false,
-			title: "Notifications",
-			msg: "The following changes were made to your account:",
-			show_edited: true,
-			show_date: true
+			show_edited: true
 
 		},
 
@@ -210,6 +242,7 @@ var money = {
 
 	/**
 	 * Starts the magic.
+	 * Various this happening here.  We do Yootil checks, setup user lookup table, and other checks.
 	 */
 
 	init: function(){
@@ -259,6 +292,15 @@ var money = {
 		}
 	},
 
+	/**
+	 * Uses yootils notification class.
+	 *
+	 *     monetary.create_notification("message", 1);
+	 *
+	 * @param {String} msg The message for the notification.
+	 * @param {Number} user_id The user id who is receiving this notification.
+	 */
+
 	create_notification: function(msg, user_id){
 		if(!msg || !user_id){
 			return;
@@ -268,23 +310,28 @@ var money = {
 			this.notify.create(msg, user_id);
 		}
 	},
-	
+
+	/**
+	 * Used to correct incorrect dates that were being saved.
+	 * @deprecated
+	 * @param {Number} the_date The date to be corrected.
+	 * @return {Object} Date object.
+	 */
+
 	correct_date: function(the_date){
 		if(the_date.toString().indexOf(".") != -1){
 			return new Date(the_date * 1000);	
 		}
 		
 		return new Date(the_date);
-	},		
+	},
 
 	/**
-	* Method: setup_user_data_table
-	* 	This sets up the lookup table for all users on the current page.  Each entry is an instance of Data.  Always
-	*	look here before creating your own instance, as multiple instances would not be good.
-	*
-	*
-	* 	It is recommended that if you do create an instance of Data to update the lookup table (key being user id).
-	*/
+	 * This sets up the lookup table for all users on the current page.  Each entry is an instance of Data.  Always
+	 * look here before creating your own instance, as multiple instances would not be good.
+	 *
+	 *  It is recommended that if you do create an instance of Data to update the lookup table (key being user id).
+	 */
 
 	setup_user_data_table: function(){
 		var all_data = proboards.plugin.keys.data[this.KEY];
@@ -296,12 +343,34 @@ var money = {
 		}
 	},
 
+	/**
+	 * Refreshed the user data lookup table.
+	 */
+
 	refresh_user_data_table: function(){
 		this.setup_user_data_table();
 	},
 
+	/**
+	 * @property {Array} months An array of months used throughout the plugin and it's modules.
+	 */
+
 	months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"],
+
+	/**
+	 * @property {Array} days An array of days used throughout the plugin and it's modules.
+	 */
+
 	days: ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"],
+
+	/**
+	 * Checks a number and returns the correct suffix to be used with it.
+	 *
+	 *     monetary.get_suffix(3); // "rd"
+	 *
+	 * @param {Number} n The number to be checked.
+	 * @return {String}
+	 */
 
 	get_suffix: function(n){
 		var j = (n % 10);
@@ -322,28 +391,22 @@ var money = {
 	},
 
 	/**
-	* Method: version
-	* 	Gets current version of the plugin.
-	*
-	* Returns:
-	*	*string*
-	*/
+	 * Gets current version of the plugin.
+	 *
+	 * @return {String}
+	 */
 
 	version: function(){
 		return this.VERSION;
 	},
 
 	/**
-	* Method: check_data
-	* 	Checks the data type to make sure it's correct.  The reason for this is because ProBoards
-	* 	never used to JSON stringify values, so we check to make sure it's not double stringified.
-	*
-	* Parameters:
-	* 	data - *string* The key data.
-	*
-	* Returns:
-	*	*object*
-	*/
+	 * Checks the data type to make sure it's correct.  The reason for this is because ProBoards
+	 * never used to JSON stringify values, so we check to make sure it's not double stringified.
+	 *
+	 * @param {String} data The key data.
+	 * @return {Object}
+	 */
 
 	check_data: function(data){
 		if(typeof data == "string" && yootil.is_json(data)){
@@ -354,9 +417,8 @@ var money = {
 	},
 
 	/**
-	* Method: look_for_wallet
-	* 	Looks for any element with the wallet class and updates the html of it.
-	*/
+	 * Looks for any element with the wallet class and updates the html of it.
+	 */
 
 	look_for_wallet: function(){
 		var wallet = $(".money_wallet_amount");
@@ -367,12 +429,10 @@ var money = {
 	},
 
 	/**
-	* Method: check_yootil
-	* 	Yootil is needed, so we check for it, and also check that we are using the needed version.
-	*
-	* Returns:
-	*	*boolean*
-	*/
+	 * Yootil is needed, so we check for it, and also check that we are using the needed version.
+	 *
+	 * @return {Boolean}
+	 */
 
 	check_yootil: function(){
 		if(proboards.data && proboards.data("user") && proboards.data("user").id == 1){
@@ -416,10 +476,9 @@ var money = {
 	},
 
 	/**
-	* Method: show_default
-	* 	Shows the forum default display by showing the content div and all children.  This is generally used
-	* 	in the modules where the setting for the module is disabled.
-	*/
+	 * Shows the forum default display by showing the content div and all children.  This is generally used
+	 * in the modules where the setting for the module is disabled.
+	 */
 
 	show_default: function(){
 		if(this.can_show_default){
@@ -428,19 +487,14 @@ var money = {
 	},
 
 	/**
-	* Method: format
-	* 	Formats the money value into a whole or float number depending on settings.
-	*
-	* Parameters:
-	* 	str - *str* Money value to be formatted
-	* 	string - *boolean* If a string is needed back, pass in true
-	*
-	* Returns:
-	*	*mixed*
-	*
-	* Examples:
-	*	pixeldepth.monetary.format(33, true) // "33.00"
-	*/
+	 * Formats the money value into a whole or float number depending on settings.
+	 *
+	 *     monetary.format(33, true); // "33.00"
+	 *
+	 * @param {String} str Money value to be formatted.
+	 * @param {Boolean} string If a string is needed back, pass in true.
+	 * @return {Mixed}
+	 */
 
 	format: function(str, string){
 		var str = parseFloat(str);
@@ -475,90 +529,62 @@ var money = {
 	},
 
 	/**
-	* Method: get
-	* 	This is deprecated, please see the data method and Data class.
-	*
-	* Parameters:
-	* 	format - *boolean* Money value to be formatted
-	* 	bank - *boolean* Bank value or wallet value
-	*
-	* Returns:
-	*	*integer / string*
-	*
-	* Examples:
-	*	pixeldepth.monetary.get(true, true) // returns bank value formated i.e "33.00"
-	*/
+	 * 	This is deprecated, please see the data method and Data class.
+	 *
+	 * @deprecated
+	 */
 
 	get: function(format, bank){
 		return this.data(yootil.user.id()).get[((bank)? "bank" : "money")](format);
 	},
 
 	/**
-	* Method: subtract
-	* 	This is deprecated, please see the data method and Data class.
-	*
-	* Parameters:
-	* 	value - *integer* Money value to be subtracted
-	* 	bank - *boolean* Substract from bank or wallet
-	* 	no_update - *boolean* If true, no key update will be done
-	*	opts - *object* ProBoards key options
-	* 	sync - *boolean* Pass true to sync accross tabs / windows
-	*/
+	 * This is deprecated, please see the data method and Data class.
+	 *
+	 * @deprecated
+	 */
 
 	subtract: function(value, bank, no_update, opts, sync){
 		this.data(yootil.user.id()).decrease[((bank)? "bank" : "money")](value, no_update, opts, sync);
 	},
 
 	/**
-	* Method: add
-	* 	This is deprecated, please see the data method and Data class.
-	*
-	* Parameters:
-	* 	value - *integer* Money value to be added
-	* 	bank - *boolean* Added to bank or wallet
-	* 	no_update - *boolean* If true, no key update will be done
-	*	opts - *object* ProBoards key options
-	* 	sync - *boolean* Pass true to sync accross tabs / windows
-	*/
+	 * This is deprecated, please see the data method and Data class.
+	 *
+	 * @deprecated
+	 */
 
 	add: function(value, bank, no_update, opts, sync){
 		this.data(yootil.user.id()).increase[((bank)? "bank" : "money")](value, no_update, opts, sync);
 	},
 
 	/**
-	* Method: disable_earning
-	* 	Display earning when posting.
-	*/
+	 * Ddisables earning when posting.
+	 */
 
 	disable_earning: function(){
 		this.can_earn_money = false;
 	},
 
 	/**
-	* Method: enable_earning
-	* 	Enable earning when posting (earning is enabled by default).
-	*/
+	 * Enable earning when posting (earning is enabled by default).
+	 */
 
 	enable_earning: function(){
 		this.can_earn_money = true;
 	},
 
 	/**
-	* Method: data
-	* 	This is used to get the instance of the users Data class from the lookup table.  Please see the Data
-	* 	class to see methods available.
-	*
-	* Parameters:
-	* 	user_id - *integer* The user id of the users data you want.
-	*
-	* Returns:
-	*	*object* - Data object is returned
-	*
-	* Examples:
-	* 	pixeldepth.monetary.data(yootil.user.id()).get.money() // Returns users money
-	*
-	* 	pixeldepth.monetary.data(yootil.user.id()).increase.money(100) // Adds 100 to users money
-	*/
+	 * This is used to get the instance of the users Data class from the lookup table.  Please see the Data
+	 * class to see methods available.
+	 *
+	 *     monetary.data(yootil.user.id()).get.money(); // Returns users money
+	 *
+	 *     monetary.data(yootil.user.id()).increase.money(100); // Adds 100 to users money
+	 *
+	 * @param {Number} user_id The user id of the users data you want.
+	 * @return {Object}
+	 */
 
 	data: function(user_id){
 		var user_data = this.user_data_table[((user_id)? user_id : yootil.user.id())];
@@ -572,12 +598,10 @@ var money = {
 	},
 
 	/**
-	* Method: can_earn
-	* 	Checks to see if the user can earn money.
-	*
-	* Returns:
-	* 	*boolean*
-	*/
+	 * Checks to see if the user can earn money.
+	 *
+	 * @return {Boolean}
+	 */
 
 	can_earn: function(){
 		if(this.settings.no_earn_members && this.settings.no_earn_members.length){
@@ -600,24 +624,20 @@ var money = {
 	},
 
 	/**
-	* Method: clean_money
-	* 	Cleans the money value to make sure it is safe and valid.
-	*
-	* Returns:
-	* 	*string*
-	*/
+	 * Cleans the money value to make sure it is safe and valid.
+	 *
+	 * @return {String}
+	 */
 
 	clean_money: function(money){
 		return money.toString().replace(/[^\d\.]/g, "");
 	},
 
 	/**
-	* Method: can_earn_in_cat_board
-	* 	Checks to see if money can be earned in categories and boards
-	*
-	* Returns:
-	* 	*boolean*
-	*/
+	 * Checks to see if money can be earned in categories and boards
+	 *
+	 * @return {Boolean}
+	 */
 
 	can_earn_in_cat_board: function(){
 		if(this.settings.no_earn_categories && this.settings.no_earn_categories.length){
@@ -642,21 +662,16 @@ var money = {
 	},
 
 	/**
-	* Method: clear_auto_save
-	* 	Clears the autosave for posts.  This was a bug reported, and this seems to fix it.
-	*/
+	 * Clears the autosave for posts.  This was a bug reported, and this seems to fix it.
+	 */
 
 	clear_auto_save: function(){
 		proboards.autosave.clear();
 	},
 
 	/**
-	* Method: bind_events
-	* 	Handles binding events to earn money when posting.
-	*
-	*
-	* 	This needs cleaning up, as it contains old code before ProBoards included key events on forms.
-	*/
+	 * Handles binding events to earn money when posting.
+	 */
 
 	bind_events: function(){
 
@@ -715,13 +730,11 @@ var money = {
 	},
 
 	/**
-	* Method: apply_posting_money
-	* 	Handles applying money for posting, wages, rank up etc.  Also overrides posting amounts if there are
-	* 	category or board settings.
-	*
-	* Parameters:
-	* 	event - *string* The key event we are hooking.
-	*/
+	 * Handles applying money for posting, wages, rank up etc.  Also overrides posting amounts if there are
+	 * category or board settings.
+	 *
+	 * @param {String} event The key event we are hooking.
+	 */
 
 	apply_posting_money: function(event){
 		if(!this.can_earn_money){
@@ -779,9 +792,8 @@ var money = {
 	},
 
 	/**
-	* Method: setup
-	* 	Handles basic setup for settings.
-	*/
+	 * Handles basic setup for settings.
+	 */
 
 	setup: function(){
 		this.route = (proboards.data("route") && proboards.data("route").name)? proboards.data("route").name.toLowerCase() : "";
@@ -887,17 +899,14 @@ var money = {
 
 			this.settings.notification.show = (!! ~~ settings.n_show_notification)? true : false;
 			this.settings.notification.show_edited = (!! ~~ settings.n_show_edited_by)? true : false;
-			this.settings.notification.show_date = (!! ~~ settings.n_show_date)? true : false;
 		}
 	},
 
 	/**
-	* Method: is_allowed_to_edit_money
-	* 	Checks if the user is allowed to edit another users money.  If main admin, they can edit their own.
-	*
-	* Returns:
-	* 	*boolean*
-	*/
+	 * Checks if the user is allowed to edit another users money.  If main admin, they can edit their own.
+	 *
+	 * @return {Boolean}
+	 */
 
 	is_allowed_to_edit_money: function(){
 		if(!this.settings.staff_edit_money || !yootil.user.logged_in() || !yootil.user.is_staff()){
@@ -918,20 +927,15 @@ var money = {
 	},
 
 	/**
-	* Method: bind_edit_dialog
-	* 	Binds a dialog to the money and bank values on a users profile so staff with permissions can edit those values
-	* 	easily.
-	*
-	* Parameters:
-	* 	element - *string* HTML element we are binding too (not really needed though).
-	* 	user_id - *integer* The users id we are binding to for editing.
-	* 	bank - *boolean* Is this a bank bind or wallet?
-	* 	update_selector - *string* Selector for the element we need to update after editing money.
-	* 	edit_image - *string* The edit image next to the money value.
-	*
-	* Returns:
-	* 	*object* - HTML elment jQuery wrapped
-	*/
+	 * Binds a dialog to the money and bank values on a users profile so staff with permissions can edit those values easily.
+	 *
+	 * @param {String} element HTML element we are binding too (not really needed though).
+	 * @param {Number} user_id The users id we are binding to for editing.
+	 * @param {Boolean} bank Is this a bank bind or wallet?
+	 * @param {String} update_selector Selector for the element we need to update after editing money.
+	 * @param {String} edit_image The edit image next to the money value.
+	 * @return {Object} HTML elment jQuery wrapped/
+	 */
 
 	bind_edit_dialog: function(element, user_id, bank, update_selector, edit_image){
 		var self = this;
@@ -1139,9 +1143,8 @@ var money = {
 	},
 
 	/**
-	* Method: show_in_members_list
-	* 	Adds money and bank money to the members list.
-	*/
+	 * Adds money and bank money to the members list.
+	 */
 
 	show_in_members_list: function(no_th){
 		if($("td[class^=pd_money_]").length){
@@ -1182,6 +1185,19 @@ var money = {
 		});
 	},
 
+	/**
+	 * Checks to see if the forum is using custom elements for the money.
+	 *
+	 * @param {Object} container jQuery wrapped container to look in for the elements.
+	 * @param {Number} user_money The users money amount.
+	 * @param {String} edit_image Used on the profile page for editing users money.
+	 * @param {String} money_text The money text to be inserted into the custom elements.
+	 * @param {String} money_symbol The money symbol to be inserted into the custom elements.
+	 * @param {Number} user_id Used to help bind the edit dialog.
+	 * @param {Object} context The object which has the bind dialog setup.
+	 * @return {Boolean} If there are custom elements, we return true.
+	 */
+
 	custom_money_tpl: function(container, user_money, edit_image, money_text, money_symbol, user_id, context){
 		var money_text_cust = container.find(".money_text");
 		var money_symbol_cust = container.find(".money_symbol");
@@ -1209,6 +1225,20 @@ var money = {
 
 		return false;
 	},
+
+	/**
+	 * Checks to see if the forum is using custom elements for the bank value.
+	 *
+	 * @param {Object} container jQuery wrapped container to look in for the elements.
+	 * @param {Number} user_bank_money The users bank amount.
+	 * @param {String} edit_image Used on the profile page for editing users bank value.
+	 * @param {String} bank_text The bank text to be inserted into the custom elements.
+	 * @param {Boolean} show_bank_balance Do we want to show the bank balance.
+	 * @param {String} money_symbol The money symbol to be inserted into the custom elements.
+	 * @param {Number} user_id Used to help bind the edit dialog.
+	 * @param {Object} context The object which has the bind dialog setup.
+	 * @return {Boolean} If there are custom elements, we return true.
+	 */
 
 	custom_bank_tpl: function(container, user_bank_money, edit_image, bank_text, show_bank_balance, money_symbol, user_id, context){
 		if(show_bank_balance){
@@ -1242,7 +1272,18 @@ var money = {
 		return false;
 	},
 
-	custom_donations_sent_tpl: function(container, user_donations_sent, sent_text, money_symbol, user_id, context){
+	/**
+	 * Checks to see if the forum is using custom elements for donations sent.
+	 *
+	 * @param {Object} container jQuery wrapped container to look in for the elements.
+	 * @param {Number} user_donations_sent The users donations sent amount.
+	 * @param {String} sent_text The sent text to be inserted into the custom elements.
+	 * @param {String} money_symbol The money symbol to be inserted into the custom elements.
+	 * @param {Number} user_id Gets added to the class.
+	 * @return {Boolean} If there are custom elements, we return true.
+	 */
+
+	custom_donations_sent_tpl: function(container, user_donations_sent, sent_text, money_symbol, user_id){
 		if(this.donation.settings.show_total_sent_profile){
 			var donations_sent_cust = container.find(".donations_sent_text");
 			var donations_sent_symbol_cust = container.find(".donations_sent_symbol");
@@ -1270,7 +1311,18 @@ var money = {
 		return false;
 	},
 
-	custom_donations_received_tpl: function(container, user_donations_received, received_text, money_symbol, user_id, context){
+	/**
+	 * Checks to see if the forum is using custom elements for donations received.
+	 *
+	 * @param {Object} container jQuery wrapped container to look in for the elements.
+	 * @param {Number} user_donations_received The users donations received amount.
+	 * @param {String} received_text The received text to be inserted into the custom elements.
+	 * @param {String} money_symbol The money symbol to be inserted into the custom elements.
+	 * @param {Number} user_id Gets added to the class.
+	 * @return {Boolean} If there are custom elements, we return true.
+	 */
+
+	custom_donations_received_tpl: function(container, user_donations_received, received_text, money_symbol, user_id){
 		if(this.donation.settings.show_total_received_profile){
 			var donations_received_cust = container.find(".donations_received_text");
 			var donations_received_symbol_cust = container.find(".donations_received_symbol");
@@ -1299,9 +1351,8 @@ var money = {
 	},
 
 	/**
-	* Method: show_in_profile
-	* 	Adds money and bank money to the members profile.
-	*/
+	 * Adds money and bank money to the members profile, also handles sent and received donations amounts if enabled.
+	 */
 
 	show_in_profile: function(){
 		var user_money = this.data(this.params.user_id).get.money(true);
@@ -1390,9 +1441,8 @@ var money = {
 	},
 
 	/**
-	* Method: show_in_mini_profile
-	* 	Adds money members mini profile.
-	*/
+	 * Adds money to members mini profile.  Also handles bank, donations sent and received.
+	 */
 
 	show_in_mini_profile: function(){
 		var minis = $("div.mini-profile");
@@ -1501,6 +1551,11 @@ var money = {
 			});
 		}
 	},
+
+	/**
+	 * Checks if there are any old notifications so they can be removed.  Also creates an instance of
+	 * the new yootil notification class.
+	 */
 
 	check_for_notifications: function(){
 

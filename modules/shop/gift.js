@@ -1,3 +1,8 @@
+/**
+ * @class monetary.shop.gift
+ * @static
+ */
+
 monetary.shop.gift = (function(){
 
 	return {

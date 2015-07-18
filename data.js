@@ -1,153 +1,113 @@
 /**
-* Namespace: money.Data
-*
-* 	Wrapper class around the users data that gets instantiated for each users data on the page.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class monetary.Data
+ * @constructor
+ *
+ * Wrapper class around the users data that gets instantiated for each users data on the page.
+ *
+ * @param {Number} user_id
+ * @param {Object} data This is the data that comes from the key for the user.
+ */
 
 money.Data = (function(){
-
-	/**
-	* Method: Data
-	* 	The constructor.
-	*
-	* Parameters:
-	* 	user_id - *integer*
-	* 	data - *object* This is the data that comes from the key for the user.
-	*
-	* Returns:
-	*	*object*
-	*/
 
 	function Data(user_id, data_obj){
 		this.user_id = user_id;
 		this.data = data_obj || {
 
 			/**
-			* Property: data.m
-			* 	General money (aka wallet)
-			*/
+			 * @property {Number} m General money (aka wallet).
+			 */
 
 			m: 0,
 
 			/**
-			* Property: data.b
-			* 	Bank money
-			*/
+			 * @property {Number} data.b Bank money.
+			 */
 
 			b: 0,
 
 			/**
-			* Property: data.lt
-			* 	Last bank transactions
-			*/
+			 * @property {Array} data.lt Last bank transactions.
+			 */
 
 			lt: [],
 
 			/**
-			* Property: data.li
-			* 	Timestamp of last time interest was given
-			*/
+			 * @property {String} data.li Timestamp of last time interest was given.
+			 */
 
 			li: "",
 
 			/**
-			* Property: data.s
-			* 	Stock market data
-			*/
+			 * @property {Object} data.s Stock market data.
+			 */
 
 			s: {},
 
 			/**
-			* Property: data.w
-			* 	Wages
-			*/
+			 * @property {Object} data.w Wages.
+			 * @property {Number} data.w.p Total posts made (gets reset).
+			 * @property {Number} data.w.e Timestamp expiry.
+			 * @property {Number} data.w.w When the user is paid.
+			 * @property {Number} data.w.s Staff expiry timestamp.
+			 */
 
 			w: {
 
-				/**
-				* Property: data.w.p
-				* 	Posts
-				*/
-
 				p: 0,
-
-				/**
-				* Property: data.w.e
-				* 	Timestamp expiry
-				*/
-
 				e: 0,
-
-				/**
-				* Property: data.w.w
-				* 	When are they paid
-				*/
-
 				w: 0,
-
-				/**
-				* Property: data.w.s
-				* 	Staff expiry timestamp
-				*/
-
 				s: 0
 
 			},
 
 			/**
-			* Property: data.g
-			* 	Gift codes
-			*/
+			 * @property {Array} data.g Gift codes.
+			 */
 
 			g: [],
 
 			/**
-			* Property: data.or
-			* 	Old rank
-			*/
+			 * @property {Number} data.or Old rank.
+			 */
 
 			or: 0,
 
 			/**
-			* Property: data.d
-			* 	Donations received
-			*/
+			 * @property {Array} data.d Donations received.
+			 */
 
 			d: [],
 
 			/**
-			* Property: data.ds
-			* 	Total amount for donations sent
-			*/
+			 * @property {Number} data.ds Total amount for donations sent.
+			 */
 
 			ds: 0,
 
 			/**
-			* Property: data.dr
-			* 	Total amount for donations received
-			*/
+			 * @property {Number} data.dr Total amount for donations received.
+			 */
 
 			dr: 0,
 
 			/**
-			* Property: data.rd
-			* 	Rejected donations
-			*/
+			 * @property {Array} data.rd Rejected donations.
+			 */
 
 			rd: [],
+
+			/**
+			 * @property @deprecated {Array} n Notifications (old).
+			 */
 
 			n: []
 
 		};
 
 		/**
-		* Property: error
-		* 	Holds the last error.  This isn't used much.
-		*/
+		 * @property {String} Holds the last error.  This isn't used much.
+		 */
 
 		this.error = "";
 
@@ -168,14 +128,12 @@ money.Data = (function(){
 		this.data.n = (typeof this.data.n == "object" && this.data.n.constructor == Array)? this.data.n : [];
 
 		/**
-		* Method: update
-		* 	Updates the key data, however you can avoid an actual AJAX request if needed.  Usually this is called internally.
-		*
-		* Parameters:
-		* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-		* 	options - *object* ProBoards key options that get passed on to the set method.
-		*	sync - *boolean* To sync up data across tabs / windows, pass true.
-		*/
+		 * Updates the key data, however you can avoid an actual AJAX request if needed.  Usually this is called internally.
+		 *
+		 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+		 * @param {Object} callbacks Yootil key options that get passed on to the set method.
+		 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+		 */
 
 		this.update = function(skip_update, callbacks, sync){
 			if(!skip_update){

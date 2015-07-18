@@ -1,12 +1,9 @@
 /**
-* Namespace: money.gift
-*
-* 	Gift money module handles giving out created gift codes to members.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class monetary.gift
+ * @static
+ *
+ * Gift money module handles giving out created gift codes to members.
+ */
 
 money.gift = (function(){
 

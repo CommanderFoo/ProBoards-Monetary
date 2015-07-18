@@ -1,21 +1,17 @@
 /**
-* Namespace: money.sync
-*
-* 	Handles syncing the user data between tabs and windows.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class monetary.sync
+ * @static
+ *
+ * Handles syncing the user data between tabs and windows.
+ */
 
 money.sync = (function(){
 
 	return {
 
 		/**
-		* Method: init
-		* 	Called every page load to make sure we are storing the most up to date data value, or things get messed up.
-		*/
+		 * Called every page load to make sure we are storing the most up to date data value, or things get messed up.
+		 */
 
 		init: function(){
 			if(!Modernizr.localstorage){
@@ -34,10 +30,9 @@ money.sync = (function(){
 		},
 
 		/**
-		* Method: register
-		* 	Registers this module with the money object.
-		* 	Registers this module with the money object.
-		*/
+		 * Registers this module with the money object.
+		 * @return {Object} Returns the sync object to be registered.
+		 */
 
 		register: function(){
 			money.modules.push(this);
@@ -45,9 +40,8 @@ money.sync = (function(){
 		},
 
 		/**
-		* Method: handle_syncing
-		* 	Checks for the original storage event and makes sure we are using the correct key.
-		*/
+		 * Checks for the original storage event and makes sure we are using the correct key.
+		 */
 
 		handle_syncing: function(evt){
 			if(evt && evt.originalEvent && evt.originalEvent.key == ("monetary_data_sync_" + yootil.user.id())){
@@ -68,13 +62,12 @@ money.sync = (function(){
 		},
 
 		/**
-		* Method: sync_data
-		* 	Here we sync the data object with the new data, and we also handle visual stuff, we don't have too but it's nice.
-		*
-		* 	We do a straight swap for now, I see no reason not too.
-		*
-		*	This only is called when an update to the data has happened.
-		*/
+		 * Here we sync the data object with the new data, and we also handle visual stuff, we don't have too but it's nice.
+		 *
+		 * 	We do a straight swap for now, I see no reason not too.
+		 *
+		 *	This only is called when an update to the data has happened.
+		 */
 
 		sync_data: function(evt){
 			var old_data = evt.oldValue;
@@ -179,9 +172,8 @@ money.sync = (function(){
 		},
 
 		/**
-		* Method: trigger
-		* 	Sometimes we need to trigger the sync (i.e edit money dialog) manually.
-		*/
+		 * Sometimes we need to trigger the sync (i.e edit money dialog) manually.
+		 */
 
 		trigger: function(){
 			if(!Modernizr.localstorage){

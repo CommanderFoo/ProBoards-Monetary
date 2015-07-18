@@ -1,12 +1,9 @@
 /**
-* Namespace: money.stock_market
-*
-* 	Allows members buy and sell stocks to try and make a nice profit.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class monetary.stock_market
+ * @static
+ *
+ * Allows members buy and sell stocks to try and make a nice profit.
+ */
 
 money.stock_market = (function(){
 

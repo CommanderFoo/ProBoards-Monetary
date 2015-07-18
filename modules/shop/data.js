@@ -1,3 +1,8 @@
+/**
+ * @class monetary.shop.Data
+ * @constructor
+ */
+
 monetary.shop.Data = (function(){
 
 	function Data(user_id, data_obj){

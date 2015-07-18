@@ -1,5 +1,7 @@
-// @TODO
-// Syncing of items between windows and tabs (new sync class or rewrite of Money syncing class)
+/**
+ * @class monetary.shop
+ * @static
+ */
 
 monetary.shop = (function(){
 

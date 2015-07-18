@@ -1,12 +1,9 @@
 /**
-* Namespace: money.wages
-*
-* 	Allows members and staff to earn wages from actively posting.
-*
-*	Git - https://github.com/pixelDepth/monetarysystem/
-*
-*	Forum Topic - http://support.proboards.com/thread/429762/
-*/
+ * @class monetary.wages
+ * @static
+ *
+ * Allows members and staff to earn wages from actively posting.
+ */
 
 money.wages = (function(){
 

@@ -68,8 +68,6 @@ var money = {
 	/**
 	 * Holds all default settings for this class, these can be overwritten in setup.
 	 * @property {Object} settings
-	 * @property @deprecated {Boolean} settings.check_for_update This is no longer used.
-	 * @property @deprecated {Boolean} settings.check_how_often This is no longer used.
 	 * @property {String} settings.money_text This is what the money is called.
 	 * @property {String} settings.money_symbol This holds the money symbol.
 	 * @property {String} settings.money_separator The separator between money_text and the money value.

@@ -9,6 +9,14 @@ money.wages = (function(){
 
 	return {
 
+		/**
+		 * @property {Object} data contains various bits of data that are stored in the key to do with wages.
+		 * @property {Number} data.p Current posts for the user.  This gets reset based on expiry time.
+		 * @property {Number} data.e This is the timestamp for when the data gets reset.
+		 * @property {Number} data.w When they get paid (1 - 4).
+		 * @property {Number} data.s Staff expiry timestamp.
+		 */
+
 		data: {
 
 			// Posts
@@ -28,7 +36,16 @@ money.wages = (function(){
 			s: 0
 		},
 
-		total_wage_amount: 0,
+		/**
+		 * @property {Object} settings Holds default settings that can be overwritten from setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Number} settings.how_often How often the user is paid.
+		 * @property {Boolean} settings.bonuses_enabled Extra bonuses on top of the wage if enabled.
+		 * @property {Number} settings.bonus_amount The percentage amount to be given.
+		 * @property {Number} settings.paid_into Wallet or Bank.
+		 * @property {Array} settings.rules These are the autoform rules for members (i.e X posts = X money).
+		 * @property {Array} settings.staff_rules Rules for staff.
+		 */
 
 		settings: {
 
@@ -43,12 +60,22 @@ money.wages = (function(){
 
 		},
 
+		/**
+		 * @property {Object} ms Holds the milliseconds for day and week to save computing it later.
+		 * @property {Number} ms.day The total milliseconds for a day.
+		 * @property {Number} ms.week The total milliseconds for a week.
+		 */
+
 		ms: {
 
 			day: 86400000,
 			week: 604800000
 
 		},
+
+		/**
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 
@@ -58,6 +85,10 @@ money.wages = (function(){
 				this.setup();
 			}
 		},
+
+		/**
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
 
 		setup: function(){
 			if(money.plugin){
@@ -113,10 +144,20 @@ money.wages = (function(){
 			}
 		},
 
+		/**
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
 		register: function(){
 			money.modules.push(this);
 			return this;
 		},
+
+		/**
+		 * This is called when we bind the methods (from main monetary class) when key hooking when posting.
+		 * @returns {Boolean}
+		 */
 
 		pay: function(){
 			if(!this.settings.enabled){
@@ -129,9 +170,17 @@ money.wages = (function(){
 			return true;
 		},
 
+		/**
+		 * This is called when we bind the methods (from main monetary class) when key hooking when posting.
+		 */
+
 		pay_staff: function(){
 			this.workout_staff_pay();
 		},
+
+		/**
+		 * Handles working out the pay for staff.
+		 */
 
 		workout_staff_pay: function(){
 			var amount_per_period = this.get_staff_wage_amount();
@@ -200,6 +249,10 @@ money.wages = (function(){
 				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},
+
+		/**
+		 * Handles working out the pay for members.
+		 */
 
 		workout_pay: function(){
 			var data = money.data(yootil.user.id()).get.wages();
@@ -304,8 +357,16 @@ money.wages = (function(){
 			this.update_data();
 		},
 
-		// If admin changes how often the member is paid, we use the stored value for the member until
-		// it expires, and we keep checking so we make sure to get the member onto the forum default
+		/**
+		 * Sets up some defaults for posts and expirations.
+		 *
+		 * If settings changes how often the member is paid, we use the stored value for the member until
+		 * it expires, and we keep checking so we make sure to get the member onto the forum default setting.
+		 *
+		 * @param {Object} todays_date Date object for todays date and time.
+		 * @param {Number} when When the user is being paid (1, 7, 14 days, and also 1 month).
+		 * @param {Boolean} reset Resets the popsts and when properties for the users object that is stored in the key.
+		 */
 
 		set_default: function(todays_date, when, reset){
 
@@ -339,6 +400,15 @@ money.wages = (function(){
 			}
 		},
 
+		/**
+		 * Sets the expiry date to a custom date.
+		 *
+		 * @param {Object} todays_date Date object for todays date and time.
+		 * @param {Number} months Months to add onto the date.
+		 * @param {Number} days Days to add onto the date.
+		 * @param {Boolean} reset If true, it will reset the expiration date.
+		 */
+
 		set_expiry: function(todays_date, months, days, reset){
 			var data = money.data(yootil.user.id()).get.wages();
 
@@ -347,6 +417,13 @@ money.wages = (function(){
 				money.data(yootil.user.id()).set.wages(data, true);
 			}
 		},
+
+		/**
+		 * Updates the users data object with the new values.  This also handles creating the bank
+		 * transaction if the bank option is enabled instead of wallet.
+		 *
+		 * @param {Boolean} reset If true, the posts, expiration date, and when to be paid is reset to 0.
+		 */
 
 		update_data: function(reset){
 			var data = money.data(yootil.user.id()).get.wages();
@@ -372,6 +449,12 @@ money.wages = (function(){
 			}
 		},
 
+		/**
+		 * Gets the highest possible wage amount for the user.
+		 *
+		 * @returns {Number}
+		 */
+
 		get_wage_amount: function(){
 			var data = money.data(yootil.user.id()).get.wages();
 			var rules = this.settings.rules;
@@ -387,6 +470,12 @@ money.wages = (function(){
 
 			return amount;
 		},
+
+		/**
+		 * Gets the highest possible wage amount for the staff user.
+		 *
+		 * @returns {Number}
+		 */
 
 		get_staff_wage_amount: function(){
 			var rules = this.settings.staff_rules;
@@ -405,6 +494,12 @@ money.wages = (function(){
 
 			return amount;
 		},
+
+		/**
+		 * Works out the amount of bonus the user should get if bonuses are enabled.
+		 *
+		 * @returns {Number}
+		 */
 
 		get_wage_bonus: function(){
 			var data = money.data(yootil.user.id()).get.wages();

@@ -9,6 +9,13 @@ money.gift = (function(){
 
 	return {
 
+		/**
+		 * @property {Object} settings Default settings which can be overwritten from setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Number} settings.paid_into Where the money is going to be paid into.
+		 * @property {Array} codes Active codes that are create in the plugin settings.
+		 */
+
 		settings: {
 
 			enabled: true,
@@ -18,30 +25,26 @@ money.gift = (function(){
 		},
 
 		/**
-		* Propety: lookup
-		* 	All gift objects go ito this object for quick lookup.
-		*/
+		 * @property {Object} lookup All gift objects go ito this object for quick lookup.
+		 */
 
 		lookup: {},
 
 		/**
-		* Propety: array_lookup
-		* 	All unique gift code strings are pushed into this lookup array.
-		*/
+		 * @property {Array} array_lookup All unique gift code strings are pushed into this lookup array.
+		 */
 
 		array_lookup: [],
 
 		/**
-		* Propety: current_code
-		* 	The current gift code the user is trying to access.
-		*/
+		 * @property {String} current_code The current gift code the user is trying to access.
+		 */
 
 		current_code:  "",
 
 		/**
-		* Method: init
-		* 	Called from the money class to get things going.
-		*/
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 
@@ -77,9 +80,9 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: setup
-		* 	Sets up basic srettings, images.  Populates the lookup object and array.
-		*/
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 * Also populates the lookup object and array.
+		 */
 
 		setup: function(){
 			if(money.plugin){
@@ -117,12 +120,9 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: register
-		* 	Registers this module.
-		*
-		* Returns:
-		* 	*object* - This class reference.
-		*/
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
 
 		register: function(){
 			money.modules.push(this);
@@ -130,9 +130,8 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: add_to_yootil_bar
-		* 	Adds gift icon to the yootil bar if the icon is enabled.
-		*/
+		 * Adds gift icon to the yootil bar if the icon is enabled.
+		 */
 
 		add_to_yootil_bar: function(){
 			for(var key in this.lookup){
@@ -145,12 +144,10 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: show_error
-		* 	Creates an error container and shows the message to the user.
-		*
-		* Parameters:
-		* 	msg - *string*
-		*/
+		 * Creates an error container and shows the message to the user.
+		 *
+		 * @param {String} msg The message to show.
+		 */
 
 		show_error: function(msg){
 			var html = "";
@@ -164,12 +161,10 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: gift_money
-		* 	Handles gifting the money to the user if the gift code is valid and not already accepted.
-		*
-		* Returns:
-		* 	*boolean*
-		*/
+		 * Handles gifting the money to the user if the gift code is valid and not already accepted.
+		 *
+		 * @returns {Boolean}
+		 */
 
 		gift_money: function(){
 			var code = this.get_gift_code();
@@ -223,12 +218,10 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: collect_gift
-		* 	Gives the gift to the user.  This will update the wallet or bank depending on settings.
-		*
-		* Returns:
-		* 	*boolean*
-		*/
+		 * Gives the gift to the user.  This will update the wallet or bank depending on settings.
+		 *
+		 * @returns {Boolean}
+		 */
 
 		collect_gift: function(gift){
 			if(this.current_code && this.lookup[this.current_code]){
@@ -265,24 +258,19 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: save_money_data
-		* 	Wrapper around user Data class to update the key.
-		*/
+		 * Wrapper around user Data class update method to update the key.
+		 */
 
 		save_money_data: function(){
 			money.data(yootil.user.id()).update();
 		},
 
 		/**
-		* Method: allowed_gift
-		* 	Checks to see if the user is allowed this gift.  Various checks are done here against members and groups.
-		*
-		* Parameters:
-		* 	gift - *object* The gift
-		*
-		* Returns:
-		* 	*boolean*
-		*/
+		 * Checks to see if the user is allowed this gift.  Various checks are done here against members and groups.
+		 *
+		 * @param {Object} gift The gift.
+		 * @returns {Boolean}
+		 */
 
 		allowed_gift: function(gift){
 			if(gift){
@@ -315,15 +303,11 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: has_received
-		* 	Checks to see if the user has already received the gift.
-		*
-		* Parameters:
-		* 	code - *string* The gift code
-		*
-		* Returns:
-		* 	*boolean*
-		*/
+		 * Checks to see if the user has already received the gift.
+		 *
+		 * @param {String} code The gift code.
+		 * @returns {Boolean}
+		 */
 
 		has_received: function(code){
 			if($.inArrayLoose(code, money.data(yootil.user.id()).get.gifts()) != -1){
@@ -334,12 +318,10 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: get_gift_code
-		* 	Gets the gift code from the URL
-		*
-		* Returns:
-		* 	*boolean* / *string*
-		*/
+		 * Gets the gift code from the URL.
+		 *
+		 * @returns {Mixed}
+		 */
 
 		get_gift_code: function(){
 			var url = location.href;
@@ -352,12 +334,10 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: valid_code
-		* 	Checks to make sure that the code is valid and exists in the lookup table.
-		*
-		* Returns:
-		* 	*boolean* / *object*
-		*/
+		 * Checks to make sure that the code is valid and exists in the lookup table.
+		 *
+		 * @returns {Mixed}
+		 */
 
 		valid_code: function(code){
 			if(code){
@@ -372,9 +352,8 @@ money.gift = (function(){
 		},
 
 		/**
-		* Method: remove_old_codes
-		* 	Handles removing old codes that do not exist to try and reduce the key length.
-		*/
+		 * Handles removing old codes that do not exist to try and reduce the key length.
+		 */
 
 		remove_old_codes: function(){
 			if(!this.settings.codes.length){

@@ -9,17 +9,51 @@ money.stock_market = (function(){
 
 	return {
 
+		/**
+		 * @property {Boolean} fetching Used when making the AJAX call to fetch the stock data.
+		 */
+
 		fetching: false,
+
+		/**
+		 * @property {Object} data The stock data pulled from the server.
+		 */
 
 		data: {},
 
+		/**
+		 * @property {Object} symbols (i.e "GOOG").
+		 */
+
 		symbols: {},
+
+		/**
+		 * @property {String} html Generate HTML gets stored here.
+		 */
 
 		html: "",
 
+		/**
+		 * @property {Number} current The current index when moving through the stock list.
+		 */
+
 		current: 1,
 
+		/**
+		 * @property {Number} total The total number of companies.
+		 */
+
 		total: 0,
+
+		/**
+		 * @property {Object} settings Default settings that can be overwritten in setup.
+		 * @property {Boolean} enabled Module enabled or not.
+		 * @property {Boolean} show_chart If disabled then the chart will not get shown.
+		 * @property {Boolean} compact If enabled, then it will use a more compact HTML template for smaller widths.
+		 * @property {Object} settings.text Default text replacements.
+		 * @property {String} settings.text.stock_market
+		 * @property {String} settings.text.investments
+		 */
 
 		settings: {
 			enabled: true,
@@ -34,9 +68,21 @@ money.stock_market = (function(){
 			}
 		},
 
+		/**
+		 * @property {Object} replacements Some forums like to rename the stock info, so here we hold the replacements.
+		 */
+
 		replacements: {},
 
+		/**
+		 * @property {Object} invest_data The users investment data.
+		 */
+
 		invest_data: {},
+
+		/**
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 			if(!yootil.user.logged_in()){
@@ -63,10 +109,19 @@ money.stock_market = (function(){
 			}
 		},
 
+		/**
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
 		register: function(){
 			money.modules.push(this);
 			return this;
 		},
+
+		/**
+		 * Creates the stock market page, fetches stock data.
+		 */
 
 		start: function(){
 			this.html = "<div id='stock-wrapper'><img src='" + money.images.preloader + "' /></div>";
@@ -79,6 +134,10 @@ money.stock_market = (function(){
 
 			yootil.create.container("<div style='display: inline;'>" + this.settings.text.stock_market + "<span id='stock-market-total'></span></div><div style='cursor: pointer; float: right'><span id='stock-left'>&laquo; Previous</span> &nbsp;&nbsp;&nbsp; <span id='stock-right'>Next &raquo;</span></div>", this.html).show().appendTo("#content");
 		},
+
+		/**
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
 
 		setup: function(){
 			if(money.plugin){
@@ -115,9 +174,21 @@ money.stock_market = (function(){
 			}
 		},
 
+		/**
+		 * Data from the server needs escaping otherwise it breaks selectors.
+		 *
+		 * @returns {String}
+		 */
+
 		escape_expression: function(expr){
 			return expr.replace(".", "\\.");
 		},
+
+		/**
+		 * Gets the stock name.  This checks in the replacements object to see if the forum has custom info they want to change.
+		 *
+		 * @param {String} stock_id The stock we want to look up.
+		 */
 
 		get_stock_name: function(stock_id){
 			if(this.replacements[stock_id] && this.replacements[stock_id].new_name.length){
@@ -131,6 +202,12 @@ money.stock_market = (function(){
 			return stock_id;
 		},
 
+		/**
+		 * Gets the stock symbol, but checks if a replacement is needed first.
+		 *
+		 * @returns {String}
+		 */
+
 		get_stock_symbol: function(stock_id){
 			if(this.replacements[stock_id] && this.replacements[stock_id].new_symbol.length){
 				return this.replacements[stock_id].new_symbol;
@@ -138,6 +215,10 @@ money.stock_market = (function(){
 
 			return stock_id;
 		},
+
+		/**
+		 * Gets the stock data from the server.  This data is pulled in from Yahoo and parsed.
+		 */
 
 		fetch_stock_data: function(){
 			this.fetching = true;
@@ -158,6 +239,13 @@ money.stock_market = (function(){
 			});
 		},
 
+		/**
+		 * Checks to see if the user has invested in certain stock.
+		 *
+		 * @param {String} stock_symbol
+		 * @returns {Boolean}
+		 */
+
 		has_invested: function(stock_symbol){
 			var invest_data = money.data(yootil.user.id()).get.investments();
 
@@ -168,6 +256,12 @@ money.stock_market = (function(){
 			return false;
 		},
 
+		/**
+		 * Removes stock from the users stock data.
+		 *
+		 * @param {String} stock_symbol The stock to be removed.
+		 */
+
 		remove_from_data: function(stock_symbol){
 			if(this.has_invested(stock_symbol)){
 				var invest_data = money.data(yootil.user.id()).get.investments();
@@ -176,6 +270,10 @@ money.stock_market = (function(){
 				money.data(yootil.user.id()).set.investments(invest_data, true);
 			}
 		},
+
+		/**
+		 * If for some reason this module is disabled, then it gives the user the option to get a full refund.
+		 */
 
 		offer_full_refund: function(){
 			var show = (yootil.storage.get("monetary_stock_ignore_refund") == 1)? false : true;
@@ -259,6 +357,12 @@ money.stock_market = (function(){
 			}
 		},
 
+		/**
+		 * Handles refunding for the user.
+		 *
+		 * @param {String} stock_id
+		 */
+
 		refund_stock: function(stock_id){
 			var self = this;
 			var info = "";
@@ -299,7 +403,12 @@ money.stock_market = (function(){
 			});
 		},
 
-		// How much stock?
+		/**
+		 * Check how much the user has invested.
+		 *
+		 * @param {String} stock_symbol
+		 * @returns {Number} The amount of stock invested.
+		 */
 
 		invest_amount: function(stock_symbol){
 			var invest_data = money.data(yootil.user.id()).get.investments();
@@ -311,10 +420,20 @@ money.stock_market = (function(){
 			return 0;
 		},
 
+		/**
+		 * Saves the users investments to the key and triggers a sync call.
+		 */
+
 		save_investments: function(){
 			money.data(yootil.user.id()).update();
 			money.sync.trigger();
 		},
+
+		/**
+		 * Inserts a new investment row when the user buys stock.
+		 *
+		 * @param {String} stock_id
+		 */
 
 		insert_invest_row: function(stock_id){
 			var invest_data = money.data(yootil.user.id()).get.investments();
@@ -362,6 +481,12 @@ money.stock_market = (function(){
 			$("#stock-invest-row-" + this.escape_expression(stock_id)).show("normal");
 		},
 
+		/**
+		 * Removes an investment row from the list of investments for the user.
+		 *
+		 * @param {String} stock_id
+		 */
+
 		remove_invest_row: function(stock_id){
 			$("#stock-invest-row-" + this.escape_expression(stock_id)).hide("normal", function(){
 				$(this).remove();
@@ -375,9 +500,21 @@ money.stock_market = (function(){
 			});
 		},
 
+		/**
+		 * When the user buys stock, we update the wallet on the page.
+		 */
+
 		update_wallet: function(){
 			$("#pd_money_wallet_amount").html(yootil.html_encode(money.data(yootil.user.id()).get.money(true)));
 		},
+
+		/**
+		 * Handles the buying aspect of stocks.
+		 *
+		 * @param {String} stock_symbol The stock to invest in.
+		 * @param {Number} amount The amount of stock to buy.
+		 * @param {Boolean} insert_invest_row If true, a new investment row is added to the list.
+		 */
 
 		buy_stock: function(stock_symbol, amount, insert_invest_row){
 			if(stock_symbol && amount && this.stock_exists(stock_symbol)){
@@ -418,6 +555,13 @@ money.stock_market = (function(){
 			}
 		},
 
+		/**
+		 * Checks to see stock exists.
+		 *
+		 * @param {String} stock_symbol
+		 * @returns {Boolean}
+		 */
+
 		stock_exists: function(stock_symbol){
 			if(this.symbols[stock_symbol]){
 				return true;
@@ -425,6 +569,13 @@ money.stock_market = (function(){
 
 			return false;
 		},
+
+		/**
+		 * Creates the investment headers for the investment list for the user.
+		 *
+		 * @param {Boolean} return_html If true, the HTML is returned.
+		 * @returns {String}
+		 */
 
 		create_investment_headers: function(return_html){
 			var html = "";
@@ -443,14 +594,18 @@ money.stock_market = (function(){
 			html += "<th style='width: 6%'></th>";
 			html += "</tr>";
 
+			html += "</table>";
+
 			if(return_html){
 				return html;
 			}
 
-			html += "</table>";
-
 			$("#stock-invest-content").empty().html(html);
 		},
+
+		/**
+		 * Builds the users current investment list.
+		 */
 
 		current_investment_list: function(){
 			var invest = $("#stock-invest-content");
@@ -523,6 +678,12 @@ money.stock_market = (function(){
 			invest.empty().append(stock_invest_obj);
 		},
 
+		/**
+		 * Binds events to handle selling stock.
+		 *
+		 * @param {Object} button Button is passed in so we can get the stock id.
+		 */
+
 		bind_sell_event: function(button){
 			var stock_id = $(button).attr("data-stock-id");
 			var invest_data = money.data(yootil.user.id()).get.investments();
@@ -581,6 +742,13 @@ money.stock_market = (function(){
 			});
 		},
 
+		/**
+		 * If a user sells stock, then we need to remove it from the data, update wallet, and removed the investment
+		 * row from the list.
+		 *
+		 * @param {String} stock_id
+		 */
+
 		sell_stock: function(stock_id){
 			var amount = (this.has_invested(stock_id))? this.invest_amount(stock_id) : 0;
 
@@ -597,7 +765,9 @@ money.stock_market = (function(){
 			}
 		},
 
-		// TODO: Tidy up inline CSS
+		/**
+		 * Builds the stock table.  This allows the user to navigate between each stock.
+		 */
 
 		build_stock_table: function(){
 			var stock_table = $("<div id='stock-content-strip'></div>");
@@ -829,6 +999,10 @@ money.stock_market = (function(){
 			this.current_investment_list();
 			this.update();
 		},
+
+		/**
+		 * Moves the stock (like a gallery) forward or back.
+		 */
 
 		update: function(){
 			var self = this;

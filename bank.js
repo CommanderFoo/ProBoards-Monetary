@@ -9,6 +9,36 @@ money.bank = (function(){
 
 	return {
 
+		/**
+		 * @property {Object} settings Default settings for this module that can be overwritten in setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Number} settings.interest The default interest rate.
+		 * @property {Boolean} settings.compact Uses a more compact HTML template for forums with smaller widths.
+		 * @property {Number} settings.minimum_deposit The min amount allowed to be deposited.
+		 * @property {Number} settings.minimum_withdraw The min amount allowed to be withdrawn.
+		 * @property {Boolean} settings.show_bank_mini_profile If true, the bank value will be shown in the mini profile.
+		 * @property {Boolean} settings.show_bank_profile If true, the bank value will be shown on the profile.
+		 * @property {Boolean} settings.show_bank_staff_only If true, the bank value will only show for staff.
+		 * @property {Object} settings.text Default text used throughout the module.
+		 * @property {String} settings.text.bank
+		 * @property {String} settings.text.interest_rate
+		 * @property {String} settings.text.withdraw
+		 * @property {String} settings.text.deposit
+		 * @property {String} settings.text.transactions
+		 * @property {String} settings.text.savings_account
+		 * @property {String} settings.text.account_number
+		 * @property {String} settings.text.sort_code
+		 * @property {Object} settings.text.types Used with transactions to show the type.
+		 * @property {String} settings.text.types.DEPOSIT
+		 * @property {String} settings.text.types.WITHDRAW
+		 * @property {String} settings.text.types.INTEREST
+		 * @property {String} settings.text.types.STAFFEDIT
+		 * @property {String} settings.text.types.WAGES
+		 * @property {String} settings.text.types.RANKUP
+		 * @property {String} settings.text.types.STAFFWAGES
+		 * @property {String} settings.text.types.GIFTMONEY
+		 */
+
 		settings: {
 
 			enabled: true,
@@ -48,10 +78,19 @@ money.bank = (function(){
 
 		},
 
+		/**
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
 		register: function(){
 			money.modules.push(this);
 			return this;
 		},
+
+		/**
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 			this.setup();
@@ -75,6 +114,10 @@ money.bank = (function(){
 				}
 			}
 		},
+
+		/**
+		 * Creates the bank page and builds the HTML to be shown.
+		 */
 
 		start: function(){
 			var self = this;
@@ -289,6 +332,10 @@ money.bank = (function(){
 			});
 		},
 
+		/**
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
+
 		setup: function(){
 			if(money.plugin){
 				var settings = money.plugin.settings;
@@ -348,6 +395,10 @@ money.bank = (function(){
 			}
 		},
 
+		/**
+		 * If interest is enabled, then we apply it by looking at the last time they earned interest.
+		 */
+
 		apply_interest: function(){
 			if(!this.settings.enabled){
 				return false;
@@ -380,6 +431,14 @@ money.bank = (function(){
 			return false;
 		},
 
+		/**
+		 * Formats the date for the transaction so it matches the uses date format settings, but is also shorthand.
+		 *
+		 * @param {Number} date The timestamp to be formatted.
+		 * @param {String} format This is no longer used, we get the format via Yootil.
+		 * @returns {String} The date formatted.
+		 */
+
 		format_transaction_date: function(date, format){
 			var date = new Date(date);
 			var date_str = "";
@@ -409,6 +468,12 @@ money.bank = (function(){
 			return date_str;
 		},
 
+		/**
+		 * Builds the transaction headers.
+		 *
+		 * @returns {String}
+		 */
+
 		get_transaction_html_headers: function(){
 			var html = "";
 
@@ -425,6 +490,12 @@ money.bank = (function(){
 			return html;
 		},
 
+		/**
+		 * Shows an error to the user.  This is generally used when they don't meet the requirements.
+		 *
+		 * @param {String} error The error message to show to the user.
+		 */
+
 		bank_error: function(error){
 			var elem = $("span#pd_money_bank_error");
 
@@ -435,6 +506,12 @@ money.bank = (function(){
 				});
 			}
 		},
+
+		/**
+		 * Deposits money into the bank account, and creates a new transaction.
+		 *
+		 * @param {Number} amount The ammount to be took out from the wallet and placed in the account.
+		 */
 
 		deposit: function(amount){
 			var user_id = yootil.user.id();
@@ -450,6 +527,12 @@ money.bank = (function(){
 			this.create_transaction(1, amount, 0);
 		},
 
+		/**
+		 * Withdraws money from the bank account and creates a new transaction.
+		 *
+		 * @param {Number} amount The ammount to be placed into the wallet and removed from the bank account.
+		 */
+
 		withdraw: function(amount){
 			var user_id = yootil.user.id();
 
@@ -464,11 +547,23 @@ money.bank = (function(){
 			this.create_transaction(2, 0, amount);
 		},
 
+		/**
+		 * Builds a fake account number for the user based on their user id.
+		 *
+		 * @returns {String} Padded string (i.e 0000001).
+		 */
+
 		get_account_number: function(){
 			var id = yootil.user.id();
 
 			return yootil.pad(id, 11, "0");
 		},
+
+		/**
+		 * Builds a fake sort code for the user so they get that Bank feel ;) lol
+		 *
+		 * @returns {String}
+		 */
 
 		get_sort_code: function(){
 			var str = location.hostname.split(".");
@@ -486,9 +581,27 @@ money.bank = (function(){
 			return sort_code;
 		},
 
+		/**
+		 * Gets the transactions for a user.  This is just a wrapper around the data object.
+		 *
+		 * @returns {Array}
+		 */
+
 		get_transactions: function(user_id){
 			return money.data(user_id).get.transactions();
 		},
+
+		/**
+		 * Creates a new transaction.
+		 *
+		 * @param {Number} type The type of transaction (i.e wages = 5).
+		 * @param {Number} in_amount The amount going in.
+		 * @param {Number} out_amount The amount going out.
+		 * @param {Boolean} skip_key_update If true, the key doesn't get saved (aka AJAX request).
+		 * @param {Number} force_previous_balance Uses this number as the previous balance amount in the account.
+		 * @param {Number} user_id The user id that will receive this transaction.
+		 * @returns {Array} If the type is a staff edit, then we return the new transaction list.
+		 */
 
 		create_transaction: function(type, in_amount, out_amount, skip_key_update, force_previous_balance, user_id){
 			var current_transactions = this.get_transactions(user_id);
@@ -530,6 +643,16 @@ money.bank = (function(){
 
 			money.data(user_id).set.transactions(new_transactions_list, skip_key_update);
 		},
+
+		/**
+		 * Creates the HTML for a new transaction row.
+		 *
+		 * @param {Number} type The type of transaction (i.e wages = 5).
+		 * @param {Number} in_amount The amount going in.
+		 * @param {Number} out_amount The amount going out.
+		 * @param {Number} now The date for this transaction.
+		 * @param {Number} balance The current balance.
+		 */
 
 		add_new_transaction_row: function(type, in_amount, out_amount, now, balance){
 			if($("#bank-transaction-list-headers").length == 0){

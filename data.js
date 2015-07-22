@@ -1,8 +1,11 @@
 /**
  * @class monetary.Data
  * @constructor
+ *Wrapper class around the users data that gets instantiated for each users data on the page.
  *
- * Wrapper class around the users data that gets instantiated for each users data on the page.
+ *     var data = new monetary.Data(yootil.user.id())
+ *
+ * Note:  You need to create an instance for each user.  Monetary already does this for you. See the {@link monetary#data data method}.
  *
  * @param {Number} user_id
  * @param {Object} data This is the data that comes from the key for the user.
@@ -11,46 +14,44 @@
 money.Data = (function(){
 
 	function Data(user_id, data_obj){
-		this.user_id = user_id;
-		this.data = data_obj || {
 
-			/**
-			 * @property {Number} m General money (aka wallet).
-			 */
+		/**
+		 * @property {Number} user_id The user id for this user.
+		 */
+
+		this.user_id = user_id;
+
+		/**
+		 * @property {Object} data Data object for the user.
+		 * @property {Number} data.m General money (aka wallet).
+		 * @property {Number} data.b Bank money.
+		 * @property {Array} data.lt Last bank transactions.
+		 * @property {String} data.li Timestamp of last time interest was given.
+		 * @property {Object} data.s Stock market data.
+		 * @property {Object} data.w Wages.
+		 * @property {Number} data.w.p Total posts made (gets reset).
+		 * @property {Number} data.w.e Timestamp expiry.
+		 * @property {Number} data.w.w When the user is paid.
+		 * @property {Number} data.w.s Staff expiry timestamp.
+		 * @property {Array} data.g Gift codes.
+		 * @property {Number} data.or Old rank.
+		 * @property {Array} data.d Donations received.
+		 * @property {Number} data.ds Total amount for donations sent.
+		 * @property {Number} data.dr Total amount for donations received.
+		 * @property {Array} data.rd Rejected donations.
+		 */
+
+		this.data = data_obj || {
 
 			m: 0,
 
-			/**
-			 * @property {Number} data.b Bank money.
-			 */
-
 			b: 0,
-
-			/**
-			 * @property {Array} data.lt Last bank transactions.
-			 */
 
 			lt: [],
 
-			/**
-			 * @property {String} data.li Timestamp of last time interest was given.
-			 */
-
 			li: "",
 
-			/**
-			 * @property {Object} data.s Stock market data.
-			 */
-
 			s: {},
-
-			/**
-			 * @property {Object} data.w Wages.
-			 * @property {Number} data.w.p Total posts made (gets reset).
-			 * @property {Number} data.w.e Timestamp expiry.
-			 * @property {Number} data.w.w When the user is paid.
-			 * @property {Number} data.w.s Staff expiry timestamp.
-			 */
 
 			w: {
 
@@ -61,52 +62,24 @@ money.Data = (function(){
 
 			},
 
-			/**
-			 * @property {Array} data.g Gift codes.
-			 */
-
 			g: [],
-
-			/**
-			 * @property {Number} data.or Old rank.
-			 */
 
 			or: 0,
 
-			/**
-			 * @property {Array} data.d Donations received.
-			 */
-
 			d: [],
-
-			/**
-			 * @property {Number} data.ds Total amount for donations sent.
-			 */
 
 			ds: 0,
 
-			/**
-			 * @property {Number} data.dr Total amount for donations received.
-			 */
-
 			dr: 0,
 
-			/**
-			 * @property {Array} data.rd Rejected donations.
-			 */
-
 			rd: [],
-
-			/**
-			 * @property @deprecated {Array} n Notifications (old).
-			 */
 
 			n: []
 
 		};
 
 		/**
-		 * @property {String} Holds the last error.  This isn't used much.
+		 * @property {String} error Holds the last error.  This isn't used much.
 		 */
 
 		this.error = "";
@@ -177,17 +150,23 @@ money.Data = (function(){
 		var self = this;
 
 		this.fixed = function(val){
-			return parseFloat(parseFloat(val).toFixed(2));		
+			return parseFloat(parseFloat(val).toFixed(2));
 		};
 
 		/**
-		 * @property {Object} get
+		 * @class monetary.Data.get
+		 * @static
+		 * Note:  You need to create an instance.  Monetary already does this for you. See the {@link monetary#data data method}.
+		 *
+		 *     var data = new monetary.Data(yootil.user.id());
+		 *
+		 *     data.get.money();
+		 *
 		 */
 
 		this.get = {
 
 			/**
-			 * @method get.error()
 			 * Gets the last error stored in the error property.
 			 *
 			 * @returns {String}
@@ -198,10 +177,9 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.data
 			 * Gets the internal data object for this user.
 			 *
-			 * @Returns {Object}
+			 * @returns {Object}
 			 */
 
 			data: function(){
@@ -213,7 +191,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.money
 			 * Gets the uses money from the data object.
 			 *
 			 *     monetary.data(yootil.user.id()).get.money();
@@ -233,7 +210,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.bank
 			 * Gets the uses bank money from the data object.
 			 *
 			 *     monetary.data(yootil.user.id()).get.bank();
@@ -253,7 +229,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.transactions
 			 * Gets the uses bank transactions from the data object.
 			 *
 			 * @returns {Array}
@@ -264,7 +239,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.investments
 			 * Gets the uses stock investments from the data object.
 			 *
 			 * @returns {Object}
@@ -275,7 +249,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.interest
 			 * Gets the last interest timestamp
 			 *
 			 * @returns {Mixed}
@@ -286,7 +259,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.wages
 			 * Gets the wages object from the data object.
 			 *
 			 * @returns {Object}
@@ -297,7 +269,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.gifts
 			 * Gets the users gift codes they have accepted, these get deleted over time.
 			 *
 			 * @returns {Array}
@@ -308,7 +279,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.rank
 			 * Gets the last rank recorded.
 			 *
 			 * @returns {Number}
@@ -319,7 +289,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.donations
 			 * Gets donations sent to this user.
 			 *
 			 * @returns {Number}
@@ -330,7 +299,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.rejected_donations
 			 * Gets the rejected donations for this user.
 			 *
 			 * @returns {Array}
@@ -341,8 +309,7 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.total_sent_donations
-			 * Gets the total value of donatins sent to people.
+			 * Gets the total value of donations sent to people.
 			 *
 			 * @param {Boolean} string Pass true to have a string returned back.
 			 * @returns {Number}
@@ -359,8 +326,7 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method get.total_received_donations
-			 * Gets the total value of donatins received by people.
+			 * Gets the total value of donations received by people.
 			 *
 			 * @param {Boolean} string Pass true to have a string returned back.
 			 * @returns {Mixed}
@@ -382,10 +348,19 @@ money.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.Data.decrease
+		 * @static
+		 * Note:  You need to create an instance.  Monetary already does this for you. See the {@link monetary#data data method}.
+		 *
+		 *     var data = new monetary.Data(yootil.user.id());
+		 *
+		 *     data.decrease.money();
+		 */
+
 		this.decrease = {
 
 			/**
-			 * @method decrease.money
 			 * Decreases the uses money by the amount passed in.
 			 *
 			 *     monetary.data(yootil.user.id()).decrease.money(100);
@@ -403,7 +378,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method decrease.bank
 			 * Decreases the uses money in the bank by the amount passed in.
 			 *
 			 *     monetary.data(yootil.user.id()).decrease.bank(100);
@@ -421,7 +395,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method descrease.donations_sent
 			 * Decreases the total donations sent.
 			 *
 			 * Parameters:
@@ -439,7 +412,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * Method: decrease.donations_received
 			 * 	Decreases the total donations received
 			 *
 			 * @param {Number} amount The amount to be deducted.
@@ -457,10 +429,19 @@ money.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.Data.increase
+		 * @static
+		 * Note:  You need to create an instance.  Monetary already does this for you. See the {@link monetary#data data method}.
+		 *
+		 *     var data = new monetary.Data(yootil.user.id());
+		 *
+		 *     data.increase.money();
+		 */
+
 		this.increase = {
 
 			/**
-			 * @method increase.money
 			 * Increases the uses money by the amount passed in.
 			 *
 			 *     monetary.data(yootil.user.id()).increase.money(100);
@@ -478,7 +459,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method increase.bank
 			 * Increases the uses bank money by the amount passed in.
 			 *
 			 *     monetary.data(yootil.user.id()).increase.bank(100);
@@ -496,7 +476,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method increase.donations_sent
 			 * Increases the total donations sent.
 			 *
 			 * @param {Number} amount The amount to be added.
@@ -512,7 +491,6 @@ money.Data = (function(){
 			},
 
 			/**
-			 * @method increase.donations_received
 			 * Increases the total donations received.
 			 *
 			 * @param {Number} amount The amount to be added.
@@ -529,18 +507,26 @@ money.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.Data.set
+		 * @static
+		 * Note:  You need to create an instance.  Monetary already does this for you. See the {@link monetary#data data method}.
+		 *
+		 *     var data = new monetary.Data(yootil.user.id());
+		 *
+		 *     data.set.money(1000);
+		 */
+
 		this.set = {
 
 			/**
-			* Method: set.money
-			* 	Sets the users money to the amount passed in
-			*
-			* Parameters:
-			* 	amount - *integer* The amount to set the money to.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users money to the amount passed in
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			money: function(amount, skip_update, opts, sync){
 				self.data.m = parseFloat(amount);
@@ -549,15 +535,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.bank
-			* 	Sets the users bank money to the amount passed in
-			*
-			* Parameters:
-			* 	amount - *integer* The amount to set the money to.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users bank money to the amount passed in
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			bank: function(amount, skip_update, opts, sync){
 				self.data.b = parseFloat(amount);
@@ -566,15 +550,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.transactions
-			* 	Sets the users bank transactions
-			*
-			* Parameters:
-			* 	transactions - *array* The transactions to be set
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users bank transactions
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			transactions: function(transactions, skip_update, opts, sync){
 				self.data.lt = transactions;
@@ -582,15 +564,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.gifts
-			* 	Sets the users gifts
-			*
-			* Parameters:
-			* 	gifts - *array* The gifts you want to set.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users gifts
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			gifts: function(gifts, skip_update, opts, sync){
 				self.data.g = gifts;
@@ -598,15 +578,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.rank
-			* 	Sets the users rank
-			*
-			* Parameters:
-			* 	rank - *integer* The rank, usually the uses current rank.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users rank
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			rank: function(rank, skip_update, opts, sync){
 				self.data.or = rank;
@@ -614,15 +592,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.investments
-			* 	Sets the users stock investments
-			*
-			* Parameters:
-			* 	investments - *object* The sock investments
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users stock investments
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			investments: function(investments, skip_update, opts, sync){
 				self.data.s = investments;
@@ -630,15 +606,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.interest
-			* 	Sets the users last interest timestamp
-			*
-			* Parameters:
-			* 	interest - *integer* Must be Timestamp
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users last interest timestamp
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			interest: function(interest, skip_update, opts, sync){
 				self.data.li = interest;
@@ -646,15 +620,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.wages
-			* 	Sets the users wages
-			*
-			* Parameters:
-			* 	wages - *object* The wage object
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users wages
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			wages: function(wages, skip_update, opts, sync){
 				self.data.w = wages;
@@ -662,15 +634,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.data
-			* 	Sets the users data
-			*
-			* Parameters:
-			* 	data - *object* The data for this user if you need to replace it completely.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users data
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			data: function(data, skip_update, opts, sync){
 				self.data = data;
@@ -678,15 +648,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: set.donations
-			* 	Sets the users data
-			*
-			* Parameters:
-			* 	donations - *array* Donations for this user.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Sets the users data
+			 *
+			 * @param {Number} amount The amount to set the money to.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			donations: function(donations, skip_update, opts, sync){
 				self.data.d = donations;
@@ -695,17 +663,25 @@ money.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.Data.clear
+		 * @static
+		 * Note:  You need to create an instance.  Monetary already does this for you. See the {@link monetary#data data method}.
+		 *
+		 *     var data = new monetary.Data(yootil.user.id());
+		 *
+		 *     data.clear.money();
+		 */
+
 		this.clear = {
 
 			/**
-			* Method: clear.gifts
-			* 	Clear the users gifts array
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users gifts array
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			gifts: function(skip_update, opts, sync){
 				self.data.g = [];
@@ -713,14 +689,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.investments
-			* 	Clear the users investments object
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users investments object
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			investments: function(skip_update, opts, sync){
 				self.data.s = {};
@@ -728,14 +702,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.wages
-			* 	Clear the users wages object
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users wages object
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			wages: function(skip_update, opts, sync){
 				self.data.w = {};
@@ -743,14 +715,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.bank
-			* 	Clear the users bank amount
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users bank amount
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			bank: function(skip_update, opts, sync){
 				self.data.b = 0;
@@ -758,14 +728,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.money
-			* 	Clear the users money amount (aka wallet)
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users money amount (aka wallet)
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			money: function(skip_update, opts, sync){
 				self.data.m = 0;
@@ -773,14 +741,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.transactions
-			* 	Clear the users transactions array
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users transactions array
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			transactions: function(skip_update, opts, sync){
 				self.data.lt = [];
@@ -788,14 +754,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.interest
-			* 	Clear the users last interest timestamp
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users last interest timestamp
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			interest: function(skip_update, opts, sync){
 				self.data.li = "";
@@ -803,14 +767,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.rank
-			* 	Clear the users old rank
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users old rank
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			rank: function(skip_update, opts, sync){
 				self.data.or = 0;
@@ -818,14 +780,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.data
-			* 	Clear the users data object
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users data object
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			data: function(skip_update, opts, sync){
 				self.data = {};
@@ -833,14 +793,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.donations
-			* 	Clear the users donations array
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users donations array
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			donations: function(skip_update, opts, sync){
 				self.data.d = [];
@@ -848,14 +806,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: clear.rejected_donations
-			* 	Clear the users rejected_donations array
-			*
-			* Parameters:
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Clear the users rejected_donations array
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			rejected_donations: function(skip_update, opts, sync){
 				self.data.rd = [];
@@ -869,18 +825,26 @@ money.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.Data.push
+		 * @static
+		 * Note:  You need to create an instance.  Monetary already does this for you. See the {@link monetary#data data method}.
+		 *
+		 *     var data = new monetary.Data(yootil.user.id());
+		 *
+		 *     data.push.gift("abc")
+		 */
+
 		this.push = {
 
 			/**
-			* Method: push.gift
-			* 	Pushes a gift code to the data object when it's been accepted.
-			*
-			* Parameters:
-			* 	code - *string* The code to be pushed to the array.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Pushes a gift code to the data object when it's been accepted.
+			 *
+			 * @param {String} code The code to be pushed to the array.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			gift: function(code, skip_update, opts, sync){
 				self.data.g.push(code);
@@ -908,36 +872,42 @@ money.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.Data.donation
+		 * @static
+		 * Note:  You need to create an instance.  Monetary already does this for you. See the {@link monetary#data data method}.
+		 *
+		 *     var don = ...
+		 *     var data = new monetary.Data(yootil.user.id());
+		 *
+		 *     data.donation.send(don, false, null, null)
+		 */
+
 		this.donation = {
 
 			/**
-			* Method: donation.send
-			* 	Easily send a user a donation
-			*
-			* Parameters:
-			* 	don - *object* The donation object must be specific to the example below
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*
-			* Examples:
-			*
-			* don = {
-			* 	to: (Data object),
-			* 	amount: (Integer / Float),
-			* 	message: {
-			* 		text: (String),
-			* 		len: (Integer)
-			* 	},
-			* 	from: {
-			* 		id: (Integer),
-			* 		name: (String)
-			*	}
-			* }
-			*
-			*
-			* pixeldepth.monetary.data(yootil.user.id()).donation.send(don, false, null, null);
-			*/
+			 * Easily send a user a donation
+			 *
+			 *     don = {
+			 * 	   	to: (Data object),
+			 *     	amount: (Number),
+			 *     	message: {
+			 *     		text: (String),
+			 *     		len: (Number)
+			 *     	},
+			 *     	from: {
+			 *     		id: (Number),
+		 	 *     		name: (String)
+			 *     	}
+			 *     }
+			 *
+			 *     monetary.data(yootil.user.id()).donation.send(don, false, null, null);
+			 *
+			 * @param {Object} don The donation object must be specific to the example below
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			send: function(don, skip_update, opts, sync){
 				if(don){
@@ -974,26 +944,22 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: donation.send_rejected
-			* 	Easily send a user a donation
-			*
-			* Parameters:
-			* 	don - *object* The donation object must be specific to the example below
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*
-			* Examples:
-			*
-			* reject_donation = {
-			*	amount: donation.a,
-			*	receiver: [yootil.user.id(), yootil.user.name()],
-			*	from: donation.f[0],
-			*	time: donation.t
-			*}
-			*
-			* pixeldepth.monetary.data(yootil.user.id()).donation.send_rejected(reject_donation, false, null, null);
-			*/
+			 * Easily send a user a donation
+			 *
+			 *     reject_donation = {
+			 *     	amount: donation.a,
+			 *     	receiver: [yootil.user.id(), yootil.user.name()],
+			 *     	from: donation.f[0],
+			 *     	time: donation.t
+			 *     }
+			 *
+			 *     monetary.data(yootil.user.id()).donation.send_rejected(reject_donation, false, null, null);
+			 *
+			 * @param {Object} don The donation object must be specific to the example below
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			send_rejected: function(don, skip_update, opts, sync){
 				if(don.amount && don.receiver && don.from && don.time){
@@ -1014,18 +980,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: donation.exists
-			* 	Checks to see if a donation exists.
-			*
-			* Parameters:
-			* 	id - *string* The id is the donation timestamp and the user id joined by string
-			*	return_donation - *boolean* Pass true to return the donation object.
-			*
-			* Returns:
-			* 	*object* / *integer* - Either the object, or an index is returned.  -1 is returned if not found.
-			*/
-
-			// Returns -1 if not exists
+			 * Checks to see if a donation exists.
+			 *
+			 * @param {String} id The id is the donation timestamp and the user id joined by string
+			 * @param {Boolean} return_donation Pass true to return the donation object.
+			 * @returns {Mixed} Either the object, or an index is returned.  -1 is returned if not found.
+			 */
 
 			exists: function(id, return_donation){
 				if(id){
@@ -1042,16 +1002,12 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: donation.reject_exists
-			* 	Checks to see if a rejected donation exists.
-			*
-			* Parameters:
-			* 	id - *string* The id is the donation timestamp and the user id joined by string
-			*	return_donation - *boolean* Pass true to return the donation object.
-			*
-			* Returns:
-			* 	*object* / *integer* - Either the object, or an index is returned.  -1 is returned if not found.
-			*/
+			 * Checks to see if a rejected donation exists.
+			 *
+			 * @param {String} id The id is the donation timestamp and the user id joined by string
+			 * @param {Boolean} return_donation Pass true to return the donation object.
+			 * @returns {Mixed} Either the object, or an index is returned.  -1 is returned if not found.
+			 */
 
 			reject_exists: function(id, return_donation){
 				if(id){
@@ -1068,15 +1024,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: donation.accept
-			* 	Accepts a donation and handles increasing the users money.
-			*
-			* Parameters:
-			* 	donation - *object* The donation object.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Accepts a donation and handles increasing the users money.
+			 *
+			 * @param {Object} donation The donation object.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			accept: function(donation, skip_update, opts, sync){
 				var index = self.donation.exists(donation.t + "" + donation.f[0]);
@@ -1089,15 +1043,13 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: donation.reject
-			* 	Rejects a donation and handles sending the rejected donation to the sender.
-			*
-			* Parameters:
-			* 	donation - *object* The donation object.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*/
+			 * Rejects a donation and handles sending the rejected donation to the sender.
+			 *
+			 * @param {Object} donation The donation object.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 */
 
 			reject: function(donation, skip_update, opts, sync){
 				var index = self.donation.exists(donation.time + "" + donation.from);
@@ -1109,18 +1061,16 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: donation.accept_reject
-			* 	Accepts the rejected donation and handles increasing the users money.
-			*
-			* Parameters:
-			* 	donation - *object* The donation object.
-			* 	skip_update - *boolean* Pass true if you do not want to perform an actual AJAX update.
-			* 	options - *object* ProBoards key options that get passed on to the set method.
-			*	sync - *boolean* To sync up data across tabs / windows, pass true.
-			*
-			* Returns:
-			* 	*boolean*
-			*/
+			 * Accepts the rejected donation and handles increasing the users money.
+			 *
+			 * @param {Object} donation The donation object.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 *
+			 * Returns:
+			 * 	*boolean*
+			 */
 
 			accept_reject: function(donation, skip_update, opts, sync){
 				var index = self.donation.reject_exists(donation.t + "" + donation.r[0]);
@@ -1137,24 +1087,20 @@ money.Data = (function(){
 			},
 
 			/**
-			* Method: donation.push
-			* 	Pushes a donation to the array.
-			*
-			* Parameters:
-			* 	donation - *object* The donation object
-			*/
+			 * Pushes a donation to the array.
+			 *
+			 * @param {Object} donation The donation object
+			 */
 
 			push: function(donation){
 				self.data.d.push(donation);
 			},
 
 			/**
-			* Method: donation.push_reject
-			* 	Pushes a rejected donation to the array.
-			*
-			* Parameters:
-			* 	reject - *object* The donation object
-			*/
+			 * Pushes a rejected donation to the array.
+			 *
+			 * @param {Object} reject The donation object
+			 */
 
 			push_reject: function(reject){
 				self.data.rd.push(reject);

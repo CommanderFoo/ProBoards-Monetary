@@ -9,6 +9,25 @@ money.donation = (function(){
 
 	return {
 
+		/**
+		 * @property {Object} settings Default settings which can be overwritten from setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Boolean} settings.show_profile_button If true, the donation button will show on members profile.
+		 * @property {Number} settings.minimum_donation The minimum amount that a donation can be.
+		 * @property {Number} settings.maximum_donation The maximum amount that a donation can be.
+		 * @property {Boolean} settings.page_timer_enabled If true, then pages can expire if the user takes too long.
+		 * @property {Number} settings.message_max_len The maximum length a message can be.
+		 * @property {Boolean} settings.show_total_sent_mini_profile If true, the total of all donations sent will show in the mini profile.
+		 * @property {Boolean} settings.show_total_received_mini_profile If true, the total of all donations received will show in the mini profile.
+		 * @property {Boolean} settings.show_total_sent_profile If true, the total of all donations sent will show on the profile.
+		 * @property {Boolean} settings.show_total_received_profile If true, the total of all donations received will show on the profile.
+		 * @property {String} settings.donation_image The image that will be used in the Yootil bar.
+		 * @property {Object} text Text replacements.
+		 * @property {String} text.donation
+		 * @property {String} text.donations
+		 * @property {Array} excluded Members who are excluded from using the donation system.
+		 */
+
 		settings: {
 
 			enabled: true,
@@ -39,27 +58,57 @@ money.donation = (function(){
 
 		},
 
+		/**
+		 * @property {Number} page_timer The current time spent on the page when using the donation feature.
+		 */
+
 		page_timer: 0,
+
+		/**
+		 * @property {Number} PAGE_TIME_EXPIRY The time until the donation feature expires.
+		 */
+
 		PAGE_TIME_EXPIRY: 45,
+
+		/**
+		 * @property {Number} interval The set interval id.
+		 */
+
 		interval: 0,
+
+		/**
+		 * @property {Object} donation_to Holds tmp data for the user the donation is to.
+		 * @property {String} donation_to.name
+		 * @property {String} donation_to.url
+		 * @property {String} donation_to.avatar
+		 */
 
 		donation_to: {
 
 			name: "",
 			url: "",
-			avatar: "",
-			groups: ""
+			avatar: ""
 
 		},
+
+		/**
+		 * @property {Object} donation_from Holds tmp data for the user the donation is from.
+		 * @property {String} donation_from.name
+		 * @property {String} donation_from.url
+		 * @property {String} donation_from.avatar
+		 */
 
 		donation_from: {
 
 			name: "",
 			url: "",
-			avatar: "",
-			groups: ""
+			avatar: ""
 
 		},
+
+		/**
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 			this.setup();
@@ -161,13 +210,21 @@ money.donation = (function(){
 			}
 		},
 
+		/**
+		 * Gets the users total donations.
+		 *
+		 * @returns {Number}
+		 */
+
 		get_total_donations: function(){
 			var donations = money.data(yootil.user.id()).get.donations();
 
 			return donations.length;
 		},
 
-		// Do one notification per page load if there are multiple rejects
+		/**
+		 * Checks to see if there have been any rejected donations, if so, displays a mesage to the user.
+		 */
 
 		check_rejected_donations: function(){
 			var rejected = money.data(yootil.user.id()).get.rejected_donations();
@@ -229,6 +286,10 @@ money.donation = (function(){
 			}
 		},
 
+		/**
+		 * Handles timing out the donation feature to prevent stale data.
+		 */
+
 		monitor_time_on_page: function(){
 			var self = this;
 
@@ -263,10 +324,20 @@ money.donation = (function(){
 			}, 1000);
 		},
 
+		/**
+		 * Cancels the page expiration when donation has been sent.
+		 */
+
 		cancel_expiration: function(){
 			$(".monetary-donation-sending-to-title").html(this.settings.text.donation + " Sent");
 			clearInterval(this.interval);
 		},
+
+		/**
+		 * Collects the users details who will be receiving the donation and stores them for later use.
+		 *
+		 * @param {Boolean} from If true, we store in the donation_from object, otherwise in the donation_to object.
+		 */
 
 		collect_donation_to_details: function(from){
 			var member_avatar = $(".avatar-wrapper:first img:first").attr("src");
@@ -287,11 +358,19 @@ money.donation = (function(){
 			};
 		},
 
-		// This is the same method as above, just renamed to prevent confusion
+		/**
+		 *  Collects the users details who is sending the donation and stores them for later use.
+		 */
 
 		collect_donation_from_details: function(){
 			this.collect_donation_to_details(true);
 		},
+
+		/**
+		 * Shows an error to the user.
+		 *
+		 * @param {String} msg The message the user will see.
+		 */
 
 		show_error: function(msg){
 			var html = "";
@@ -303,6 +382,10 @@ money.donation = (function(){
 
 			container.appendTo("#content");
 		},
+
+		/**
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
 
 		setup: function(){
 			if(money.plugin){
@@ -339,6 +422,12 @@ money.donation = (function(){
 			}
 		},
 
+		/**
+		 * Checks to see if the user is excluded or not.
+		 *
+		 * @returns {Boolean}
+		 */
+
 		can_send_receive: function(){
 			if(this.settings.excluded && this.settings.excluded.length){
 				var grps = yootil.user.group_ids();
@@ -353,10 +442,19 @@ money.donation = (function(){
 			return true;
 		},
 
+		/**
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
 		register: function(){
 			money.modules.push(this);
 			return this;
 		},
+
+		/**
+		 * Creates the donation button on user profiles.
+		 */
 
 		create_donation_button: function(){
 
@@ -373,6 +471,10 @@ money.donation = (function(){
 				clone.insertAfter(send_button);
 			}
 		},
+
+		/**
+		 * Builds the page that is used for sending donations.
+		 */
 
 		build_send_donation_html: function(){
 			var html = "";
@@ -436,6 +538,10 @@ money.donation = (function(){
 
 			$("#pd_donation_message").bind("keyup keydown",  msg_len_handler);
 		},
+
+		/**
+		 * Builds the page for receiving donations.
+		 */
 
 		build_received_donations_html: function(){
 			var donations = money.data(yootil.user.id()).get.donations();
@@ -512,6 +618,13 @@ money.donation = (function(){
 			container.appendTo("#content");
 		},
 
+		/**
+		 * Donations can include a message, here we parse it.
+		 *
+		 * @param {String} msg
+		 * @return {String}
+		 */
+
 		parse_donation_message: function(msg){
 			if(msg && msg.length){
 				msg = yootil.html_encode(msg);
@@ -521,6 +634,13 @@ money.donation = (function(){
 
 			return "----";
 		},
+
+		/**
+		 * Fetches a donation for the user.
+		 *
+		 * @param {Number} id The donation id.
+		 * @return {Object} The donation from the users data object.
+		 */
 
 		fetch_donation: function(id){
 			var donations = money.data(yootil.user.id()).get.donations();
@@ -535,6 +655,10 @@ money.donation = (function(){
 
 			return null;
 		},
+
+		/**
+		 * Builds the page to view a donation.
+		 */
 
 		build_view_donation_html: function(donation_id){
 			var the_donation = this.fetch_donation(donation_id);
@@ -595,6 +719,12 @@ money.donation = (function(){
 			}
 		},
 
+		/**
+		 * Accepts donation and creates a notification for the person who sent it.
+		 *
+		 * @param {Object} donation The donation to be accepted.
+		 */
+
 		accept_donation: function(donation){
 			monetary.create_notification("[DA:" + donation.a + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", donation.f[0]);
 
@@ -605,6 +735,12 @@ money.donation = (function(){
 				}
 			});
 		},
+
+		/**
+		 * Rejects a donation.  The user who sent the donation gets a notification of rejected donations.
+		 *
+		 * @param {Object} donation The donation to be rejected.
+		 */
 
 		reject_donation: function(donation){
 			var reject_donation = {
@@ -623,6 +759,10 @@ money.donation = (function(){
 				}
 			});
 		},
+
+		/**
+		 * The handler for sending donations.  This does the validation and builds the donation object to be sent.
+		 */
 
 		send_donation_handler: function(){
 			var donation_amount = $("input#pd_donation_amount").val();
@@ -682,9 +822,19 @@ money.donation = (function(){
 			}
 		},
 
+		/**
+		 * Updates the users wallet when a donation has been sent.
+		 */
+
 		update_wallet: function(){
 			$("#pd_money_wallet_amount").html(yootil.html_encode(money.data(yootil.user.id()).get.money(true)));
 		},
+
+		/**
+		 * Displays an error to the user.
+		 *
+		 * @param {String} error
+		 */
 
 		donation_error: function(error){
 			var elem = $("span#pd_donation_amount_error");

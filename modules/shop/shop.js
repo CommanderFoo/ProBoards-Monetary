@@ -1,15 +1,29 @@
 /**
  * @class monetary.shop
  * @static
+ *
+ * Creates a shop on the forum so that members can purchase items.
  */
 
 monetary.shop = (function(){
 
 	return {
 
+		/**
+		 * @property {String} required_monetary_version The minimum version required of the Monetary System.
+		 */
+
 		required_monetary_version: "0.8.6",
 
+		/**
+		 * @property {String} VERSION Current version.
+		 */
+
 		VERSION: "{VER}",
+
+		/**
+		 * @property {Object] settings Default settings for the shop, these get overwritten in setup.
+		 */
 
 		settings: {
 

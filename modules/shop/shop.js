@@ -22,7 +22,7 @@ monetary.shop = (function(){
 		VERSION: "{VER}",
 
 		/**
-		 * @property {Object] settings Default settings for the shop, these get overwritten in setup.
+		 * @property {Object} settings Default settings for the shop, these get overwritten in setup.
 		 */
 
 		settings: {

@@ -6,6 +6,7 @@
  */
 
 // todo finish docs
+// test system
 
 monetary.shop = (function(){
 

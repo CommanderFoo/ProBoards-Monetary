@@ -5,6 +5,8 @@
  * Creates a shop on the forum so that members can purchase items.
  */
 
+// todo finish docs
+
 monetary.shop = (function(){
 
 	return {

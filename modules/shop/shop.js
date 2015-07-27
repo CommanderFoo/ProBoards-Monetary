@@ -26,6 +26,12 @@ monetary.shop = (function(){
 
 		/**
 		 * @property {Object} settings Default settings for the shop, these get overwritten in setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Boolean} settings.icon_enabled If enable, an icon will show in the Yootil bar.
+		 * @property {String} settings.base_image The base URL for the images.
+		 * @property {Boolean} settings.show_total_bough If enabled, on profiles it will show total bought.
+		 * @property {Boolean} settings.items_private Items can be private to the user if enabled (kinda pointless).
+		 * @property {Number} settings.refund_percent The default refund percentage amount per item.
 		 */
 
 		settings: {

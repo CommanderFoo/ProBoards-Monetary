@@ -32,6 +32,9 @@ monetary.shop = (function(){
 		 * @property {Boolean} settings.show_total_bough If enabled, on profiles it will show total bought.
 		 * @property {Boolean} settings.items_private Items can be private to the user if enabled (kinda pointless).
 		 * @property {Number} settings.refund_percent The default refund percentage amount per item.
+		 * @property {Boolean} settings.allow_removing If disable then items can not be removed.
+		 * @property {Array} settings.no_members Users who are not allowed to use the shop.
+		 * @property {Array} settings.no_groups Groups that can not use the shop.
 		 */
 
 		settings: {

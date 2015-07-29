@@ -35,6 +35,42 @@ monetary.shop = (function(){
 		 * @property {Boolean} settings.allow_removing If disable then items can not be removed.
 		 * @property {Array} settings.no_members Users who are not allowed to use the shop.
 		 * @property {Array} settings.no_groups Groups that can not use the shop.
+		 * @property {Number} settings.image_width Image width for shop and profile.
+		 * @property {Number} settings.image_height Image height for shop and profile.
+		 * @property {Number} settings.image_percent Used when doing percentage scaling.
+		 * @property {Boolean} settings.show_in_mini_profile If enable, items will show in mini profiles.
+		 * @property {Number} settings.mini_image_width The width of images in the mini profile.
+		 * @property {Number} settings.mini_image_height The height of images in the mini profile.
+		 * @property {Number} settings.mini_image_percent Used when doing percentage scaling.
+		 * @property {Number} settings.mini_limit_shown Can limit the amount of items that show in a mini profile.
+		 * @property {Boolean} settings.show_quantity_drop_down If enable, the drop down will show on the shop page.
+		 * @property {Object} settings.text Text replacements.
+		 * @property {String} settings.text.monetary_shop Name of the shop.
+		 * @property {String} settings.text.shop
+		 * @property {String} settings.text.name
+		 * @property {String} settings.text.description
+		 * @property {String} settings.text.item
+		 * @property {String} settings.text.basket
+		 * @property {String} settings.text.search
+		 * @property {String} settings.text.results
+		 * @property {String} settings.text.purchase
+		 * @property {String} settings.text.purchased
+		 * @property {String} settings.text.price
+		 * @property {String} settings.text.last_bought
+		 * @property {String} settings.text.total_cost
+		 * @property {String} settings.text.total_amount
+		 * @property {String} settings.text.thank_you
+		 * @property {String} settings.text.add_to_cart
+		 * @property {String} settings.text.checkout
+		 * @property {String} settings.text.remove
+		 * @property {String} settings.text.quantity
+		 * @property {String} settings.text.paid
+		 * @property {String} settings.text.refund
+		 * @property {String} settings.text.accept
+		 * @property {Boolean} settings.welcome_message_enabled If enable, a welcome message will show on the shop page.
+		 * @property {String} settings.welcome_message_title
+		 * @property {String} settings.welcome_message_message
+		 * @property {String} settings.random_image Default image used when it can't find the item image.
 		 */
 
 		settings: {
@@ -96,28 +132,81 @@ monetary.shop = (function(){
 
 		},
 
+		/**
+		 * @property {Object} images Plugin images.
+		 */
+
 		images: {},
+
+		/**
+		 * @property {Object} plugin The ProBoards plugin.
+		 */
 
 		plugin: {},
 
+		/**
+		 * @property {Array} items Holds all the items stored in the plugin.
+		 */
+
 		items: [],
 
+		/**
+		 * @property {Array} categories Categories created by the use in the plugin admin area.
+		 */
+
 		categories: [],
+
+		/**
+		 * @property {Object} category_lookup Stores all the categories for quick lookup.  Key is cat id.
+		 */
+
 		category_lookup: {},
+
+		/**
+		 * @property {Object} category_items Holds all the items in certain category tables.
+		 */
 
 		category_items: {},
 
+		/**
+		 * @property {Array} cart Items the user has added to their cart.
+		 */
+
 		cart: [],
+
+		/**
+		 * @property {Object} lookup Item lookup table.
+		 */
 
 		lookup: {},
 
+		/**
+		 * @property {Object} user_data_table Holds all the data for each user here for lookup.
+		 */
+
 		user_data_table: {},
+
+		/**
+		 * @property {String} KEY The key for this plugin.
+		 */
 
 		KEY: "pixeldepth_money_shop",
 
+		/**
+		 * @property {Array} modules Sub modules are added here.
+		 */
+
 		modules: [],
+
+		/**
+		 * @property {Object} random_id_pool Used for random items in the shop.  Lookup for random items pool.
+		 */
 		
 		random_id_pool: {},
+
+		/**
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 			if(typeof yootil == "undefined"){
@@ -180,10 +269,20 @@ monetary.shop = (function(){
 			}
 		},
 
+		/**
+		 * Returns the curren version of the shop.
+		 *
+		 * @returns {String}
+		 */
+
 		version: function(){
 			return this.VERSION;
 		},
-		
+
+		/**
+		 * Checks the version of the Monetary System plugin is compatiable with this module.
+		 */
+
 		check_monetary_version: function(){
 			var versions = yootil.convert_versions(monetary.version(), this.required_monetary_version);
 
@@ -196,6 +295,11 @@ monetary.shop = (function(){
 				$("div#content").prepend(container);
 			}
 		},
+
+		/**
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 * Lookup tables for categories, items etc are created here as well.
+		 */
 
 		setup: function(){
 			if(monetary.plugin){
@@ -339,6 +443,14 @@ monetary.shop = (function(){
 		
 		// If there is no id pool, then we don't add the random item
 		// to the lookup table
+
+		/**
+		 * Prepares random items.
+		 * Random items can be based on a list of ids, or min and max price.
+		 * Each random item that is valid gets added to the random pool lookup table that is used later at checkout.
+		 *
+		 * @param {Array} items Random items from the plugin.
+		 */
 		
 		prepare_random_items: function(items){
 			for(var i = 0, l = items.length; i < l; i ++){
@@ -413,9 +525,22 @@ monetary.shop = (function(){
 			}
 		},
 
+		/**
+		 * Makes the id safer to use.
+		 *
+		 * @param {String} id
+		 * @return {String}
+		 */
+
 		safe_id: function(id){
 			return id.toString().replace(/[^\d\.\_]+/g, "");
 		},
+
+		/**
+		 * Checks to see if the user can use the shop.  This check the no_members and no_groups arrays.
+		 *
+		 * @returns {Boolean}
+		 */
 
 		can_use_shop: function(){
 			if(this.settings.no_members.length){
@@ -437,6 +562,13 @@ monetary.shop = (function(){
 			return true;
 		},
 
+		/**
+		 * Gets the users data, if it doesn't exist then a new instance of Data is created and added to the lookup.
+		 *
+		 * @param {Number} user_id
+		 * @returns {Object}
+		 */
+
 		data: function(user_id){
 			var user_data = this.user_data_table[((user_id)? user_id : yootil.user.id())];
 
@@ -448,6 +580,13 @@ monetary.shop = (function(){
 			return user_data;
 		},
 
+		/**
+		 * This sets up the lookup table for all users on the current page.  Each entry is an instance of Data.  Always
+		 * look here before creating your own instance, as multiple instances would not be good.
+		 *
+		 *  It is recommended that if you do create an instance of Data to update the lookup table (key being user id).
+		 */
+
 		setup_user_data_table: function(){
 			var all_data = proboards.plugin.keys.data[this.KEY];
 
@@ -455,6 +594,11 @@ monetary.shop = (function(){
 				this.user_data_table[key] = new this.Data(key, all_data[key]);
 			}
 		},
+
+		/**
+		 * Coming soon...
+		 * @ignore
+		 */
 
 		setup_specials: function(){
 			var colored_name = {
@@ -475,6 +619,11 @@ monetary.shop = (function(){
 			this.lookup["s1"] = colored_name;
 		},
 
+		/**
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+			
 		register: function(){
 			monetary.modules.push(this);
 			return this;

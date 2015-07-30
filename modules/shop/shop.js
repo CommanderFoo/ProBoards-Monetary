@@ -623,11 +623,17 @@ monetary.shop = (function(){
 		 * Registers this module to the money class.
 		 * @returns {Object}
 		 */
-			
+
 		register: function(){
 			monetary.modules.push(this);
 			return this;
 		},
+
+		/**
+		 * Checks to see if the user has any items.
+		 *
+		 * @returns {Boolean}
+		 */
 
 		has_items: function(){
 			var user_id = yootil.page.member.id() || yootil.user.id();
@@ -641,6 +647,13 @@ monetary.shop = (function(){
 
 			return false;
 		},
+
+		/**
+		 * Checks what image settings are being used and return the inline style.
+		 *
+		 * @param {Boolean} mini Is it for the mini profile or profiles.
+		 * @returns {String} inline style created.
+		 */
 
 		get_size_css: function(mini){
 			if(mini){

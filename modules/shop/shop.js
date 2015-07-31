@@ -669,6 +669,13 @@ monetary.shop = (function(){
 			return "";
 		},
 
+		/**
+		 * Gets the item image, otherwise uses the default image setup by the plugin.
+		 *
+		 * @param {Object} item The item.
+		 * @returns {String}
+		 */
+
 		get_image_src: function(item){
 			var img = (item.item_image && item.item_image.length)? item.item_image : this.settings.random_image;
 			
@@ -678,7 +685,11 @@ monetary.shop = (function(){
 			
 			return img;
 		},
-		
+
+		/**
+		 * Creates the box for the items on user profiles.
+		 */
+
 		create_shop_item_box: function(){
 			if(!this.has_items()){
 				return;
@@ -805,6 +816,13 @@ monetary.shop = (function(){
 			}
 		},*/
 
+		/**
+		 * Updates the item count (if enabled) of items when an action is performed (i.e refund).
+		 *
+		 * @param {String} item_id
+		 * @param {Number} quantity
+		 */
+
 		update_item_count: function(item_id, quantity){
 			if(!this.settings.show_total_bought){
 				return;
@@ -836,7 +854,7 @@ monetary.shop = (function(){
 				item.html(num);
 			}
 		},
-
+		
 		build_item_info_dialog: function(item_elem){
 			var self = this;
 			var owner = yootil.page.member.id() || yootil.user.id();

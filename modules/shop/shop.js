@@ -854,7 +854,13 @@ monetary.shop = (function(){
 				item.html(num);
 			}
 		},
-		
+
+		/**
+		 * Builds the info dialog when clicking on an item on the profile page.
+		 *
+		 * @param {Object} item_elem The div the item sits in.
+		 */
+
 		build_item_info_dialog: function(item_elem){
 			var self = this;
 			var owner = yootil.page.member.id() || yootil.user.id();
@@ -960,6 +966,13 @@ monetary.shop = (function(){
 			});
 
 		},
+
+		/**
+		 * Builds the remove message when removing items from the profile.
+		 *
+		 * @param {String} item_id The ID for the item that will get removed.
+		 * @returns {Object} Message jQuery wrapped.
+		 */
 
 		build_remove_msg: function(item_id){
 			var self = this;

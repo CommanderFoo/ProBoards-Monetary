@@ -993,7 +993,14 @@ monetary.shop = (function(){
 
 			return remove_msg;
 		},
-		
+
+		/**
+		 * Builds the remove item dialog for items on the profile page.
+		 *
+		 * @param {String} item_id The item id for which item will be removed.
+		 * @returns {Function}
+		 */
+
 		build_remove_dialog: function(item_id){
 			var self = this;
 
@@ -1033,7 +1040,14 @@ monetary.shop = (function(){
 				$(this).dialog("destroy").remove();
 			};
 		},
-			
+
+		/**
+		 * Builds the refund message when refunding items on the profile page,
+		 *
+		 * @param {String} item_id The item id for which item is going to be refunded.
+		 * @returns {Object} jQuery wrapped message.
+		 */
+
 		build_refund_msg: function(item_id){
 			var self = this;
 			var item_counter = 0;
@@ -1061,6 +1075,13 @@ monetary.shop = (function(){
 
 			return refund_msg;
 		},
+
+		/**
+		 * Builds the refund item dialog for items on the profile page.
+		 *
+		 * @param {String} item_id The item id for which item will be refunded.
+		 * @returns {Function}
+		 */
 
 		build_refund_dialog: function(item_id){
 			var self = this;
@@ -1122,7 +1143,13 @@ monetary.shop = (function(){
 			};
 		},
 
-		error: function(){
+		/**
+		 * Generic error to show
+		 *
+		 * @param {String} msg
+		 */
+
+		error: function(msg){
 			pb.window.alert("An Error Has Occurred", msg, {
 				modal: true,
 				height: 220,

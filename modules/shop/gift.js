@@ -1,11 +1,21 @@
 /**
  * @class monetary.shop.gift
  * @static
+ *
+ * Allows for the forum to give out shop gifts to its users.
  */
 
 monetary.shop.gift = (function(){
 
 	return {
+
+		/**
+		 * @property {Object} settings Default settings for this module that can be overwritten in setup.
+		 * @property {Boolean} settings.gifts_enabled Module enabled or not.
+		 * @property {Array} settings.gift_codes Available gift codes for the users.
+		 * @property {Object} settings.text Text replacements.
+		 * @property {String} settings.text.gift
+		 */
 
 		settings: {
 
@@ -20,12 +30,33 @@ monetary.shop.gift = (function(){
 
 		},
 
+		/**
+		 * @property {Object} shop Reference to the shop module.
+		 */
+
 		shop: null,
+
+		/**
+		 * @property {Object} images Plugin images.
+		 */
 
 		images: {},
 
+		/**
+		 * @property {Object} gift_lookup Gift lookup table.
+		 */
+
 		gift_lookup: {},
+
+		/**
+		 * @property {Object} gift_code_lookup Gift code lookup table.
+		 */
+
 		gift_code_lookup: [],
+
+		/**
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 			this.setup();
@@ -39,10 +70,19 @@ monetary.shop.gift = (function(){
 			}
 		},
 
+		/**
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
 		register: function(){
 			monetary.shop.modules.push(this);
 			return this;
 		},
+
+		/**
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
 
 		setup: function(){
 			this.shop = monetary.shop;
@@ -70,6 +110,10 @@ monetary.shop.gift = (function(){
 				this.gift_code_lookup.push(this.settings.gift_codes[c].unique_code.toLowerCase());
 			}
 		},
+
+		/**
+		 * Checks if there is a gift code, if it's valid, and makes sure it hasn't already been claimed.
+		 */
 
 		gift: function(){
 			if(!this.settings.gifts_enabled){
@@ -170,6 +214,13 @@ monetary.shop.gift = (function(){
 			}
 		},
 
+		/**
+		 * Checks to make sure the user is allowed this gift as some can be for specific people.
+		 *
+		 * @param {Object} gift Gift details, including members array if for specific users.
+		 * @returns {Boolean}
+		 */
+
 		allowed_gift: function(gift){
 			if(gift){
 
@@ -200,6 +251,9 @@ monetary.shop.gift = (function(){
 			return false;
 		},
 
+		/**
+		 * Adds gift icon to the Yootil bar if enabled.
+		 */
 
 		add_gift_to_yootil_bar: function(){
 			if(!this.settings.gifts_enabled){
@@ -215,6 +269,13 @@ monetary.shop.gift = (function(){
 			}
 		},
 
+		/**
+		 * Checks to see if the user has already received the gift.
+		 *
+		 * @param {String} code The gift code.
+		 * @returns {Boolean}
+		 */
+
 		has_received: function(code){
 			var data = monetary.shop.data(yootil.user.id());
 
@@ -225,6 +286,12 @@ monetary.shop.gift = (function(){
 			return false;
 		},
 
+		/**
+		 * Gets the gift code from the URL.
+		 *
+		 * @returns {Mixed} Returns the gift code if there is one, or false if no match.
+		 */
+
 		get_gift_code: function(){
 			var url = location.href;
 
@@ -234,6 +301,13 @@ monetary.shop.gift = (function(){
 
 			return false;
 		},
+
+		/**
+		 * Checks the gift code to make sure it is valid.
+		 *
+		 * @param {String} code The gift code to check in the lookup table.
+		 * @returns {Mixed} Returns the gift data or false.
+		 */
 
 		valid_code: function(code){
 			if(code){
@@ -246,6 +320,10 @@ monetary.shop.gift = (function(){
 
 			return false;
 		},
+
+		/**
+		 * Gives the gift to the user.
+		 */
 
 		collect_gift: function(){
 			var gift = this.gift_lookup[this.current_code];
@@ -270,6 +348,10 @@ monetary.shop.gift = (function(){
 
 			return false;
 		},
+
+		/**
+		 * Removes old codes that the user has already claimed and are no longer in the lookup table.
+		 */
 
 		remove_old_codes: function(){
 			var data = monetary.shop.data(yootil.user.id());

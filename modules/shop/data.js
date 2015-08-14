@@ -1,12 +1,33 @@
 /**
  * @class monetary.shop.Data
  * @constructor
+ * Wrapper class around the users data that gets instantiated for each users data on the page for the shop.
+ *
+ *     var data = new monetary.shop.Data(yootil.user.id())
+ *
+ * Note:  You need to create an instance for each user.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+ *
+ * @param {Number} user_id
+ * @param {Object} data This is the data that comes from the shop key for the user.
  */
 
 monetary.shop.Data = (function(){
 
 	function Data(user_id, data_obj){
+
+		/**
+		 * @property {Number} user_id The user id for this user.
+		 */
+
 		this.user_id = user_id;
+
+		/**
+		 * @property {Object} data Data object for the user.
+		 * @property {Object} data.i The items the user owns.
+		 * @property {Array} data.g Gift codes the user has claimed (auto pruned).
+		 * @property {Array} data.t Trade gifts and requests.
+		 */
+
 		this.data = data_obj || {
 
 			// Items
@@ -26,6 +47,14 @@ monetary.shop.Data = (function(){
 		this.data.i = (typeof this.data.i == "object" && this.data.i.constructor == Object)? this.data.i : {};
 		this.data.g = (typeof this.data.g == "object" && this.data.g.constructor == Array)? this.data.g : [];
 		this.data.t = (typeof this.data.t == "object" && this.data.t.constructor == Array)? this.data.t : [];
+
+		/**
+		 * Updates the key data, however you can avoid an actual AJAX request if needed.  Usually this is called internally.
+		 *
+		 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+		 * @param {Object} callbacks Yootil key options that get passed on to the set method.
+		 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+		 */
 
 		this.update = function(skip_update, callbacks){
 			if(!skip_update){
@@ -64,24 +93,64 @@ monetary.shop.Data = (function(){
 		this.fixed = function(val){
 			return parseFloat(parseFloat(val).toFixed(2));		
 		};
+
+		/**
+		 * @class monetary.shop.Data.get
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
 		
 		this.get = {
+
+			/**
+			 * Gets the users items.
+			 *
+			 * @returns {Object}
+			 */
 
 			items: function(){
 				return self.data.i;
 			},
 
+			/**
+			 * Gets the users data object.
+			 *
+			 * @returns {Object}
+			 */
+
 			data: function(){
 				return self.data;
 			},
+
+			/**
+			 * Gets a specific item.
+			 *
+			 * @param {String} id The id for the item.
+			 * @returns {Object}
+			 */
 
 			item: function(id){
 				return self.data.i[id] || null;
 			},
 
+			/**
+			 * Gets the users gift codes they have claimed.
+			 *
+			 * @returns {Array}
+			 */
+
 			gifts: function(){
 				return self.data.g;
 			},
+
+			/**
+			 * Gets the quantity for an item the user owns.
+			 *
+			 * @param {String} id The item id.
+			 * @returns {Number}
+			 */
 
 			quantity: function(id){
 				if(self.data.i[id]){
@@ -90,9 +159,23 @@ monetary.shop.Data = (function(){
 
 				return 0;
 			},
-			
+
+			/**
+			 * @class monetary.shop.Data.get.trades
+			 * @static
+			 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+			 *
+			 *     var data = new monetary.shop.Data(yootil.user.id());
+			 */
+
 			trades: {
-			
+
+				/**
+				 * Gets the users trade or gift requests they have sent to other users.
+				 *
+				 * @returns {Array}
+				 */
+
 				sent: function(){
 					var sent = [];
 					
@@ -106,7 +189,13 @@ monetary.shop.Data = (function(){
 				
 					return sent;	
 				},
-				
+
+				/**
+				 * Gets the users trade or gift requests they have received from other users.
+				 *
+				 * @returns {Array}
+				 */
+
 				received: function(){
 					var received = [];
 					
@@ -122,6 +211,13 @@ monetary.shop.Data = (function(){
 				}
 				
 			},
+
+			/**
+			 * Gets a specific trade request.
+			 *
+			 * @param {Number} trade_id The trade ID to get.
+			 * @returns {Object}
+			 */
 			
 			trade: function(trade_id){
 				if(!trade_id){
@@ -140,26 +236,69 @@ monetary.shop.Data = (function(){
 			}
 
 		};
-		
+
+		/**
+		 * @class monetary.shop.Data.set
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.set = {
+
+			/**
+			 * Sets the users items.
+			 *
+			 * @param {Object} items The items.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
 
 			items: function(items, skip_update, opts){
 				self.data.i = items;
 				self.update(skip_update, opts);
 			},
 
+			/**
+			 * Sets the users gifts.
+			 *
+			 * @param {Object} gifts The gifts.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			gifts: function(gifts, skip_update, opts){
 				self.data.g = gifts;
 				self.update(skip_update, opts);
 			},
-			
+
+			/**
+			 * Sets the quantity of an item the user owns.
+			 *
+			 * @param {String} id The item ID.
+			 * @param {Number} qty The quantity to set it too.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			quantity: function(id, qty, skip_update, opts){
 				if(self.data.i[id]){
 					self.data.i[id].q = qty;
 					self.update(skip_update, opts);	
 				}
 			},
-			
+
+			/**
+			 * Sets an item.
+			 *
+			 * @param {String} id The item ID.
+			 * @param {Number} qty The quantity to set it too.
+			 * @param {Number} price The price paid for the item.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			item: function(id, qty, price, skip_update, opts){
 				self.data.i[id] = {
 					
@@ -173,7 +312,23 @@ monetary.shop.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.shop.Data.add
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.add = {
+
+			/**
+			 * Adds an item to the item object.
+			 *
+			 * @param {Object} item The item to be added.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
 
 			item: function(item, skip_update, opts){
 				if(item && item.id){
@@ -200,7 +355,23 @@ monetary.shop.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.shop.Data.remove
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.remove = {
+
+			/**
+			 * Removes an item to the item object.
+			 *
+			 * @param {String} item_id The item to be removed.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
 
 			item: function(item_id, skip_update, opts){
 				if(item_id && self.data.i[item_id]){
@@ -214,9 +385,26 @@ monetary.shop.Data = (function(){
 			}
 
 		};
-		
+
+		/**
+		 * @class monetary.shop.Data.reduce
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.reduce = {
-			
+
+			/**
+			 * Reduces the quantity owned of an item.
+			 *
+			 * @param {String} item_id The item to be reduced.
+			 * @param {Number} quantity Quantity to be reduced by.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			quantity: function(item_id, quantity, skip_update, opts){
 				if(item_id && self.data.i[item_id]){
 					self.data.i[item_id].q -= ~~ quantity;
@@ -235,7 +423,24 @@ monetary.shop.Data = (function(){
 			
 		};
 
+		/**
+		 * @class monetary.shop.Data.refund
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.refund = {
+
+			/**
+			 * Refunds an item.
+			 *
+			 * @param {String} item_id The item to be refunded.
+			 * @param {Number} quantity Quantity to be refunded.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
 
 			item: function(item_id, quantity, skip_update, opts){
 				var item = self.data.i[item_id];
@@ -253,18 +458,47 @@ monetary.shop.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.shop.Data.clear
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.clear = {
+
+			/**
+			 * Clears all items from the data object.
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
 
 			items: function(skip_update, opts){
 				self.data.i = {};
 				self.update(skip_update, opts);
 			},
 
+			/**
+			 * Clears all gifts from the data object.
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			gifts: function(skip_update, opts){
 				self.data.g = [];
 				self.update(skip_update, opts);
 			},
-			
+
+			/**
+			 * Clears all trades from the data object.
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			trades: function(skip_update, opts){
 				self.data.t = [];
 				self.update(skip_update, opts);
@@ -272,7 +506,23 @@ monetary.shop.Data = (function(){
 
 		};
 
+		/**
+		 * @class monetary.shop.Data.push
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.push = {
+
+			/**
+			 * Pushes a gift code to the gift array on the data object.
+			 *
+			 * @param {String} code The gift code being pushed.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
 
 			gift: function(code, skip_update, opts){
 				self.data.g.push(code);
@@ -280,9 +530,28 @@ monetary.shop.Data = (function(){
 			}
 
 		};
-		
+
+		/**
+		 * @class monetary.shop.Data.trade
+		 * @static
+		 * Note:  You need to create an instance.  The shop already does this for you. See the {@link monetary.shop#data data method}.
+		 *
+		 *     var data = new monetary.shop.Data(yootil.user.id());
+		 */
+
 		this.trade = {
-			
+
+			/**
+			 * Sends a trade / gift request to a user.
+			 *
+			 * @param {Object} sending The items being sent.
+			 * @param {Array} sending_details The details for the user sending the request (i.e name).
+			 * @param {Object} receiving The items being received (aka requested in the trade).
+			 * @param {Array} receiving_details The details for the user receiving the request (i.e name).
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			send: function(sending, sending_details, receiving, receiving_details){
 				if(sending && sending_details && receiving_details){
 					var request = {
@@ -320,11 +589,26 @@ monetary.shop.Data = (function(){
 				
 				return false;
 			},
-			
+
+			/**
+			 * Pushes a new trade request that is being received from a user.
+			 *
+			 * @param {Object} request The trade request data.
+			 */
+
 			receive: function(request){
 				self.data.t.push(request);
 			},
-			
+
+			/**
+			 * Accepts a gift / trade request
+			 *
+			 * @param {Object} the_trade The trade data.
+			 * @param {Boolean} gift If it is a gift or not.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			accept: function(the_trade, gift, skip_update, opts){
 				var receive_user_id = the_trade.f.u[0];
 				var receive_items = the_trade.f.i;
@@ -437,7 +721,15 @@ monetary.shop.Data = (function(){
 				
 				return return_obj;
 			},
-			
+
+			/**
+			 * Removes a trade request.
+			 *
+			 * @param {Object} the_trade The trade data.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			remove: function(the_trade, skip_update, opts){
 				for(var i = 0, l = self.data.t.length; i < l; i ++){
 					if(self.data.t[i].d == the_trade.d){
@@ -448,6 +740,14 @@ monetary.shop.Data = (function(){
 				
 				self.update(skip_update, opts);
 			},
+
+			/**
+			 * Cancels a trade request.
+			 *
+			 * @param {Object} the_trade The trade data.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
 			
 			cancel: function(the_trade, skip_update, opts){
 				var from = the_trade.f;
@@ -483,7 +783,15 @@ monetary.shop.Data = (function(){
 					self.update(false, opts);	
 				}				
 			},
-			
+
+			/**
+			 * Declines a trade request.
+			 *
+			 * @param {Object} the_trade The trade data.
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 */
+
 			decline: function(the_trade, skip_update, opts){
 				
 				// We need add the item / quantity back to the
@@ -555,7 +863,14 @@ monetary.shop.Data = (function(){
 				}
 					
 			},
-			
+
+			/**
+			 * Checks to see if a trade request exists.
+			 *
+			 * @param {Number} trade_id
+			 * @returns {Boolean}
+			 */
+
 			exists: function(trade_id){
 				if(!trade_id){
 					return false;	

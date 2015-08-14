@@ -5,9 +5,6 @@
  * Creates a shop on the forum so that members can purchase items.
  */
 
-// todo finish docs
-// test system
-
 monetary.shop = (function(){
 
 	return {
@@ -16,7 +13,7 @@ monetary.shop = (function(){
 		 * @property {String} required_monetary_version The minimum version required of the Monetary System.
 		 */
 
-		required_monetary_version: "0.8.6",
+		required_monetary_version: "0.9.0",
 
 		/**
 		 * @property {String} VERSION Current version.
@@ -1159,6 +1156,10 @@ monetary.shop = (function(){
 			});
 		},
 
+		/**
+		 * Binds the refundable dialog to the items on the profile.
+		 */
+
 		bind_refundable_dialog: function(){
 			var self = this;
 
@@ -1166,6 +1167,10 @@ monetary.shop = (function(){
 				self.build_item_info_dialog(this);
 			});
 		},
+
+		/**
+		 * Builds hte shop HTML to show all the categories, items, and search.
+		 */
 
 		build_shop_html: function(){
 			var self = this;
@@ -1383,6 +1388,12 @@ monetary.shop = (function(){
 			}
 		},
 
+		/**
+		 * Creates the shop tabs on the shop page.
+		 *
+		 * @returns {String}
+		 */
+
 		create_shop_tabs: function(){
 			var html = '<div class="ui-tabMenu"><ul class="ui-helper-clearfix">';
 			var counter = 0;
@@ -1409,6 +1420,12 @@ monetary.shop = (function(){
 
 			return html;
 		},
+
+		/**
+		 * Basic search functionality for the shop.
+		 *
+		 * @param {String} txt The search term.  Needs to be 3 characters or more.
+		 */
 
 		search_shop: function(txt){
 			if(txt && txt.length >= 3){
@@ -1553,6 +1570,13 @@ monetary.shop = (function(){
 			}
 		},
 
+		/**
+		 * Checks to see if the user is at the max allowed quantity if a limit has been set for the item.
+		 *
+		 * @param {String} id The item we are checking.
+		 * @returns {Boolean}
+		 */
+
 		at_max_quantity: function(id){
 			var current_qty = ~~ this.data(yootil.user.id()).get.quantity(id);
 			var cart_quantity = 0;
@@ -1569,6 +1593,14 @@ monetary.shop = (function(){
 
 			return false;
 		},
+
+		/**
+		 * Adds an item to the virtual cart.
+		 *
+		 * @param {Object} button The button that the action was on.
+		 * @param {String} item_id The item ID that is being added to the cart.
+		 * @param {Number} quantity The quantity being added.
+		 */
 
 		add_to_cart: function(button, item_id, quantity){
 			if(button && this.lookup[item_id] && this.lookup[item_id].item_show == 1){
@@ -1632,6 +1664,10 @@ monetary.shop = (function(){
 				}, 1500);
 			}
 		},
+
+		/**
+		 * Populates the basket with all the items the user has added.
+		 */
 
 		populate_basket_list: function(){
 			var self = this;
@@ -1705,6 +1741,10 @@ monetary.shop = (function(){
 			basket_items_table.show();
 		},
 
+		/**
+		 * Updates the total items in the cart (tab).
+		 */
+
 		update_total_amount: function(){
 			var total = 0;
 
@@ -1730,6 +1770,13 @@ monetary.shop = (function(){
 
 			$("div.container_monetaryshop span#basket_total_amount").html(yootil.number_format(monetary.format(total, true)));
 		},
+
+		/**
+		 * Allows for an item to be removed from the cart.
+		 *
+		 * @param {Object} button The button the action was on.
+		 * @param {String} item_id The item being removed.
+		 */
 
 		remove_from_cart: function(button, item_id){
 			var self = this;
@@ -1757,6 +1804,10 @@ monetary.shop = (function(){
 				$("div.container_monetaryshop li#basket_items_tab a").html(self.settings.text.basket + " (" + yootil.number_format(this.cart.length) + ")");
 			}
 		},
+
+		/**
+		 * Final step of the cart is checking out.  We show the items to the user one last time.
+		 */
 
 		checkout: function(){
 			var self = this;
@@ -2009,6 +2060,14 @@ monetary.shop = (function(){
 			}
 		},
 
+		/**
+		 * If the user has a random item in their cart and is checking out with it, then we need to give them
+		 * a random item from the build random pool.
+		 *
+		 * @param {Object} grouped_items The item pool.
+		 * @returns {Array}
+		 */
+
 		check_and_give_random_items: function(grouped_items){
 			var random_items = [];
 			var random_item_ids = {};
@@ -2051,6 +2110,10 @@ monetary.shop = (function(){
 			
 			return [grouped_items, random_items, random_item_ids];
 		},
+
+		/**
+		 * If enabled, items can be shown in the mini profile for users.
+		 */
 		
 		show_in_mini_profile: function(){
 			var minis = $("div.mini-profile");

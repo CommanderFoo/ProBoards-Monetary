@@ -397,6 +397,8 @@ money.bank = (function(){
 
 		/**
 		 * If interest is enabled, then we apply it by looking at the last time they earned interest.
+		 *
+		 * @returns Boolean
 		 */
 
 		apply_interest: function(){

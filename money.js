@@ -761,9 +761,9 @@ var money = {
 
 		if(!this.is_editing && !this.is_new_thread){
 			if(this.using_quick_reply){
-				money_to_add += this.format(this.settings.posting.amounts.per_quick_reply);
+				money_to_add += parseFloat(this.format(this.settings.posting.amounts.per_quick_reply));
 			} else {
-				money_to_add += this.format(this.settings.posting.amounts.per_reply);
+				money_to_add += parseFloat(this.format(this.settings.posting.amounts.per_reply));
 			}
 		}
 

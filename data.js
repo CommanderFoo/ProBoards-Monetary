@@ -1,7 +1,7 @@
 /**
  * @class monetary.Data
  * @constructor
- *Wrapper class around the users data that gets instantiated for each users data on the page.
+ * Wrapper class around the users data that gets instantiated for each users data on the page.
  *
  *     var data = new monetary.Data(yootil.user.id())
  *

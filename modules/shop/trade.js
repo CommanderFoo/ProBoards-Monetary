@@ -9,6 +9,24 @@ monetary.shop.trade = (function(){
 
 	return {
 
+		/**
+		 * @property {Object} settings Default settings for this module that can be overwritten in setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Boolean} settings.show_trade_button If enable the trade button will show on profiles.
+		 * @property {Boolean} settings.page_timer_enabled Should the page timer be active?
+		 * @property {Object} settings.text Text replacements.
+		 * @property {String} settings.text.gift
+		 * @property {String} settings.text.trade
+		 * @property {String} settings.text.request
+		 * @property {String} settings.text.sent
+		 * @property {String} settings.text.received
+		 * @property {String} settings.text.sending
+		 * @property {String} settings.text.receiving
+		 * @property {String} settings.text.requesting
+		 * @property {String} settings.text.item
+		 * @property {String} settings.text.send
+		 */
+
 		settings: {
 
 			enabled: true,
@@ -32,14 +50,51 @@ monetary.shop.trade = (function(){
 
 		},
 
+		/**
+		 * @property {Number} page_timer Current time for expiration.
+		 */
+
 		page_timer: 0,
+
+		/**
+		 * @property {Number} PAGE_TIME_EXPIRY Time until the page expires.
+		 */
+
 		PAGE_TIME_EXPIRY: 45,
+
+		/**
+		 * @property {Number} interval Interval id.
+		 */
+
 		interval: 0,
+
+		/**
+		 * @property {Boolean} expired
+		 */
+
 		expired: false,
+
+		/**
+		 * @property {Boolean} timer_running
+		 */
+
 		timer_running: false,
+
+		/**
+		 * @property {Boolean} timer_paused
+		 */
+
 		timer_paused: false,
 
+		/**
+		 * @property {Object} images Plugin images.
+		 */
+
 		images: {},
+
+		/**
+		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
 
 		init: function(){
 			this.setup();
@@ -151,10 +206,19 @@ monetary.shop.trade = (function(){
 			}
 		},
 
+		/**
+		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
 		register: function(){
 			monetary.shop.modules.push(this);
 			return this;
 		},
+
+		/**
+		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
 
 		setup: function(){
 			this.shop = monetary.shop;
@@ -195,6 +259,12 @@ monetary.shop.trade = (function(){
 			}
 		},
 
+		/**
+		 * Builds the trading box HTML.
+		 *
+		 * @returns {String}
+		 */
+
 		build_trading_box: function(){
 			var html = "<div class='trade_middle'>";
 
@@ -212,6 +282,13 @@ monetary.shop.trade = (function(){
 
 			return html;
 		},
+
+		/**
+		 * When the trade button is clicked, we start monitoring the time on the page.  We expire trading
+		 * if the user has been on the page too long.
+		 *
+		 * @param {Array} objs Objects to fade out to show they are disabled.
+		 */
 
 		monitor_time_on_page: function(objs){
 			var self = this;
@@ -257,6 +334,10 @@ monetary.shop.trade = (function(){
 				$("#monetary-trade-page-expiry").html("Page Expires In: " + time_left + " second" + ((time_left == 1)? "" : "s"));
 			}, 1000);
 		},
+
+		/**
+		 * Creates a trade request.
+		 */
 
 		request: function(){
 			if(this.expired){
@@ -404,7 +485,9 @@ monetary.shop.trade = (function(){
 												trade_type = 0;
 											}
 
-											monetary.create_notification("[T:" + trade_type + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", viewing_id);
+											if(typeof monetary.create_notification != "undefined"){
+												monetary.create_notification("[T:" + trade_type + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", viewing_id);
+											}
 											
 											msg += " to <a href='/user/" + yootil.html_encode(viewing_id) + "'>";
 											msg += yootil.html_encode(yootil.page.member.name(), true) + "</a>.";
@@ -516,6 +599,14 @@ monetary.shop.trade = (function(){
 			}
 		},
 
+		/**
+		 * Validates trade items before sending the trade.
+		 *
+		 * @param {Array} imgs The item images being sent or requested.
+		 * @param {Boolean} owner If owner of the items, set to true.
+		 * @returns {Mixed} Grouped up items.
+		 */
+
 		validate_trade_items: function(imgs, owner){
 			var grouped_items = {};
 
@@ -546,7 +637,15 @@ monetary.shop.trade = (function(){
 
 			return (count > 0)? grouped_items : false;
 		},
-		
+
+		/**
+		 * Gets the total items received or sent.
+		 *
+		 * @param {Object} items The items for the request.
+		 * @param {Boolean} receiving No longer used, but left in the body.
+		 * @returns {Number} Total items.
+		 */
+
 		get_total_items: function(items, receiving){
 			var total = 0;
 			var the_items = {};
@@ -563,6 +662,13 @@ monetary.shop.trade = (function(){
 			
 			return total;
 		},
+
+		/**
+		 * Builds the sent requests tab.
+		 *
+		 * @param {Array} trades_sent The trades sent by the user.
+		 * @returns {String}
+		 */
 		
 		build_sent_requests: function(trades_sent){
 			var html = "";
@@ -631,7 +737,14 @@ monetary.shop.trade = (function(){
 			
 			return html;
 		},
-		
+
+		/**
+		 * Builds the received requests tab.
+		 *
+		 * @param {Array} trades_received The trades received.
+		 * @returns {String}
+		 */
+
 		build_received_requests: function(trades_received){
 			var html = "";
 					
@@ -699,7 +812,11 @@ monetary.shop.trade = (function(){
 			
 			return html;
 		},
-			
+
+		/**
+		 * Builds the send / received trade requests HTML that holds the 2 tabs.
+		 */
+
 		build_sent_received_trade_requests_html: function(){
 			var self = this;
 			var trades_sent = this.shop.data(yootil.user.id()).get.trades.sent();
@@ -769,7 +886,15 @@ monetary.shop.trade = (function(){
 			container.find("div.pad-all").removeClass("pad-all").addClass("cap-bottom");
 			container.appendTo("#content");
 		},
-		
+
+		/**
+		 * Builds the received trade request HTML when looking at a request from a user.
+		 *
+		 * @param {Object} the_trade The trade request data.
+		 * @param {String} title
+		 * @param {Boolean} gift Is it a gift or a trade request?
+		 */
+
 		build_received_trade_request_html: function(the_trade, title, gift){
 			var self = this;
 			var can_trade = true;
@@ -949,7 +1074,9 @@ monetary.shop.trade = (function(){
 						if(return_obj.can_accept){
 							self.timer_paused = true;
 
-							monetary.create_notification("[TAR:" + ((gift)? 2 : 3) + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", the_trade.f.u[0]);
+							if(typeof monetary.create_notification != "undefined"){
+								monetary.create_notification("[TAR:" + ((gift) ? 2 : 3) + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", the_trade.f.u[0]);
+							}
 
 							self.shop.data(yootil.user.id()).update(false);
 							self.shop.data(the_trade.f.u[0]).update(false, {
@@ -1056,7 +1183,9 @@ monetary.shop.trade = (function(){
 								
 								var what = $(this);
 
-								monetary.create_notification("[TAR:" + ((gift)? 0 : 1) + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", the_trade.f.u[0]);
+								if(typeof monetary.create_notification != "undefined"){
+									monetary.create_notification("[TAR:" + ((gift) ? 0 : 1) + "|" + yootil.user.id() + "|" + yootil.user.name() + "]", the_trade.f.u[0]);
+								}
 
 								self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
 									
@@ -1119,7 +1248,14 @@ monetary.shop.trade = (function(){
 				});
 			}
 		},
-		
+
+		/**
+		 * Checks to see if the user has items for trade.
+		 *
+		 * @param {Object} the_trade The trade data.
+		 * @returns {Boolean}
+		 */
+
 		has_items_for_trade: function(the_trade){
 			if(!the_trade){
 				return false;
@@ -1150,7 +1286,15 @@ monetary.shop.trade = (function(){
 
 			return false;
 		},
-		
+
+		/**
+		 * Builds the HTML for a sent trade request.
+		 *
+		 * @param {Object} the_trade The trade data.
+		 * @param {String} title Container title.
+		 * @param {Boolean} gift Gift or request?
+		 */
+
 		build_sent_trade_request_html: function(the_trade, title, gift){
 			var self = this;
 			var can_trade = true;

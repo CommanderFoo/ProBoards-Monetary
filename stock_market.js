@@ -594,11 +594,11 @@ money.stock_market = (function(){
 			html += "<th style='width: 6%'></th>";
 			html += "</tr>";
 
-			html += "</table>";
-
 			if(return_html){
 				return html;
 			}
+
+			html += "</table>";
 
 			$("#stock-invest-content").empty().html(html);
 		},

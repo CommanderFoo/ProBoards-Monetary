@@ -233,8 +233,8 @@ money.donation = (function(){
 				var reject = rejected[0];
 				var donation_id = reject.t + "" + reject.r[0];
 				var content = "Your " + this.settings.text.donation.toLowerCase() + " of " + money.settings.money_symbol + money.format(reject.a, true) + " to <a href='/user/" + yootil.html_encode(reject.r[0]) + "'>" + yootil.html_encode(reject.r[1], true) + "</a> was rejected.";
-
-				pb.window.dialog("montary-donation-reject-" + r, {
+				
+				pb.window.dialog("montary-donation-reject", {
 					modal: true,
 					height: 160,
 					resizable: false,

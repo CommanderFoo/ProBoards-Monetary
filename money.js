@@ -1,7 +1,7 @@
 /**
  * @class monetary
  * @static
- * *
+ *
  * Main class that handles setup, init of sub modules, post event bindings and display of money across the forum.
  */
 
@@ -440,13 +440,13 @@ var money = {
 			if(typeof yootil == "undefined"){
 				title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Not Found</h2></div>";
 				body = "<p>You do not have the <a href='http://support.proboards.com/thread/429360/'>Yootil</a> plugin installed.</p>";
-				body += "<p>Without the <a href='http://support.proboards.com/thread/429360/'>Yootil</a>, the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> will not work.</p>";
+				body += "<p>Without the <a href='http://support.proboards.com/thread/429360/'>Yootil</a> plugin, the <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> will not work.</p>";
 			} else {
 				var versions = yootil.convert_versions(yootil.version(), this.required_yootil_version);
 
 				if(versions[0] < versions[1]){
 					title = "<div class=\"title-bar\"><h2>Monetary System - Yootil Needs Updating</h2></div>";
-					body += "<p>The <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> requires at least " + yootil.html_encode(this.required_yootil_version) + " of the <a href='http://support.proboards.com/thread/429360/'>Yootil</a>.</p>";
+					body += "<p>The <a href='http://support.proboards.com/thread/429762/'>Monetary System</a> requires at least " + yootil.html_encode(this.required_yootil_version) + " of the <a href='http://support.proboards.com/thread/429360/'>Yootil</a> plugin.</p>";
 				}
 			}
 

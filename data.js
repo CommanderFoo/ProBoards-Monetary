@@ -173,7 +173,7 @@ money.Data = (function(){
 			 */
 
 			error: function(){
-				return this.error;
+				return self.error;
 			},
 
 			/**

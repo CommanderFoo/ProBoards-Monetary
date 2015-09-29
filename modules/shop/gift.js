@@ -93,6 +93,7 @@ monetary.shop.gift = (function(){
 			this.images = plugin.images;
 
 			this.settings.text.gift = (settings.txt_gift && settings.txt_gift.length)? settings.txt_gift : this.settings.text.gift;
+
 			this.settings.gifts_enabled = (!! ~~ settings.gifts_enabled)? true : false;
 			this.settings.gift_codes = (settings.gift_codes && settings.gift_codes.length)? settings.gift_codes : [];
 

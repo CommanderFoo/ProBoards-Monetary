@@ -103,7 +103,7 @@ money.wages = (function(){
 				this.settings.staff_rules = (settings.staff_wage_rules && settings.staff_wage_rules.length)? settings.staff_wage_rules : [];
 
 				if(!money.bank.settings.enabled){
-					this.settings.paid_into = 1;
+					this.settings.paid_into = 0;
 				}
 
 				// Disable wages if there are no rules

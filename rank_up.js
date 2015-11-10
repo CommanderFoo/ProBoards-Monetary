@@ -53,7 +53,7 @@ money.rank_up = (function(){
 				this.settings.paid_into = (!! ~~ settings.rank_up_paid_into)? 1 : 0;
 
 				if(!money.bank.settings.enabled){
-					this.settings.paid_into = 1;
+					this.settings.paid_into = 0;
 				}
 			}
 		},

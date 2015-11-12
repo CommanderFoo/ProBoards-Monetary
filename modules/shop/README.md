@@ -1,2 +1,2 @@
-Monetary System - Shop 0.5.6
+Monetary System - Shop 0.5.7
 ============================

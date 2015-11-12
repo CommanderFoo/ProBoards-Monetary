@@ -1920,6 +1920,12 @@ monetary.shop = (function(){
 				grouped_items = return_data[0];
 
 				buttons[this.settings.text.purchase] = function(){
+					$(monetary.event).trigger("shop.before_purchase", {
+
+						items: grouped_items
+
+					});
+
 					var total = 0;
 
 					for(var key in grouped_items){
@@ -1969,6 +1975,13 @@ monetary.shop = (function(){
 
 						total += price * grouped_items[key].quantity;
 					}
+
+					$(monetary.event).trigger("shop.after_purchase", {
+
+						total: total,
+						items: grouped_items
+
+					});
 
 					self.cart = [];
 					self.data(yootil.user.id()).update();

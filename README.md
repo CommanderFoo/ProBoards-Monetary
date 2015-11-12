@@ -1,4 +1,4 @@
-Monetary System 0.9.3
+Monetary System 0.9.4
 =====================
 
 Forum Topic - http://support.proboards.com/thread/429762/

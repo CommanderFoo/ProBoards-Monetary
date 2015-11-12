@@ -238,6 +238,8 @@ var money = {
 
 	notify: null,
 
+	event: {},
+
 	/**
 	 * Starts the magic.
 	 * Various this happening here.  We do Yootil checks, setup user lookup table, and other checks.

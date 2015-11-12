@@ -741,6 +741,18 @@ var money = {
 			return false;
 		}
 
+		/**
+		 * Triggers before applying money to account when they are posting.
+		 *
+		 *     $(monetary.event).on("before_apply_posting_money", function(event){
+		 *         console.log("do something");
+		 *     });
+		 *
+		 * @event before_apply_posting_money
+		 */
+
+		$(monetary.event).trigger("before_apply_posting_money");
+
 		var money_to_add = 0.00;
 		var category_id = yootil.page.category.id();
 		var board_id = yootil.page.board.id();
@@ -789,6 +801,18 @@ var money = {
 				yootil.key.set_on(this.KEY, this.data(yootil.user.id()).get.data(), yootil.user.id(), event);
 			}
 		}
+
+		/**
+		 * Triggers after applying money to account when they are posting.
+		 *
+		 *     $(monetary.event).on("after_apply_posting_money", function(event){
+		 *         console.log("do something");
+		 *     });
+		 *
+		 * @event after_apply_posting_money
+		 */
+
+		$(monetary.event).trigger("after_apply_posting_money");
 	},
 
 	/**
@@ -967,6 +991,23 @@ var money = {
 
 					open: function(){
 						var key = (bank_edit)? "bank" : "money";
+
+						/**
+						 * Triggers when opening the edit money dialog box on the profile.
+						 *
+						 *     $(monetary.event).on("on_open_edit_money", function(event, data){
+						 *         console.log(data.type);
+						 *     });
+						 *
+						 * @event on_open_edit_money
+						 */
+
+						$(monetary.event).trigger("on_open_edit_money", {
+
+							type: key
+
+						});
+
 						var money = self.data(user_id).get[key]();
 
 						$(this).find("input[name=edit_" + bank_str + "money]").val(yootil.html_encode(self.format(money)));
@@ -975,6 +1016,18 @@ var money = {
 					buttons: {
 
 						Close: function(){
+
+							/**
+							 * Triggers when closing the edit money dialog box on the profile.
+							 *
+							 *     $(monetary.event).on("on_close_edit_money", function(event){
+							 *         console.log("do something");
+						 	 *     });
+							 *
+							 * @event on_close_edit_money
+							 */
+
+							$(monetary.event).trigger("on_close_edit_money");
 							$(this).dialog("close");
 						}
 

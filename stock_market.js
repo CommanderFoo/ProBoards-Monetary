@@ -233,6 +233,22 @@ money.stock_market = (function(){
 
 				if(data && data.results && data.results.length){
 					this.data = data.results;
+
+					/**
+					 * Triggers when the AJAX request is done and has the stock data.
+					 *
+					 *     $(monetary.event).on("stock_market.data_request_done", function(event, data){
+					 *         console.log(data);
+					 *     });
+					 *
+					 * @event data_request_done
+					 */
+
+					$(monetary.event).trigger("stock_market.data_request_done", {
+
+						results: data.results
+
+					});
 				}
 
 				this.build_stock_table();

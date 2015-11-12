@@ -201,6 +201,23 @@ money.bank = (function(){
 						if(value > parseFloat(current_amount)){
 							self.bank_error("You do not have enough to " + self.settings.text.deposit.toLowerCase() + " that amount.");
 						} else {
+
+							/**
+							 * Triggers when a deposit is made into the bank account.
+							 *
+							 *     $(monetary.event).on("bank.deposit", function(event, data){
+					 		 *         console.log(data.amount);
+					 		 *     });
+							 *
+							 * @event deposit
+							 */
+
+							$(monetary.event).trigger("bank.deposit", {
+
+								amount: value
+
+							});
+
 							self.deposit(value);
 							input.val(money.format(0, true));
 
@@ -229,6 +246,23 @@ money.bank = (function(){
 						if(value > parseFloat(current_amount)){
 							self.bank_error("You do not have enough in the " + self.settings.text.bank.toLowerCase() + " to " + self.settings.text.withdraw.toLowerCase() + " that amount.");
 						} else {
+
+							/**
+							 * Triggers when a withdraw is made into the bank account.
+							 *
+							 *     $(monetary.event).on("bank.withdraw", function(event, data){
+					 		 *         console.log(data.amount);
+					 		 *     });
+							 *
+							 * @event withdraw
+							 */
+
+							$(monetary.event).trigger("bank.withdraw", {
+
+								amount: value
+
+							});
+
 							self.withdraw(value);
 							input.val(money.format(0, true));
 

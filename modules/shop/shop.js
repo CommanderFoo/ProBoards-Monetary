@@ -1920,6 +1920,17 @@ monetary.shop = (function(){
 				grouped_items = return_data[0];
 
 				buttons[this.settings.text.purchase] = function(){
+
+					/**
+					 * Triggers before purchase.
+					 *
+					 *     $(monetary.event).on("shop.before_purchase", function(event, data){
+					 *         console.log(data.items);
+					 *     });
+					 *
+					 * @event before_purchase
+					 */
+
 					$(monetary.event).trigger("shop.before_purchase", {
 
 						items: grouped_items
@@ -1975,6 +1986,17 @@ monetary.shop = (function(){
 
 						total += price * grouped_items[key].quantity;
 					}
+
+					/**
+					 * Triggers after purchase.
+					 *
+					 *     $(monetary.event).on("shop.after_purchase", function(event, data){
+					 *         console.log(data.total);
+					 *         console.log(data.items);
+					 *     });
+					 *
+					 * @event after_purchase
+					 */
 
 					$(monetary.event).trigger("shop.after_purchase", {
 

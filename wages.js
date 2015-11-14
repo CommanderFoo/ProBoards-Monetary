@@ -138,6 +138,8 @@ money.wages = (function(){
 
 				if(data.s){
 					data.s = parseInt(data.s);
+				} else {
+					data.s = (+ new Date());
 				}
 
 				money.data(yootil.user.id()).set.wages(data, true);

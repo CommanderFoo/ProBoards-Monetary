@@ -457,7 +457,7 @@ money.bank = (function(){
 				money.data(user_id).set.interest(today, true);
 
 				if(balance > 0 && interest > 0){
-					money.data(user_id).increase.bank(parseFloat(interest.toFixed(2)));
+					money.data(user_id).increase.bank(parseFloat(interest.toFixed(2)), true);
 					this.create_transaction(3, interest, 0, true);
 
 					return true;

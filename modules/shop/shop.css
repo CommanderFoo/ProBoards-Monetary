@@ -1,0 +1,313 @@
+div#monetaryshop-buy-dialog table.list tr td, div#monetaryshop-buy-dialog table.list tr th {
+
+	border-width: 1px;
+
+}
+
+div#monetaryshop-buy-dialog table.list {
+
+	margin-bottom: 10px;
+
+}
+
+div#monetaryshop-buy-dialog table.list td.monetaryshop_item_img {
+
+	text-align: center;
+
+}
+
+div#monetaryshop-buy-dialog table.list tr td, .container_monetaryshop table.list tr td {
+
+	vertical-align: top;
+
+}
+
+div#monetaryshop-buy-dialog table.list th {
+
+	text-align: left;	
+	
+}
+
+div#monetaryshop-buy-dialog table.list tr th:nth-child(n+3) {
+
+	width: 110px;
+
+}
+
+span.shop_item {
+
+	position: absolute;
+	bottom: -2px;
+	right: -1px;
+
+}
+
+span.shop_item img.shop_item_x {
+
+	position: relative;
+	left: 3px;
+
+}
+
+span.shop_item img.shop_item_num_last {
+
+	position: relative;
+	left: -2px;
+
+}
+
+div.shop_items_list {
+
+	display: inline-block;
+	position: relative;
+	margin-right: 5px;
+	padding: 5px;
+	cursor: pointer;
+
+}
+
+.monetary_shop_profile_box .shop_items_list {
+
+	vertical-align:  middle;
+
+}
+
+div.monetary-shop-notice-icon {
+
+	float: left;
+	margin-right: 20px;
+	margin-left: 10px;
+
+}
+
+div.monetary-shop-notice-content {
+
+	float: left;
+	margin-top: 2px;
+
+}
+
+div.monetary-shop-notice-content p {
+
+	margin-top: 10px;
+
+}
+
+div#monetaryshop-item-info-dialog p {
+
+	margin-bottom: 5px;
+
+}
+
+div#monetaryshop-item-info-dialog div {
+
+	font-size: 12px;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_img {
+
+	float: left;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_img img {
+
+	margin-left: 10px;
+	margin-right: 15px;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_info {
+
+	margin-left: 10px;
+	overflow: hidden;
+
+}
+
+div#monetaryshop-item-info-dialog .item_info_desc {
+
+	margin-top: 8px;
+
+}
+
+span.pd_shop_mini_item {
+
+	padding: 2px;
+
+}
+
+td.shop_ribbon {
+
+	background-repeat: no-repeat;
+	background-position: -8px -8px;
+
+}
+
+td.shop_ribbon img {
+
+	margin-top: 4px;
+	margin-bottom: 4px;
+
+}
+
+div.container_monetaryshop span.search-filters-button {
+
+	min-height: 16px;
+
+}
+
+div.trade_wrapper {
+
+	height: 100%;
+
+}
+
+div.trade_wrapper .trade_profile {
+
+	height: 90%;
+	border: 1px solid #aaa9a9;
+	border-radius: 10px;
+	color: #000;
+	overflow: hidden;
+	padding: 13px 10px;
+	width: 150px;
+
+}
+
+div.trade_wrapper .trade_owner {
+
+	float: right;
+
+}
+
+div.trade_profile .trader_name {
+
+	text-align: center;
+	font-weight: bold;
+
+}
+
+div.trade_wrapper .trade_with {
+
+	float: left;
+
+}
+
+div.trade_wrapper .trade_with, div.trade_wrapper .trade_owner {
+
+	overflow: auto;
+
+}
+
+div.trade_wrapper .trade_with:hover, div.trade_wrapper .trade_owner:hover, div.trade_box_right .trade_item_box_right:hover, div.trade_box_left .trade_item_box_left:hover {
+
+	background-color: #FCF9F9;
+	cursor: pointer;
+}
+
+div.trade_wrapper .trade_middle {
+
+	overflow: hidden;
+	height: 100%;
+
+}
+
+div.trade_middle .trade_box_left {
+
+	float: left;
+	height: 100%;
+	width: 50%;
+
+}
+
+div.trade_middle .trade_box_right {
+
+	float: right;
+	height: 100%;
+	width: 50%;
+	text-align: right;
+
+}
+
+div.trade_box_left .arrow_left {
+
+	margin-top: 25px;
+	text-align: right;
+
+}
+
+div.trade_box_right .arrow_right {
+
+	margin-top: 38px;
+	text-align: left;
+
+}
+
+div.trade_box_left .trade_item_box_left {
+
+	margin-top: 37px;
+
+}
+
+div.trade_box_right .trade_item_box_right, div.trade_box_left .trade_item_box_left {
+
+	width: 130px;
+	height: 130px;
+	border: 1px solid #aaa9a9;
+	padding: 5px;
+	border-radius: 10px;
+	margin-left: 15px;
+	overflow: auto;
+	text-align: center;
+
+}
+
+div.trade_box_right .trade_item_box_right img, div.trade_box_left .trade_item_box_left img {
+
+	max-height: 30px;
+	max-width: 30px;
+
+}
+
+span.trade_item_disabled {
+
+	opacity: 0.15;
+
+}
+
+div.item_shop_category_description {
+
+	margin: 20px;
+	
+}
+
+table.monetary-shop-trades-list .monetary-shop-trade-list-icon {
+
+	width: 55px;
+
+}
+
+table.monetary-shop-trades-list .monetary-shop-trade-list-button {
+
+	text-align: right;
+
+}
+
+.trader-requester-name {
+
+	font-weight: bold;
+
+}
+
+span.trader-not-requesting {
+
+	font-size: 90%;
+
+}
+
+select.monetary-shop-cart-quantity {
+
+	margin-bottom: 3px;
+
+}

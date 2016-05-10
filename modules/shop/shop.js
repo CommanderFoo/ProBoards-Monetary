@@ -2005,6 +2005,7 @@ monetary.shop = (function(){
 
 					});
 
+
 					self.cart = [];
 					self.data(yootil.user.id()).update();
 					monetary.data(yootil.user.id()).decrease.money(total, false, null, true);

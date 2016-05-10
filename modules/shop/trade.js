@@ -102,8 +102,10 @@ monetary.shop.trade = (function(){
 			if(!this.settings.enabled){
 				return;
 			}
-			
-			yootil.bar.add("/user/" + yootil.user.id() + "?monetaryshop&tradeview=1", this.shop.images.trade, this.settings.text.gift + " / " + this.settings.text.trade + " " + this.settings.text.request + "s", "pdmstrade");
+
+			if(yootil.user.logged_in()){
+				yootil.bar.add("/user/" + yootil.user.id() + "?monetaryshop&tradeview=1", this.shop.images.trade, this.settings.text.gift + " / " + this.settings.text.trade + " " + this.settings.text.request + "s", "pdmstrade");
+			}
 			
 			if(yootil.location.profile_home()){
 				if(location.href.match(/\?monetaryshop&tradeview=(\d+)/i) && RegExp.$1){

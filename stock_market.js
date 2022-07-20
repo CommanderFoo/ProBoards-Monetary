@@ -914,7 +914,7 @@ money.stock_market = (function(){
 
 				if(this.settings.show_chart){
 					stock_html += "<div class='stock-block-chart'>";
-					stock_html += "<img src='http://chart.finance.yahoo.com/z?s=" + yootil.html_encode(this.data[d].Symbol) + "&t=2w&l=off&z=" + chart_size + "' />";
+					stock_html += "<img src='https://www.investing.com/charts/stocks-charts" + yootil.html_encode(this.data[d].Symbol) + "&t=2w&l=off&z=" + chart_size + "' />";
 					stock_html += "</div>";
 				}
 

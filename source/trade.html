@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='monetary-shop-trade'>/**
+</span> * @class monetary.shop.trade
+ * @static
+ *
+ * 	Allows members to trade or gift with each other.
+ */
+
+monetary.shop.trade = (function(){
+
+	return {
+
+<span id='monetary-shop-trade-property-settings'>		/**
+</span>		 * @property {Object} settings Default settings for this module that can be overwritten in setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Boolean} settings.show_trade_button If enable the trade button will show on profiles.
+		 * @property {Boolean} settings.page_timer_enabled Should the page timer be active?
+		 * @property {Object} settings.text Text replacements.
+		 * @property {String} settings.text.gift
+		 * @property {String} settings.text.trade
+		 * @property {String} settings.text.request
+		 * @property {String} settings.text.sent
+		 * @property {String} settings.text.received
+		 * @property {String} settings.text.sending
+		 * @property {String} settings.text.receiving
+		 * @property {String} settings.text.requesting
+		 * @property {String} settings.text.item
+		 * @property {String} settings.text.send
+		 */
+
+		settings: {
+
+			enabled: true,
+			show_trade_button: true,
+			page_timer_enabled: true,
+
+			text: {
+
+				gift: &quot;Gift&quot;,
+				trade: &quot;Trade&quot;,
+				request: &quot;Request&quot;,
+				sent: &quot;Sent&quot;,
+				received: &quot;Received&quot;,
+				sending: &quot;Sending&quot;,
+				receiving: &quot;Receiving&quot;,
+				requesting: &quot;Requesting&quot;,
+				item: &quot;Item&quot;,
+				send: &quot;Send&quot;
+
+			}
+
+		},
+
+<span id='monetary-shop-trade-property-page_timer'>		/**
+</span>		 * @property {Number} page_timer Current time for expiration.
+		 */
+
+		page_timer: 0,
+
+<span id='monetary-shop-trade-property-PAGE_TIME_EXPIRY'>		/**
+</span>		 * @property {Number} PAGE_TIME_EXPIRY Time until the page expires.
+		 */
+
+		PAGE_TIME_EXPIRY: 45,
+
+<span id='monetary-shop-trade-property-interval'>		/**
+</span>		 * @property {Number} interval Interval id.
+		 */
+
+		interval: 0,
+
+<span id='monetary-shop-trade-property-expired'>		/**
+</span>		 * @property {Boolean} expired
+		 */
+
+		expired: false,
+
+<span id='monetary-shop-trade-property-timer_running'>		/**
+</span>		 * @property {Boolean} timer_running
+		 */
+
+		timer_running: false,
+
+<span id='monetary-shop-trade-property-timer_paused'>		/**
+</span>		 * @property {Boolean} timer_paused
+		 */
+
+		timer_paused: false,
+
+<span id='monetary-shop-trade-property-images'>		/**
+</span>		 * @property {Object} images Plugin images.
+		 */
+
+		images: {},
+
+<span id='monetary-shop-trade-method-init'>		/**
+</span>		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
+
+		init: function(){
+			this.setup();
+
+			if(!this.settings.enabled){
+				return;
+			}
+			
+			yootil.bar.add(&quot;/user/&quot; + yootil.user.id() + &quot;?monetaryshop&amp;tradeview=1&quot;, this.shop.images.trade, this.settings.text.gift + &quot; / &quot; + this.settings.text.trade + &quot; &quot; + this.settings.text.request + &quot;s&quot;, &quot;pdmstrade&quot;);
+			
+			if(yootil.location.profile_home()){
+				if(location.href.match(/\?monetaryshop&amp;tradeview=(\d+)/i) &amp;&amp; RegExp.$1){
+					var view = ~~ RegExp.$1;
+					var user_id = yootil.user.id();
+					
+					switch(view){
+
+						// Sent / Received Trades
+
+						case 1:
+							if(yootil.page.member.id() == user_id){
+								yootil.create.page(new RegExp(&quot;\\/user\\/&quot; + user_id + &quot;\\?monetaryshop&amp;tradeview=1&quot;), this.settings.text.gift + &quot; / &quot; + this.settings.text.trade + &quot; &quot; + this.settings.text.request +  &quot;s&quot;);
+								yootil.create.nav_branch(&quot;/user/&quot; + user_id + &quot;?monetaryshop&amp;tradeview=1&quot;, &quot;&lt;span id='trade-branch-sent-received'&gt;&quot; + this.settings.text.received + &quot;&lt;/span&gt; &quot; + this.settings.text.gift + &quot; / &quot; + this.settings.text.trade + &quot; &quot; + this.settings.text.request +  &quot;s&quot;);
+
+								this.build_sent_received_trade_requests_html();
+							}
+							
+							break;
+						
+						// Received request
+						
+						case 2:
+							var trade_id = (location.href.match(/tradeview=2&amp;id=(\d+)/))? RegExp.$1 : -1;
+
+							if(trade_id){
+								var id = ~~ yootil.page.member.id();
+								var the_trade = this.shop.data(yootil.user.id()).get.trade(trade_id);
+								var valid_trade = (the_trade &amp;&amp; the_trade.f &amp;&amp; the_trade.f.i)? true : false;
+								var title = &quot;Viewing &quot;;
+								var gift = false;
+								
+								if(valid_trade){
+									var total_items_requesting = this.get_total_items(the_trade.f, true);
+									var total_items_receiving = this.get_total_items(the_trade.t, true);
+									
+									if(total_items_requesting &amp;&amp; !total_items_receiving){
+										title += this.settings.text.gift;
+										gift = true;
+									} else {
+										title += this.settings.text.trade + &quot; &quot; + this.settings.text.request;	
+									}
+								} else {
+									title = &quot;An Error Has Occurred&quot;;
+									pb.window.alert(&quot;An Error Has Occurred&quot;, &quot;The &quot; + this.settings.text.trade.toLowerCase() + &quot; &quot; + this.settings.text.request.toLowerCase() + &quot; could not be found.&quot;);
+								}
+								
+								yootil.create.page(new RegExp(&quot;\\/user\\/&quot; + id + &quot;\\?monetaryshop&amp;tradeview=2&amp;id=[\\d\\.]+&quot;), title);
+								yootil.create.nav_branch(&quot;/user/&quot; + user_id + &quot;?monetaryshop&amp;tradeview=1&quot;, title);
+								this.build_received_trade_request_html(the_trade, title, gift);
+							} else {
+								monetary.show_default();
+							}
+
+							break;
+						
+						// Send request
+						
+						case 3:
+							var trade_id = (location.href.match(/tradeview=3&amp;id=(\d+)/))? RegExp.$1 : -1;
+
+							if(trade_id){
+								var id = ~~ yootil.page.member.id();
+								var the_trade = this.shop.data(yootil.user.id()).get.trade(trade_id);
+								var valid_trade = (the_trade &amp;&amp; the_trade.f &amp;&amp; the_trade.f.i)? true : false;
+								var title = &quot;Viewing Sent &quot;;
+								var gift = false;
+								
+								if(valid_trade){
+									var total_items_requesting = this.get_total_items(the_trade.f, true);
+									var total_items_receiving = this.get_total_items(the_trade.t, true);
+									
+									if(total_items_requesting &amp;&amp; !total_items_receiving){
+										title += this.settings.text.gift;
+										gift = true;
+									} else {
+										title += this.settings.text.trade + &quot; &quot; + this.settings.text.request;	
+									}
+								} else {
+									title = &quot;An Error Has Occurred&quot;;
+									pb.window.alert(&quot;An Error Has Occurred&quot;, &quot;The &quot; + this.settings.text.trade.toLowerCase() + &quot; &quot; + this.settings.text.request.toLowerCase() + &quot; could not be found.&quot;);
+								}
+								
+								yootil.create.page(new RegExp(&quot;\\/user\\/&quot; + id + &quot;\\?monetaryshop&amp;tradeview=3&amp;id=[\\d\\.]+&quot;), title);
+								yootil.create.nav_branch(&quot;/user/&quot; + user_id + &quot;?monetaryshop&amp;tradeview=1&quot;, title);
+								
+								this.build_sent_trade_request_html(the_trade, title, gift);
+							} else {
+								monetary.show_default();
+							}
+
+							break;
+							
+					}
+				} else if(yootil.page.member.id() != yootil.user.id() &amp;&amp; this.settings.show_trade_button){
+					if(this.shop.can_use_shop()){
+						this.create_trade_button();
+					}
+				}
+			}
+		},
+
+<span id='monetary-shop-trade-method-register'>		/**
+</span>		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
+		register: function(){
+			monetary.shop.modules.push(this);
+			return this;
+		},
+
+<span id='monetary-shop-trade-method-setup'>		/**
+</span>		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
+
+		setup: function(){
+			this.shop = monetary.shop;
+
+			var plugin = this.shop.plugin;
+			var settings = plugin.settings;
+
+			this.images = plugin.images;
+
+			this.settings.text.trade = (settings.txt_trade &amp;&amp; settings.txt_trade.length)? settings.txt_trade : this.settings.text.trade;
+			this.settings.text.gift = (settings.txt_gift &amp;&amp; settings.txt_gift.length)? settings.txt_gift : this.settings.text.gift;
+			this.settings.text.request = (settings.txt_request &amp;&amp; settings.txt_request.length)? settings.txt_request : this.settings.text.request;
+			this.settings.text.received = (settings.txt_received &amp;&amp; settings.txt_received.length)? settings.txt_received : this.settings.text.received;
+			this.settings.text.sent = (settings.txt_sent &amp;&amp; settings.txt_sent.length)? settings.txt_sent : this.settings.text.sent;
+			this.settings.text.sending = (settings.txt_sending &amp;&amp; settings.txt_sending.length)? settings.txt_sending : this.settings.text.sending;
+			this.settings.text.receiving = (settings.txt_receiving &amp;&amp; settings.txt_receiving.length)? settings.txt_receiving : this.settings.text.receiving;
+			this.settings.text.requesting = (settings.txt_requesting &amp;&amp; settings.txt_requesting.length)? settings.txt_requesting : this.settings.text.requesting;
+			this.settings.text.item = (settings.txt_item &amp;&amp; settings.txt_item.length)? settings.txt_item : this.settings.text.item;
+			this.settings.text.send = (settings.txt_send &amp;&amp; settings.txt_send.length)? settings.txt_send : this.settings.text.send;
+		},
+
+		create_trade_button: function(){
+			var trade_button = $(&quot;.controls a.button[href^='/conversation/new/']&quot;);
+
+			if(trade_button.length){
+				var self = this;
+				var clone = trade_button.clone();
+				var id = yootil.page.member.id();
+
+				clone.attr(&quot;href&quot;, &quot;#&quot;).text(this.shop.trade.settings.text.gift + &quot; / &quot; + this.shop.trade.settings.text.trade);
+
+				clone.click(function(){
+					self.shop.trade.request();
+					return false;
+				});
+
+				clone.insertAfter(trade_button);
+			}
+		},
+
+<span id='monetary-shop-trade-method-build_trading_box'>		/**
+</span>		 * Builds the trading box HTML.
+		 *
+		 * @returns {String}
+		 */
+
+		build_trading_box: function(){
+			var html = &quot;&lt;div class='trade_middle'&gt;&quot;;
+
+			html += &quot;&lt;div class='trade_box_left'&gt;&quot;;
+			html += &quot;&lt;div class='arrow_left'&gt;&lt;img src='&quot; + this.images.arrow_right + &quot;' /&gt;&lt;/div&gt;&quot;;
+			html += &quot;&lt;div class='trade_item_box_left' id='trade_left_offer'&gt;&lt;/div&gt;&quot;;
+			html += &quot;&lt;/div&gt;&quot;;
+
+			html += &quot;&lt;div class='trade_box_right'&gt;&quot;;
+			html += &quot;&lt;div class='trade_item_box_right' id='trade_right_offer'&gt;&lt;/div&gt;&quot;;
+			html += &quot;&lt;div class='arrow_right'&gt;&lt;img src='&quot; + this.images.arrow_left + &quot;' /&gt;&lt;/div&gt;&quot;;
+			html += &quot;&lt;/div&gt;&quot;;
+
+			html += &quot;&lt;/div&gt;&quot;;
+
+			return html;
+		},
+
+<span id='monetary-shop-trade-method-monitor_time_on_page'>		/**
+</span>		 * When the trade button is clicked, we start monitoring the time on the page.  We expire trading
+		 * if the user has been on the page too long.
+		 *
+		 * @param {Array} objs Objects to fade out to show they are disabled.
+		 */
+
+		monitor_time_on_page: function(objs){
+			var self = this;
+			
+			if(this.timer_paused){
+				return false;	
+			}
+			
+			if(this.timer_running){
+				return false;
+			}
+
+			this.interval = setInterval(function(){
+				if(self.page_timer &gt;= self.PAGE_TIME_EXPIRY){
+					self.expired = true;
+					
+					if(objs){
+						for(var o = 0, l = objs.length; o &lt; l; o ++){
+							objs[o].css(&quot;opacity&quot;, .5);	
+						}	
+					}
+					
+					$(&quot;#monetary-trade-page-expiry&quot;).html(&quot;Page Expires In: expired&quot;);
+
+					pb.window.alert(&quot;Page Expired&quot;, &quot;This page has expired, please refresh.&quot;, {
+						modal: true,
+						height: 160,
+						resizable: false,
+						draggable: false
+					});
+
+					clearInterval(self.interval);
+
+					return;
+				}
+
+				self.page_timer ++;
+
+				var time_left = self.PAGE_TIME_EXPIRY - self.page_timer;
+
+				time_left = (time_left &lt; 0)? 0 : time_left;
+
+				$(&quot;#monetary-trade-page-expiry&quot;).html(&quot;Page Expires In: &quot; + time_left + &quot; second&quot; + ((time_left == 1)? &quot;&quot; : &quot;s&quot;));
+			}, 1000);
+		},
+
+<span id='monetary-shop-trade-method-request'>		/**
+</span>		 * Creates a trade request.
+		 */
+
+		request: function(){
+			if(this.expired){
+				pb.window.alert(&quot;Page Expired&quot;, &quot;This page has expired, please refresh.&quot;, {
+					modal: true,
+					height: 160,
+					resizable: false,
+					draggable: false
+				});
+
+				return;
+			}
+
+			var self = this;
+			var expiry_str = (this.expired)? &quot;expired&quot; : ((this.PAGE_TIME_EXPIRY  - this.page_timer) + &quot; seconds&quot;);
+			var dialog_title = this.settings.text.gift + &quot; / &quot; + this.settings.text.trade + &quot; &quot; + this.settings.text.request + &quot; - &quot;;
+			var viewing_id = yootil.page.member.id() || null;
+
+			if(!viewing_id){
+				pb.window.alert(&quot;An Error Has Occurred&quot;, &quot;Could not find user ID.&quot;, {
+					modal: true,
+					height: 160,
+					resizable: false,
+					draggable: false
+				});
+
+				return false;
+			}
+
+			if(this.settings.page_timer_enabled){
+				this.monitor_time_on_page([
+					$(&quot;#monetaryshop-trade-dialog div.trade_wrapper&quot;),
+					$(&quot;#trade_accept_btn&quot;).css(&quot;opacity&quot;, .5)
+				]);
+				
+				this.timer_running = true;
+			}
+
+			var own_items = this.shop.data(yootil.user.id()).get.items();
+			var with_items = this.shop.data(viewing_id).get.items();
+			var html = &quot;&lt;div class='trade_wrapper'&gt;&quot;;
+
+			var owner_html = &quot;&lt;div class='trade_owner trade_profile'&gt;&quot;;
+
+			owner_html += &quot;&lt;div class='trader_name'&gt;You&lt;/div&gt;&lt;br /&gt;&lt;div id='trade_owner_items'&gt;&quot;;
+
+			var img_size = this.shop.get_size_css(true);
+			var disp = (!img_size.length &amp;&amp; parseInt(self.shop.settings.mini_image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+
+			for(var key in own_items){
+				var item = this.shop.lookup[key];
+
+				if(item){
+					var klass = (this.shop.lookup[key].item_tradable == 1)? &quot;&quot; : &quot; trade_item_disabled&quot;;
+					var title = (klass.length)? &quot; (Not Tradable)&quot; : &quot;&quot;;
+					
+					owner_html += '&lt;span class=&quot;pd_shop_mini_item' + klass + '&quot; data-shop-item-id=&quot;' + this.shop.lookup[key].item_id + '&quot; title=&quot;' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '&quot;&gt;&lt;img src=&quot;' + this.shop.get_image_src(this.shop.lookup[key]) + '&quot;' + img_size + disp + ' /&gt;&lt;/span&gt;';
+				}
+			}
+
+			owner_html += &quot;&lt;/div&gt;&lt;/div&gt;&quot;;
+
+			var with_html = &quot;&lt;div class='trade_with trade_profile'&gt;&quot;;
+
+			with_html += &quot;&lt;div class='trader_name'&gt;&quot; + yootil.html_encode(yootil.page.member.name(), true) + &quot;&lt;/div&gt;&lt;br /&gt;&lt;div id='trade_with_items'&gt;&quot;;
+
+			for(var key in with_items){
+				var item = this.shop.lookup[key];
+
+				if(item){
+					var klass = (this.shop.lookup[key].item_tradable == 1)? &quot;&quot; : &quot; trade_item_disabled&quot;;
+					var title = (klass.length)? &quot; (Not Tradable)&quot; : &quot;&quot;;
+
+					with_html += '&lt;span class=&quot;pd_shop_mini_item' + klass + '&quot; data-shop-item-id=&quot;' + this.shop.lookup[key].item_id + '&quot; title=&quot;' + yootil.html_encode(this.shop.lookup[key].item_name) + title + '&quot;&gt;&lt;img src=&quot;' + this.shop.get_image_src(this.shop.lookup[key]) + '&quot;' + img_size + disp + ' /&gt;&lt;/span&gt;';
+				}
+			}
+
+			with_html += &quot;&lt;/div&gt;&lt;/div&gt;&quot;;
+
+			html += owner_html + with_html + this.build_trading_box() + &quot;&lt;/div&gt;&quot;;
+
+			pb.window.dialog(&quot;monetaryshop-trade-dialog&quot;, {
+				modal: true,
+				height: 400,
+				width: 700,
+				title: dialog_title,
+				html: html,
+				resizable: false,
+				draggable: false,
+
+				create: function(){
+					$(this).parent().find(&quot;span.ui-dialog-title&quot;).append($(&quot;&lt;span id='monetary-trade-page-expiry'&gt;Page Expires In: &quot; + expiry_str + &quot;&lt;/span&gt;&quot;));
+				},
+
+				buttons: [
+
+					{
+
+						text: &quot;Cancel &quot; + this.settings.text.gift + &quot; / &quot; + this.settings.text.trade,
+						click: function(){
+							$(this).dialog(&quot;close&quot;);
+						}
+
+					},
+
+					{
+
+						text: this.settings.text.send + &quot; &quot; + this.settings.text.gift + &quot; / &quot; + this.settings.text.trade,
+						click: function(){
+							if(self.expired){
+								return false;
+							}
+
+							var dialog = this;
+							
+							if($(&quot;#trade_right_offer img&quot;).length || $(&quot;#trade_left_offer img&quot;).length){
+								var with_items = self.validate_trade_items($(&quot;#trade_right_offer img&quot;), false);
+								var owner_items = self.validate_trade_items($(&quot;#trade_left_offer img&quot;), true);
+
+								if(with_items || owner_items){
+									$(&quot;#trade_accept_btn span&quot;).text(&quot;  Please Wait...  &quot;);
+									
+									var to_details = [viewing_id, yootil.page.member.name()];
+									var from_details = [yootil.user.id(), yootil.user.name()];
+									
+									self.shop.data(yootil.user.id()).trade.send(owner_items, from_details, with_items, to_details, true);
+									self.timer_paused = true;
+																		
+									self.shop.data(viewing_id).update(false);
+									
+									self.shop.data(yootil.user.id()).update(false, {
+										
+										complete: function(){
+											$(dialog).dialog(&quot;close&quot;);
+									
+											var msg = &quot;You have successfully sent a &quot;;
+											var trade_type = 0;
+
+											if(with_items &amp;&amp; owner_items){
+												msg += self.settings.text.trade.toLowerCase();
+												msg += &quot; &quot; + self.settings.text.request.toLowerCase();
+												trade_type = 1;
+											} else {
+											 	msg += self.settings.text.gift.toLowerCase();
+												trade_type = 0;
+											}
+
+											if(typeof monetary.create_notification != &quot;undefined&quot;){
+												monetary.create_notification(&quot;[T:&quot; + trade_type + &quot;|&quot; + yootil.user.id() + &quot;|&quot; + yootil.user.name() + &quot;]&quot;, viewing_id);
+											}
+											
+											msg += &quot; to &lt;a href='/user/&quot; + yootil.html_encode(viewing_id) + &quot;'&gt;&quot;;
+											msg += yootil.html_encode(yootil.page.member.name(), true) + &quot;&lt;/a&gt;.&quot;;
+
+											pb.window.dialog(&quot;monetaryshop-trade-sent-dialog&quot;, {
+											
+												modal: true,
+												height: 200,
+												width: 420,
+												title: self.settings.text.gift + &quot; / &quot; + self.settings.text.trade + &quot; &quot; + self.settings.text.sent,
+												html: msg,
+												resizable: false,
+												draggable: false,
+												buttons: {
+											
+													Close: function(){
+														$(this).dialog(&quot;close&quot;);
+														self.timer_paused = false;
+													}
+													
+												}
+											
+											});	
+										}
+											
+									});
+								} else {
+									pb.window.alert(&quot;An Error Has Occurred&quot;, &quot;Could not send request (#1).&quot;, {
+										modal: true,
+										height: 160,
+										resizable: false,
+										draggable: false
+									});
+								}
+							}
+						},
+
+						id: &quot;trade_accept_btn&quot;,
+						style: &quot;opacity: 0.5;&quot;
+
+					}
+
+				]
+
+			});
+
+			$(&quot;#monetaryshop-trade-dialog span.pd_shop_mini_item&quot;).click(function(){
+				if(self.expired){
+					return false;
+				}
+
+				var span = $(this);
+				var who = span.parent().attr(&quot;id&quot;);
+				var item_id = span.attr(&quot;data-shop-item-id&quot;);
+
+				if(self.shop.lookup[item_id].item_tradable != 1){
+					return;
+				}
+
+				var user_id = (who == &quot;trade_owner_items&quot;)? yootil.user.id() : yootil.page.member.id();
+				var where_to = (who == &quot;trade_owner_items&quot;)? $(&quot;#trade_left_offer&quot;) : $(&quot;#trade_right_offer&quot;);
+				var item_image = span.find(&quot;img&quot;);
+				var img = $(&quot;&lt;img /&gt;&quot;).attr(&quot;src&quot;, item_image.attr(&quot;src&quot;));
+				var current_total_offer = where_to.find(&quot;img[data-shop-item-id=&quot; + item_id + &quot;]&quot;).length;
+				var current_quantity = self.shop.data(user_id).get.quantity(item_id);
+
+				if(current_total_offer &lt; current_quantity){
+					img.attr(&quot;data-shop-item-id&quot;, item_id);
+
+					img.click(function(){
+						if(self.expired){
+							return false;
+						}
+
+						$(this).hide(&quot;normal&quot;, function(){
+							$(this).remove();
+
+							if(!$(&quot;#trade_right_offer img&quot;).length &amp;&amp; !$(&quot;#trade_left_offer img&quot;).length){
+								$(&quot;#trade_accept_btn&quot;).css(&quot;opacity&quot;, .5);
+							}
+
+							span.css(&quot;opacity&quot;, 1);
+						});
+					});
+
+					img.appendTo(where_to);
+				}
+
+				if(where_to.find(&quot;img[data-shop-item-id=&quot; + item_id + &quot;]&quot;).length == current_quantity){
+					span.css(&quot;opacity&quot;, 0.5);
+				}
+
+				if(who == &quot;trade_owner_items&quot; &amp;&amp; where_to.find(&quot;img&quot;).length){
+					$(&quot;#trade_accept_btn&quot;).css(&quot;opacity&quot;, 1);
+				}
+			});
+
+			if(parseInt(self.shop.settings.mini_image_percent) &gt; 0){
+				$(&quot;#monetaryshop-trade-dialog span[data-shop-item-id] img&quot;).bind(&quot;load&quot;, function(){
+					var width = this.width;
+					var height = this.height;
+					var percent = parseInt(self.shop.settings.mini_image_percent);
+
+					this.width = (width - (width * (percent / 100)));
+					this.height = (height - (height * (percent / 100)));
+
+					$(this).fadeIn(&quot;slow&quot;);
+				});
+			}
+		},
+
+<span id='monetary-shop-trade-method-validate_trade_items'>		/**
+</span>		 * Validates trade items before sending the trade.
+		 *
+		 * @param {Array} imgs The item images being sent or requested.
+		 * @param {Boolean} owner If owner of the items, set to true.
+		 * @returns {Mixed} Grouped up items.
+		 */
+
+		validate_trade_items: function(imgs, owner){
+			var grouped_items = {};
+
+			imgs.each(function(){
+				var item_id = $(this).attr(&quot;data-shop-item-id&quot;);
+
+				if(!grouped_items[item_id]){
+					grouped_items[item_id] = {
+
+						q: 1
+
+					};
+				} else {
+					grouped_items[item_id].q ++;
+				}
+			});
+
+			var user_id = (owner)? yootil.user.id() : yootil.page.member.id();
+			var count = 0;
+
+			for(var k in grouped_items){
+				if(!this.shop.data(user_id).get.quantity(k)){
+					delete grouped_items[k];
+				} else {
+					count ++;
+				}
+			}
+
+			return (count &gt; 0)? grouped_items : false;
+		},
+
+<span id='monetary-shop-trade-method-get_total_items'>		/**
+</span>		 * Gets the total items received or sent.
+		 *
+		 * @param {Object} items The items for the request.
+		 * @param {Boolean} receiving No longer used, but left in the body.
+		 * @returns {Number} Total items.
+		 */
+
+		get_total_items: function(items, receiving){
+			var total = 0;
+			var the_items = {};
+			
+			if(receiving &amp;&amp; items.i){
+				the_items = items.i;
+			} else if(items.i){
+				the_items = items.i;	
+			}
+			
+			for(var k in the_items){
+				total += the_items[k].q;
+			}
+			
+			return total;
+		},
+
+<span id='monetary-shop-trade-method-build_sent_requests'>		/**
+</span>		 * Builds the sent requests tab.
+		 *
+		 * @param {Array} trades_sent The trades sent by the user.
+		 * @returns {String}
+		 */
+		
+		build_sent_requests: function(trades_sent){
+			var html = &quot;&quot;;
+					
+			html += '&lt;div id=&quot;trade_requests_sent&quot; style=&quot;display: none&quot;&gt;';
+			html += &quot;&lt;table class='monetary-shop-trades-list list'&gt;&quot;;
+			html += &quot;&lt;thead&gt;&lt;tr class='head'&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-icon'&gt; &lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-sending'&gt;&quot; + this.settings.text.sending + &quot;&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-requesting'&gt;&quot; + this.settings.text.requesting + &quot;&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-to'&gt;&quot; + this.settings.text.request + &quot; To&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-date'&gt;Date Sent&lt;/th&gt;&quot;;
+			html += &quot;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&quot;;
+			html += &quot;&lt;tbody class='list-content'&gt;&quot;;
+
+			var counter = 0;
+			var time_24 = (yootil.user.time_format() == &quot;12hr&quot;)? false : true;
+
+			if(trades_sent.length){
+				for(var t = 0, l = trades_sent.length; t &lt; l; t ++){
+					var date = new Date(trades_sent[t].d);
+					var day = date.getDate() || 1;
+					var month = monetary.months[date.getMonth()];
+					var year = date.getFullYear();
+					var hours = date.getHours();
+					var mins = date.getMinutes();
+					var date_str = monetary.days[date.getDay()] + &quot; &quot; + day + &quot;&lt;sup&gt;&quot; + monetary.get_suffix(day) + &quot;&lt;/sup&gt; of &quot; + month + &quot;, &quot; + year + &quot; at &quot;;
+					var am_pm = &quot;&quot;;
+
+					mins = (mins &lt; 10)? &quot;0&quot; + mins : mins;
+
+					if(!time_24){
+						am_pm = (hours &gt; 11)? &quot;pm&quot; : &quot;am&quot;;
+						hours = hours % 12;
+						hours = (hours)? hours : 12;
+					}
+
+					var total_items_sending = this.get_total_items(trades_sent[t].f, false);
+					var total_items_requesting = this.get_total_items(trades_sent[t].t, true);
+					var icon = this.shop.images.trade_32;
+					
+					if(!total_items_requesting){
+						icon = this.shop.images.gift_32;
+					}
+					
+					date_str += hours + &quot;:&quot; + mins + am_pm;
+
+					klass = (counter == 0)? &quot; first&quot; : ((counter == (l - 1))? &quot; last&quot; : &quot;&quot;);
+
+					html += &quot;&lt;tr class='item conversation&quot; + klass + &quot;' data-trade-with='&quot; + trades_sent[t].t.u[0] + &quot;'&gt;&quot;;
+					html += &quot;&lt;td&gt;&lt;img src='&quot; + icon + &quot;' /&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + total_items_sending + &quot; &quot; + this.settings.text.item.toLowerCase() + ((total_items_sending == 1)? &quot;&quot; : &quot;s&quot;) + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + total_items_requesting + &quot; &quot; + this.settings.text.item.toLowerCase() + ((total_items_requesting == 1)? &quot;&quot; : &quot;s&quot;) + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&lt;a href='/user/&quot; + yootil.html_encode(trades_sent[t].t.u[0]) + &quot;'&gt;&quot; + yootil.html_encode(trades_sent[t].t.u[1], true) + &quot;&lt;/a&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + date_str + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td class='monetary-shop-trade-list-button'&gt;&lt;button class='trade-request-sent-button' data-trade-id='&quot; + yootil.html_encode(trades_sent[t].d) + &quot;'&gt;View &quot; + this.settings.text.request + &quot;&lt;/button&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;/tr&gt;&quot;;
+
+					counter ++;
+				}
+			} else {
+				html += &quot;&lt;tr class='item conversation last'&gt;&lt;td colspan='5'&gt;&lt;em&gt;You have not &quot; + this.settings.text.sent.toLowerCase() + &quot; any &quot; + this.settings.text.gift.toLowerCase() + &quot; / &quot; + this.settings.text.trade.toLowerCase() + &quot; &quot; + this.settings.text.request.toLowerCase() + &quot;s.&lt;/em&gt;&lt;/td&gt;&lt;/tr&gt;&quot;;
+			}
+
+			html += &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&quot;;
+			
+			return html;
+		},
+
+<span id='monetary-shop-trade-method-build_received_requests'>		/**
+</span>		 * Builds the received requests tab.
+		 *
+		 * @param {Array} trades_received The trades received.
+		 * @returns {String}
+		 */
+
+		build_received_requests: function(trades_received){
+			var html = &quot;&quot;;
+					
+			html += '&lt;div id=&quot;trade_requests_received&quot;&gt;';
+			html += &quot;&lt;table class='monetary-shop-trades-list list'&gt;&quot;;
+			html += &quot;&lt;thead&gt;&lt;tr class='head'&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-icon'&gt; &lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-receiving'&gt;&quot; + this.settings.text.sending + &quot;&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-requesting'&gt;&quot; + this.settings.text.requesting + &quot;&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-to'&gt;&quot; + this.settings.text.request + &quot; From&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-shop-trade-list-date'&gt;Date Sent&lt;/th&gt;&quot;;
+			html += &quot;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&quot;;
+			html += &quot;&lt;tbody class='list-content'&gt;&quot;;
+
+			var counter = 0;
+			var time_24 = (yootil.user.time_format() == &quot;12hr&quot;)? false : true;
+
+			if(trades_received.length){
+				for(var t = 0, l = trades_received.length; t &lt; l; t ++){
+					var date = new Date(trades_received[t].d);
+					var day = date.getDate() || 1;
+					var month = monetary.months[date.getMonth()];
+					var year = date.getFullYear();
+					var hours = date.getHours();
+					var mins = date.getMinutes();
+					var date_str = monetary.days[date.getDay()] + &quot; &quot; + day + &quot;&lt;sup&gt;&quot; + monetary.get_suffix(day) + &quot;&lt;/sup&gt; of &quot; + month + &quot;, &quot; + year + &quot; at &quot;;
+					var am_pm = &quot;&quot;;
+
+					mins = (mins &lt; 10)? &quot;0&quot; + mins : mins;
+
+					if(!time_24){
+						am_pm = (hours &gt; 11)? &quot;pm&quot; : &quot;am&quot;;
+						hours = hours % 12;
+						hours = (hours)? hours : 12;
+					}
+
+					var total_items_receiving = this.get_total_items(trades_received[t].f, false);
+					var total_items_requesting = this.get_total_items(trades_received[t].t, true);
+					var icon = this.shop.images.trade_32;
+					
+					if(!total_items_requesting){
+						icon = this.shop.images.gift_32;
+					}
+					
+					date_str += hours + &quot;:&quot; + mins + am_pm;
+
+					klass = (counter == 0)? &quot; first&quot; : ((counter == (l - 1))? &quot; last&quot; : &quot;&quot;);
+
+					html += &quot;&lt;tr class='item conversation&quot; + klass + &quot;' data-trade-with='&quot; + trades_received[t].f.u[0] + &quot;'&gt;&quot;;
+					html += &quot;&lt;td&gt;&lt;img src='&quot; + icon + &quot;' /&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + total_items_receiving + &quot; &quot; + this.settings.text.item.toLowerCase() + ((total_items_receiving == 1)? &quot;&quot; : &quot;s&quot;) + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + total_items_requesting + &quot; &quot; + this.settings.text.item.toLowerCase() + ((total_items_requesting == 1)? &quot;&quot; : &quot;s&quot;) + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&lt;a href='/user/&quot; + yootil.html_encode(trades_received[t].f.u[0]) + &quot;'&gt;&quot; + yootil.html_encode(trades_received[t].f.u[1], true) + &quot;&lt;/a&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + date_str + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td class='monetary-shop-trade-list-button'&gt;&lt;button class='trade-request-received-button' data-trade-id='&quot; + yootil.html_encode(trades_received[t].d) + &quot;'&gt;View &quot; + this.settings.text.request + &quot;&lt;/button&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;/tr&gt;&quot;;
+
+					counter ++;
+				}
+			} else {
+				html += &quot;&lt;tr class='item conversation last'&gt;&lt;td colspan='5'&gt;&lt;em&gt;You have not &quot; + this.settings.text.received.toLowerCase() + &quot; any &quot; + this.settings.text.gift.toLowerCase() + &quot; / &quot; + this.settings.text.trade.toLowerCase() + &quot; &quot; + this.settings.text.request.toLowerCase() + &quot;s.&lt;/em&gt;&lt;/td&gt;&lt;/tr&gt;&quot;;
+			}
+
+			html += &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&quot;;
+			
+			return html;
+		},
+
+<span id='monetary-shop-trade-method-build_sent_received_trade_requests_html'>		/**
+</span>		 * Builds the send / received trade requests HTML that holds the 2 tabs.
+		 */
+
+		build_sent_received_trade_requests_html: function(){
+			var self = this;
+			var trades_sent = this.shop.data(yootil.user.id()).get.trades.sent();
+			var trades_received = this.shop.data(yootil.user.id()).get.trades.received();
+			var html = '&lt;div class=&quot;ui-tabMenu&quot;&gt;&lt;ul class=&quot;ui-helper-clearfix&quot;&gt;';
+			
+			html += '&lt;li class=&quot;ui-active&quot; id=&quot;tab_trade_requests_received&quot;&gt;&lt;a href=&quot;#&quot;&gt;' + this.settings.text.received + ' (' + trades_received.length + ')&lt;/a&gt;&lt;/li&gt;';
+			html += '&lt;li id=&quot;tab_trade_requests_sent&quot;&gt;&lt;a href=&quot;#&quot;&gt;' + this.settings.text.sent + ' (' + trades_sent.length + ')&lt;/a&gt;&lt;/li&gt;';
+						
+			html += &quot;&lt;/ul&gt;&lt;/div&gt;&quot;;
+			
+			html += this.build_received_requests(trades_received);
+			html += this.build_sent_requests(trades_sent);			
+			
+			var container = yootil.create.container(&quot;&lt;span id='trade-title-sent-received'&gt;&quot; + this.settings.text.received + &quot;&lt;/span&gt; &quot; + this.settings.text.gift + &quot; / &quot; + this.settings.text.trade + &quot; &quot; + this.settings.text.request + &quot;s&quot;, html).show();
+
+			container.find(&quot;tr.item&quot;).mouseenter(function(){
+				$(this).addClass(&quot;state-hover&quot;);
+			}).mouseleave(function(){
+				$(this).removeClass(&quot;state-hover&quot;);
+			});
+			
+			container.addClass(&quot;container_monetaryshop_trades&quot;);
+
+			var tabs = container.find(&quot;div.ui-tabMenu li[id*=tab_trade_]&quot;);
+			
+			tabs.click(function(e){
+				var id = $(this).attr(&quot;id&quot;);
+
+				if(id){
+					var tab_sent = $(&quot;div.container_monetaryshop_trades li#tab_trade_requests_sent&quot;);
+					var div_sent = $(&quot;div.container_monetaryshop_trades div#trade_requests_sent&quot;);
+					var tab_received = $(&quot;div.container_monetaryshop_trades li#tab_trade_requests_received&quot;);
+					var div_received = $(&quot;div.container_monetaryshop_trades div#trade_requests_received&quot;);
+						
+					if(id == &quot;tab_trade_requests_sent&quot;){
+						$(&quot;#trade-title-sent-received&quot;).text(self.settings.text.sent);
+						$(&quot;#trade-branch-sent-received&quot;).text(self.settings.text.sent);
+						
+						tab_received.removeClass(&quot;ui-active&quot;);
+						div_received.hide();
+						tab_sent.addClass(&quot;ui-active&quot;);
+						div_sent.show();
+					} else if(id == &quot;tab_trade_requests_received&quot;){
+						$(&quot;#trade-title-sent-received&quot;).text(self.settings.text.received);
+						$(&quot;#trade-branch-sent-received&quot;).text(self.settings.text.received);
+						
+						tab_sent.removeClass(&quot;ui-active&quot;);
+						div_sent.hide();
+						tab_received.addClass(&quot;ui-active&quot;);
+						div_received.show();
+					}
+				}
+
+				e.preventDefault();
+				return false;
+			});
+			
+			container.find(&quot;.monetary-shop-trade-list-button button&quot;).click(function(){
+				var id = $(this).attr(&quot;data-trade-id&quot;);
+				var from = ~~ $(this).parent().parent().attr(&quot;data-trade-with&quot;);
+				var trade_view = ($(this).hasClass(&quot;trade-request-received-button&quot;))? 2 : 3; 
+								
+				location.href = &quot;/user/&quot; + from + &quot;?monetaryshop&amp;tradeview=&quot; + trade_view + &quot;&amp;id=&quot; + id;
+			});
+			
+			container.find(&quot;div.pad-all&quot;).removeClass(&quot;pad-all&quot;).addClass(&quot;cap-bottom&quot;);
+			container.appendTo(&quot;#content&quot;);
+		},
+
+<span id='monetary-shop-trade-method-build_received_trade_request_html'>		/**
+</span>		 * Builds the received trade request HTML when looking at a request from a user.
+		 *
+		 * @param {Object} the_trade The trade request data.
+		 * @param {String} title
+		 * @param {Boolean} gift Is it a gift or a trade request?
+		 */
+
+		build_received_trade_request_html: function(the_trade, title, gift){
+			var self = this;
+			var can_trade = true;
+			var member_id = yootil.page.member.id();
+			var html = &quot;&quot;;
+			var img_size = this.shop.get_size_css(true);
+			var disp = (!img_size.length &amp;&amp; parseInt(this.shop.settings.mini_image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+			var valid_trade = (the_trade &amp;&amp; the_trade.f &amp;&amp; the_trade.f.i)? true : false;
+			var trader_name = (valid_trade)? the_trade.f.u[1] : &quot;Member&quot;;
+			var trade_gift_img = (gift)? this.shop.images.gift_big : this.shop.images.trade_big;
+			var trade_gift_txt = (gift)? this.settings.text.gift : this.settings.text.trade;
+						
+			html += &quot;&lt;div style='float: left; margin-top: 35px; width: 160px; text-align: center;'&gt;&quot;;
+			html += &quot;&lt;img src='&quot; + trade_gift_img + &quot;'&gt;&quot;;
+  			html += &quot;&lt;/div&gt;&quot;;
+  			
+  			if(valid_trade){
+	  			trader_name = &quot;&lt;a class='trader-requester-name' href='/user/&quot; + yootil.html_encode(the_trade.f.u[0]) + &quot;'&gt;&quot; + yootil.html_encode(trader_name, true) + &quot;&lt;/a&gt;&quot;;
+	  		}
+	  		
+  			html += &quot;&lt;div class='trade_wrapper' style='float: left; margin-top: 10px;'&gt;&lt;div style='float: left;'&gt;&quot;;
+  			html += &quot;&lt;strong style='padding-left: 2px;'&gt;&quot; + trader_name + &quot;&lt;/strong&gt; wants to &quot; + trade_gift_txt.toLowerCase() + &quot;:&lt;br /&gt;&quot;;
+  			html += &quot;&lt;div class='trade_with trade_profile' style='height: 140px; width: 250px; margin-top: 3px; margin-right: 40px; cursor: default;'&gt;&quot;;
+  			
+  			var trading_content = &quot;&quot;;
+  			var missing_shop_items = false;
+  			  			
+	  		if(valid_trade){
+	  			for(var id in the_trade.f.i){
+	  				var qty = the_trade.f.i[id].q;
+	  				
+	  				for(var q = 0; q &lt; qty; q ++){
+	  					var item = this.shop.lookup[id];
+	  					
+	  					if(item){	  						
+	  						trading_content += '&lt;span class=&quot;pd_shop_mini_item&quot; data-shop-item-id=&quot;' + item.item_id + '&quot; title=&quot;' + yootil.html_encode(item.item_name) + '&quot;&gt;&lt;img src=&quot;' + this.shop.get_image_src(item) + '&quot;' + img_size + disp + ' /&gt;&lt;/span&gt;';				
+	  						/*var num = &quot;&quot;;
+	  						
+	  						if(qty &gt; 1){
+	  							
+								num = '&lt;span class=&quot;shop_item&quot;&gt;';
+								num += '&lt;img' + disp + ' class=&quot;shop_item_x&quot; src=&quot;' + this.shop.images.x + '&quot; /&gt;';
+		
+								if(qty &gt;= 99){
+									num += 	'&lt;img' + disp + ' class=&quot;shop_item_num&quot; src=&quot;' + this.shop.images[&quot;9&quot;] + '&quot; /&gt;&lt;img class=&quot;shop_item_num shop_item_num_last&quot; src=&quot;' + this.shop.images[&quot;9&quot;] + '&quot; /&gt;';
+								} else {
+									var str = qty.toString();
+		
+									for(var s = 0; s &lt; str.length; s ++){
+										var klass = (s &gt; 0)? &quot; shop_item_num_last&quot; : &quot;&quot;;
+		
+										num += 	'&lt;img' + disp + ' class=&quot;shop_item_num' + klass + '&quot; src=&quot;' + this.shop.images[str.substr(s, 1)] + '&quot; /&gt;';
+									}
+								}
+		
+								num += '&lt;/span&gt;';
+							}
+	  						
+	  						trading_content += '&lt;div class=&quot;shop_items_list&quot; data-shop-item-id=&quot;' + item.item_id + '&quot; title=&quot;' + yootil.html_encode(item.item_name) + '&quot;&gt;&lt;img src=&quot;' + this.shop.settings.base_image + item.item_image + '&quot;' + img_size + disp + ' /&gt;' + num + '&lt;/div&gt;';*/
+	  					} else {
+	  						missing_shop_items = true;
+	  						break;	
+	  					}
+	  				}
+	  			}
+  			}
+  			
+  			if(!trading_content.length){
+  				can_trade = false;
+  				trading_content = &quot;&lt;em&gt;An error has occurred.&lt;/em&gt;&quot;;
+  			}
+  			
+  			if(missing_shop_items){
+  				can_trade = false;
+  				trading_content = &quot;&lt;em&gt;Missing shop items.&lt;/em&gt;&quot;;
+  			}
+  			
+  			html += trading_content;
+  			
+  			html += &quot;&lt;/div&gt;&quot;;
+    		html += &quot;&lt;/div&gt;&quot;;
+    		html += &quot;&lt;div style='float: left; margin-top: 15px;'&gt;&quot;;
+    		html += &quot;&lt;img src='&quot; + this.shop.images.arrow_right + &quot;' /&gt;&lt;br /&gt;&quot;;
+    		html += &quot;&lt;img src='&quot; + this.shop.images.arrow_left + &quot;' /&gt;&lt;/div&gt;&quot;;
+    		html += &quot;&lt;div style='float: left; margin-left: 40px;'&gt;&quot;;
+    		html += &quot;&lt;strong style='padding-left: 2px;'&gt;For&lt;/strong&gt; the following:&lt;br&gt;&lt;div class='trade_with trade_profile' style='height: 140px; width: 250px; margin-top: 3px; cursor: default;'&gt;&quot;;
+    		
+    		var requesting_content = &quot;&quot;;
+  			
+  			if(valid_trade){
+	  			for(var id in the_trade.t.i){
+	  				var qty = the_trade.t.i[id].q;
+	  				
+	  				for(var q = 0; q &lt; qty; q ++){
+	  					var item = this.shop.lookup[id];
+	  					
+	  					if(item){
+	  						requesting_content += '&lt;span class=&quot;pd_shop_mini_item&quot; data-shop-item-id=&quot;' + item.item_id + '&quot; title=&quot;' + yootil.html_encode(item.item_name) + '&quot;&gt;&lt;img src=&quot;' + this.shop.get_image_src(item) + '&quot;' + img_size + disp + ' /&gt;&lt;/span&gt;';				
+	  					} else {
+	  						missing_shop_items = true;
+	  						break;	
+	  					}
+	  				}
+	  			}
+  			}
+  			
+  			if(gift){
+  				requesting_content = &quot;&lt;span class='trader-not-requesting'&gt;&quot; + trader_name + &quot; is not requesting any items.&lt;/span&gt;&quot;;
+  			} else if(!requesting_content.length){
+  				can_trade = false;
+  				requesting_content = &quot;&lt;em&gt;An error has occurred&lt;/em&gt;&quot;;
+  			}
+  			
+  			if(missing_shop_items){
+  				can_trade = false;
+  				requesting_content = &quot;&lt;em&gt;Missing shop items.&lt;/em&gt;&quot;;
+  				
+  				setTimeout(function(){
+					pb.window.alert(&quot;An Error Has Occurred&quot;, &quot;There are items in this request that no longer exist in the shop, so this request can not be accepted, only declined.&quot;, {
+  				
+		  				modal: true,
+						height: 180,
+						width: 350,
+						resizable: false,
+						draggable: false	
+	  					
+  					});
+  				}, 500);
+  			}
+  			
+  			html += requesting_content;
+    		
+    		html += &quot;&lt;/div&gt;&lt;/div&gt;&lt;br style='clear: both' /&gt;&quot;;
+    		html += &quot;&lt;div style='margin-top: 25px; margin-bottom: 10px; text-align: center;'&gt;&quot;;
+    		
+    		var trade_disabled = (can_trade)? &quot;&quot; : &quot; style='opacity: 0.5;'&quot;;
+    		var decline_disabled = (can_trade)? &quot;&quot; : ((missing_shop_items)? &quot;&quot; : &quot; style='opacity: 0.5;'&quot;);
+    		 
+    		html += &quot;&lt;button id='accept_trade'&quot; + trade_disabled + &quot;&gt;Accept &quot; + trade_gift_txt + &quot;&lt;/button&gt; &lt;button id='reject_trade'&quot; + decline_disabled + &quot;&gt;Decline &quot; + trade_gift_txt + &quot;&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&quot;;
+
+			if(this.settings.page_timer_enabled){
+				var expiry_str = (this.expired)? &quot;expired&quot; : ((this.PAGE_TIME_EXPIRY  - this.page_timer) + &quot; seconds&quot;);
+								
+				title += &quot; - &lt;span id='monetary-trade-page-expiry'&gt;Page Expires In: &quot; + expiry_str + &quot;&lt;/span&gt;&quot;;
+			}
+			
+			var container = yootil.create.container(title, html).show();
+			
+			if(can_trade){
+				container.find(&quot;button#accept_trade&quot;).click(function(){
+					if(self.expired){
+						pb.window.alert(&quot;Page Expired&quot;, &quot;This page has expired, please refresh.&quot;, {
+							modal: true,
+							height: 160,
+							resizable: false,
+							draggable: false
+						});
+		
+						return;
+					}
+					
+					// Need to make sure all items that are in this request still exist
+					// for both parties
+					
+					if(!self.has_items_for_trade(the_trade)){
+						can_trade = false;
+						error_code = 1002;	
+					}
+					
+					if(can_trade){
+						
+						// Need to disable buttons and add complete event
+						// Once accepted, send back to requests page
+						
+						var return_obj = self.shop.data(yootil.user.id()).trade.accept(the_trade, gift, true);
+						
+						if(return_obj.can_accept){
+							self.timer_paused = true;
+
+							if(typeof monetary.create_notification != &quot;undefined&quot;){
+								monetary.create_notification(&quot;[TAR:&quot; + ((gift) ? 2 : 3) + &quot;|&quot; + yootil.user.id() + &quot;|&quot; + yootil.user.name() + &quot;]&quot;, the_trade.f.u[0]);
+							}
+
+							self.shop.data(yootil.user.id()).update(false);
+							self.shop.data(the_trade.f.u[0]).update(false, {
+																	
+								complete: function(){
+									var msg = &quot;You have successfully accepted this request &quot;;
+
+									pb.window.dialog(&quot;monetaryshop-trade-accept-success-dialog&quot;, {
+									
+										modal: true,
+										height: 200,
+										width: 420,
+										title: self.settings.text.gift + &quot; / &quot; + self.settings.text.trade + &quot; Accepted&quot;,
+										html: msg,
+										resizable: false,
+										draggable: false,
+										buttons: {
+									
+											Close: function(){
+												$(this).dialog(&quot;close&quot;);
+												location.href = &quot;/user/&quot; + yootil.user.id() + &quot;?monetaryshop&amp;tradeview=1&quot;;
+											}
+											
+										}
+									
+									});	
+								}
+								
+							});
+						} else {
+							var error = &quot;An unknown error has occurred (error code: 1003).&quot;;
+							
+							if(return_obj.error.length){
+								error = return_obj.error;
+							}
+
+							pb.window.alert(&quot;The following error has occurred.&quot;, error, {
+								modal: true,
+								height: 180,
+								width: 400,
+								resizable: false,
+								draggable: false
+						});
+						}
+					} else {
+						pb.window.alert(&quot;An Error Has Occurred&quot;, &quot;There is an error (error code: &quot; + error_code + &quot;) with this request, it can only be declined.&quot;, {
+							modal: true,
+							height: 160,
+							resizable: false,
+							draggable: false
+						});	
+					}
+				});
+			}
+			
+			container.find(&quot;button#reject_trade&quot;).click(function(){
+				if(self.expired){
+					pb.window.alert(&quot;Page Expired&quot;, &quot;This page has expired, please refresh.&quot;, {
+						modal: true,
+						height: 160,
+						resizable: false,
+						draggable: false
+					});
+	
+					return;
+				}
+
+				pb.window.dialog(&quot;shop-trade-decline-confirm&quot;, {
+					
+					title: &quot;Confirm&quot;,
+					html: &quot;Are you sure you want to decline this &quot; + trade_gift_txt.toLowerCase() + &quot;?&quot;,
+					modal: true,
+					width: 350,
+					height: 170,
+					resizable: false,
+					draggable: false,
+					buttons: [
+					
+						{
+							
+							text: &quot;Cancel&quot;,
+							click: function(){
+								$(this).dialog(&quot;close&quot;);	
+							}
+							
+						},
+						
+						{
+							
+							text: &quot;Decline &quot; + trade_gift_txt,
+							click: function(){
+								if(self.expired){
+									$(this).dialog(&quot;close&quot;);
+
+									pb.window.alert(&quot;Page Expired&quot;, &quot;This page has expired, please refresh.&quot;, {
+										modal: true,
+										height: 160,
+										resizable: false,
+										draggable: false
+									});
+					
+									return;	
+								}
+								
+								var what = $(this);
+
+								if(typeof monetary.create_notification != &quot;undefined&quot;){
+									monetary.create_notification(&quot;[TAR:&quot; + ((gift) ? 0 : 1) + &quot;|&quot; + yootil.user.id() + &quot;|&quot; + yootil.user.name() + &quot;]&quot;, the_trade.f.u[0]);
+								}
+
+								self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
+									
+									complete: function(){
+										what.dialog(&quot;close&quot;);
+
+										pb.window.alert(trade_gift_txt + &quot; Declined&quot;, &quot;This &quot; + trade_gift_txt.toLowerCase() + &quot; was successfully declined.&quot;, {
+									
+											modal: true,
+											resizable: false,
+											draggable: false,
+											buttons: [
+										
+												{
+													text: &quot;Ok&quot;,
+													click: function(){
+														$(this).dialog(&quot;close&quot;);
+														location.href = &quot;/user/&quot; + yootil.user.id() + &quot;?monetaryshop&amp;tradeview=1&quot;;			
+													}
+												}
+											
+											]
+										
+										});
+									},
+									
+									error: function(){
+										pb.window.alert(&quot;An Error Occurred&quot;, &quot;Could not decline &quot; + trade_gift_txt.toLowerCase() + &quot;, please try again.&quot;);
+									}
+									
+								});
+							}
+						
+						}
+					]
+				});
+			});	
+			
+			container.appendTo(&quot;#content&quot;);
+			
+			if(this.settings.page_timer_enabled){
+				this.monitor_time_on_page([
+					$(&quot;button#accept_trade&quot;),
+					$(&quot;button#reject_trade&quot;)	
+				]);
+				
+				this.timer_running = true;	
+			}
+			
+			if(parseInt(self.shop.settings.mini_image_percent) &gt; 0){
+				$(&quot;div.trade_profile span.pd_shop_mini_item img&quot;).bind(&quot;load&quot;, function(){
+					var width = this.width;
+					var height = this.height;
+					var percent = parseInt(self.shop.settings.mini_image_percent);
+
+					this.width = (width - (width * (percent / 100)));
+					this.height = (height - (height * (percent / 100)));
+
+					$(this).fadeIn(&quot;slow&quot;);
+				});
+			}
+		},
+
+<span id='monetary-shop-trade-method-has_items_for_trade'>		/**
+</span>		 * Checks to see if the user has items for trade.
+		 *
+		 * @param {Object} the_trade The trade data.
+		 * @returns {Boolean}
+		 */
+
+		has_items_for_trade: function(the_trade){
+			if(!the_trade){
+				return false;
+			}
+			
+			var total_items_requesting = this.get_total_items(the_trade.f, true);
+			
+			// Need to check if items exist if this is not a gift
+			// If they don't, then we can't allow the user to accept
+			// the trade request
+			
+			if(total_items_requesting &gt; 0){
+				var items = the_trade.t.i;
+				var current_items = this.shop.data(yootil.user.id()).get.items();
+				var can_accept = true;
+				
+				for(var id in items){
+					if(!current_items[id] || current_items[id].q &lt; items[id].q){
+						can_accept = false;
+						break;	
+					}
+				}
+				
+				if(can_accept){
+					return true;	
+				}				
+			}
+
+			return false;
+		},
+
+<span id='monetary-shop-trade-method-build_sent_trade_request_html'>		/**
+</span>		 * Builds the HTML for a sent trade request.
+		 *
+		 * @param {Object} the_trade The trade data.
+		 * @param {String} title Container title.
+		 * @param {Boolean} gift Gift or request?
+		 */
+
+		build_sent_trade_request_html: function(the_trade, title, gift){
+			var self = this;
+			var can_trade = true;
+			var member_id = yootil.page.member.id();
+			var html = &quot;&quot;;
+			var img_size = this.shop.get_size_css(true);
+			var disp = (!img_size.length &amp;&amp; parseInt(this.shop.settings.mini_image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+			var valid_trade = (the_trade &amp;&amp; the_trade.f &amp;&amp; the_trade.f.i)? true : false;
+			var trader_name = &quot;You&quot;;
+			var trade_gift_img = (gift)? this.shop.images.gift_big : this.shop.images.trade_big;
+			var trade_gift_txt = (gift)? this.settings.text.gift : this.settings.text.trade;
+			var receiver_name = &quot;&quot;;
+			
+			html += &quot;&lt;div style='float: left; margin-top: 35px; width: 160px; text-align: center;'&gt;&quot;;
+			html += &quot;&lt;img src='&quot; + trade_gift_img + &quot;'&gt;&quot;;
+  			html += &quot;&lt;/div&gt;&quot;;
+  			  			
+  			if(valid_trade){
+	  			receiver_name = &quot;&lt;a class='trader-requester-name' href='/user/&quot; + yootil.html_encode(the_trade.t.u[0]) + &quot;'&gt;&quot; + yootil.html_encode(the_trade.t.u[1], true) + &quot;&lt;/a&gt;&quot;;
+	  		}
+	  		
+  			html += &quot;&lt;div class='trade_wrapper' style='float: left; margin-top: 10px;'&gt;&lt;div style='float: left;'&gt;&quot;;
+  			html += &quot;&lt;strong style='padding-left: 2px;'&gt;&quot; + trader_name + &quot;&lt;/strong&gt; want to &quot; + trade_gift_txt.toLowerCase() + &quot;:&lt;br /&gt;&quot;;
+  			html += &quot;&lt;div class='trade_with trade_profile' style='height: 140px; width: 250px; margin-top: 3px; margin-right: 40px; cursor: default;'&gt;&quot;;
+  			
+  			var trading_content = &quot;&quot;;
+  			var missing_shop_items = false;
+  			  			
+	  		if(valid_trade){
+	  			for(var id in the_trade.f.i){
+	  				var qty = the_trade.f.i[id].q;
+	  				
+	  				for(var q = 0; q &lt; qty; q ++){
+	  					var item = this.shop.lookup[id];
+	  					
+	  					if(item){	  						
+	  						trading_content += '&lt;span class=&quot;pd_shop_mini_item&quot; data-shop-item-id=&quot;' + item.item_id + '&quot; title=&quot;' + yootil.html_encode(item.item_name) + '&quot;&gt;&lt;img src=&quot;' + this.shop.get_image_src(item) + '&quot;' + img_size + disp + ' /&gt;&lt;/span&gt;';	
+	  					} else {
+	  						missing_shop_items = true;
+	  						break;	
+	  					}
+	  				}
+	  			}
+  			}
+  			
+  			if(!trading_content.length){
+  				can_trade = false;
+  				trading_content = &quot;&lt;em&gt;An error has occurred.&lt;/em&gt;&quot;;
+  			}
+  			
+  			if(missing_shop_items){
+  				can_trade = false;
+  				trading_content = &quot;&lt;em&gt;Missing shop items.&lt;/em&gt;&quot;;
+  			}
+  			
+  			html += trading_content;
+  			
+  			html += &quot;&lt;/div&gt;&quot;;
+    		html += &quot;&lt;/div&gt;&quot;;
+    		html += &quot;&lt;div style='float: left; margin-top: 15px;'&gt;&quot;;
+    		html += &quot;&lt;img src='&quot; + this.shop.images.arrow_right + &quot;' /&gt;&lt;br /&gt;&quot;;
+    		html += &quot;&lt;img src='&quot; + this.shop.images.arrow_left + &quot;' /&gt;&lt;/div&gt;&quot;;
+    		html += &quot;&lt;div style='float: left; margin-left: 40px;'&gt;&quot;;
+    		
+    		var f_case = &quot;F&quot;;
+    		
+    		if(receiver_name){
+    			if(!gift){
+    				html += &quot;With &quot; + receiver_name + &quot;, &quot;;
+    				f_case.toLowerCase();
+    			}	
+    		}
+
+    		html += &quot;&lt;strong style='padding-left: 2px;'&gt;&quot; + f_case + &quot;or&lt;/strong&gt; the following:&lt;br&gt;&lt;div class='trade_with trade_profile' style='height: 140px; width: 250px; margin-top: 3px; cursor: default;'&gt;&quot;;
+    				
+    		var requesting_content = &quot;&quot;;
+  			
+  			if(valid_trade){
+	  			for(var id in the_trade.t.i){
+	  				var qty = the_trade.t.i[id].q;
+	  				
+	  				for(var q = 0; q &lt; qty; q ++){
+	  					var item = this.shop.lookup[id];
+	  					
+	  					if(item){
+	  						requesting_content += '&lt;span class=&quot;pd_shop_mini_item&quot; data-shop-item-id=&quot;' + item.item_id + '&quot; title=&quot;' + yootil.html_encode(item.item_name) + '&quot;&gt;&lt;img src=&quot;' + this.shop.get_image_src(item) + '&quot;' + img_size + disp + ' /&gt;&lt;/span&gt;';				
+	  					} else {
+	  						missing_shop_items = true;
+	  						break;	
+	  					}
+	  				}
+	  			}
+  			}
+  			
+  			if(gift){
+  				requesting_content = &quot;&lt;span class='trader-not-requesting'&gt;You are not requesting any items from &quot; + yootil.html_encode(receiver_name, true) + &quot;.&lt;/span&gt;&quot;;
+  			} else if(!requesting_content.length){
+  				can_trade = false;
+  				requesting_content = &quot;&lt;em&gt;An error has occurred&lt;/em&gt;&quot;;
+  			}
+  			
+  			if(missing_shop_items){
+  				can_trade = false;
+  				requesting_content = &quot;&lt;em&gt;Missing shop items.&lt;/em&gt;&quot;;
+  				
+  				setTimeout(function(){
+					pb.window.alert(&quot;An Error Has Occurred&quot;, &quot;There are items in this request that no longer exist in the shop, so this request can not be accepted, only declined.&quot;, {
+  				
+		  				modal: true,
+						height: 180,
+						width: 350,
+						resizable: false,
+						draggable: false	
+	  					
+  					});
+  				}, 500);
+  			}
+  			
+  			html += requesting_content;
+    		
+    		html += &quot;&lt;/div&gt;&lt;/div&gt;&lt;br style='clear: both' /&gt;&quot;;
+    		html += &quot;&lt;div style='margin-top: 25px; margin-bottom: 10px; text-align: center;'&gt;&quot;;
+    		
+    		var decline_disabled = (can_trade)? &quot;&quot; : ((missing_shop_items)? &quot;&quot; : &quot; style='opacity: 0.5;'&quot;);
+    		 
+    		html += &quot;&lt;button id='reject_trade'&quot; + decline_disabled + &quot;&gt;Cancel &quot; + trade_gift_txt + &quot;&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&quot;;
+
+			if(this.settings.page_timer_enabled){
+				var expiry_str = (this.expired)? &quot;expired&quot; : ((this.PAGE_TIME_EXPIRY  - this.page_timer) + &quot; seconds&quot;);
+								
+				title += &quot; - &lt;span id='monetary-trade-page-expiry'&gt;Page Expires In: &quot; + expiry_str + &quot;&lt;/span&gt;&quot;;
+			}
+			
+			var container = yootil.create.container(title, html).show();
+			
+			container.find(&quot;button#reject_trade&quot;).click(function(){
+				if(self.expired){
+					pb.window.alert(&quot;Page Expired&quot;, &quot;This page has expired, please refresh.&quot;, {
+						modal: true,
+						height: 160,
+						resizable: false,
+						draggable: false
+					});
+	
+					return;
+				}
+
+				pb.window.dialog(&quot;shop-trade-decline-confirm&quot;, {
+					
+					title: &quot;Confirm&quot;,
+					html: &quot;Are you sure you want to cancel this &quot; + trade_gift_txt.toLowerCase() + &quot;?&quot;,
+					modal: true,
+					width: 350,
+					height: 170,
+					resizable: false,
+					draggable: false,
+					buttons: [
+					
+						{
+							
+							text: &quot;Cancel&quot;,
+							click: function(){
+								$(this).dialog(&quot;close&quot;);
+							}
+							
+						},
+						
+						{
+							
+							text: &quot;Yes, Cancel Request&quot;,
+							click: function(){
+								var what = $(this);
+								$(this).dialog(&quot;close&quot;);
+								
+								self.shop.data(yootil.user.id()).trade.decline(the_trade, false, {
+									
+									complete: function(){
+										what.dialog(&quot;close&quot;);
+
+										pb.window.alert(trade_gift_txt + &quot; Cancel&quot;, &quot;This &quot; + trade_gift_txt.toLowerCase() + &quot; was successfully cancelled.&quot;, {
+									
+											modal: true,
+											resizable: false,
+											draggable: false,
+											buttons: [
+										
+												{
+													text: &quot;Ok&quot;,
+													click: function(){
+														$(this).dialog(&quot;close&quot;);
+														location.href = &quot;/user/&quot; + yootil.user.id() + &quot;?monetaryshop&amp;tradeview=1&quot;;			
+													}
+												}
+											
+											]
+										
+										});
+									},
+									
+									error: function(){
+										pb.window.alert(&quot;An Error Occurred&quot;, &quot;Could not cancel &quot; + trade_gift_txt.toLowerCase() + &quot;, please try again.&quot;);
+									}
+								});
+							}
+							
+						}
+					]
+				});
+			});	
+			
+			container.appendTo(&quot;#content&quot;);
+			
+			if(this.settings.page_timer_enabled){
+				this.monitor_time_on_page([
+					$(&quot;button#reject_trade&quot;)	
+				]);
+				
+				this.timer_running = true;	
+			}
+			
+			if(parseInt(self.shop.settings.mini_image_percent) &gt; 0){
+				$(&quot;div.trade_profile span.pd_shop_mini_item img&quot;).bind(&quot;load&quot;, function(){
+					var width = this.width;
+					var height = this.height;
+					var percent = parseInt(self.shop.settings.mini_image_percent);
+
+					this.width = (width - (width * (percent / 100)));
+					this.height = (height - (height * (percent / 100)));
+
+					$(this).fadeIn(&quot;slow&quot;);
+				});
+			}
+		}
+
+	};
+
+})().register();</pre>
+</body>
+</html>

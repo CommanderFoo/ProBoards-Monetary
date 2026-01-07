@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='monetary-stock_market'>/**
+</span> * @class monetary.stock_market
+ * @static
+ *
+ * Allows members buy and sell stocks to try and make a nice profit.
+ */
+
+money.stock_market = (function(){
+
+	return {
+
+<span id='monetary-stock_market-property-fetching'>		/**
+</span>		 * @property {Boolean} fetching Used when making the AJAX call to fetch the stock data.
+		 */
+
+		fetching: false,
+
+<span id='monetary-stock_market-property-data'>		/**
+</span>		 * @property {Object} data The stock data pulled from the server.
+		 */
+
+		data: {},
+
+<span id='monetary-stock_market-property-symbols'>		/**
+</span>		 * @property {Object} symbols (i.e &quot;GOOG&quot;).
+		 */
+
+		symbols: {},
+
+<span id='monetary-stock_market-property-html'>		/**
+</span>		 * @property {String} html Generate HTML gets stored here.
+		 */
+
+		html: &quot;&quot;,
+
+<span id='monetary-stock_market-property-current'>		/**
+</span>		 * @property {Number} current The current index when moving through the stock list.
+		 */
+
+		current: 1,
+
+<span id='monetary-stock_market-property-total'>		/**
+</span>		 * @property {Number} total The total number of companies.
+		 */
+
+		total: 0,
+
+<span id='monetary-stock_market-property-settings'>		/**
+</span>		 * @property {Object} settings Default settings that can be overwritten in setup.
+		 * @property {Boolean} enabled Module enabled or not.
+		 * @property {Boolean} show_chart If disabled then the chart will not get shown.
+		 * @property {Boolean} compact If enabled, then it will use a more compact HTML template for smaller widths.
+		 * @property {Object} settings.text Default text replacements.
+		 * @property {String} settings.text.stock_market
+		 * @property {String} settings.text.investments
+		 */
+
+		settings: {
+			enabled: true,
+			show_chart: true,
+			compact: false,
+
+			text: {
+
+				stock_market: &quot;Stock Market&quot;,
+				investments: &quot;Investments&quot;
+
+			}
+		},
+
+<span id='monetary-stock_market-property-replacements'>		/**
+</span>		 * @property {Object} replacements Some forums like to rename the stock info, so here we hold the replacements.
+		 */
+
+		replacements: {},
+
+<span id='monetary-stock_market-property-invest_data'>		/**
+</span>		 * @property {Object} invest_data The users investment data.
+		 */
+
+		invest_data: {},
+
+<span id='monetary-stock_market-method-init'>		/**
+</span>		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
+
+		init: function(){
+			if(!yootil.user.logged_in()){
+				return;
+			}
+
+			this.setup();
+
+			if(this.settings.enabled){
+				if(money.images.stock_market){
+					yootil.bar.add(&quot;/?stockmarket&quot;, money.images.stock_market, &quot;Stock Market&quot;, &quot;pdmsstock&quot;);
+				}
+			} else {
+				this.offer_full_refund();
+			}
+
+			if(yootil.location.forum() &amp;&amp; location.href.match(/\/?\?stockmarket\/?/i)){
+				if(this.settings.enabled){
+					money.can_show_default = false;
+					this.start();
+				} else {
+					money.show_default();
+				}
+			}
+		},
+
+<span id='monetary-stock_market-method-register'>		/**
+</span>		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
+		register: function(){
+			money.modules.push(this);
+			return this;
+		},
+
+<span id='monetary-stock_market-method-start'>		/**
+</span>		 * Creates the stock market page, fetches stock data.
+		 */
+
+		start: function(){
+			this.html = &quot;&lt;div id='stock-wrapper'&gt;&lt;img src='&quot; + money.images.preloader + &quot;' /&gt;&lt;/div&gt;&quot;;
+			this.fetch_stock_data();
+
+			yootil.create.page(&quot;?stockmarket&quot;, this.settings.text.stock_market);
+			yootil.create.nav_branch(&quot;/?stockmarket&quot;, this.settings.text.stock_market);
+
+			yootil.create.container(&quot;&lt;div style='display: inline;'&gt;&quot; + this.settings.text.stock_market + &quot; Investments&lt;/div&gt;&lt;div style='float: right'&gt;&quot; + money.settings.text.wallet + &quot;: &quot; + money.settings.money_symbol + &quot;&lt;span id='pd_money_wallet_amount'&gt;&quot; + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + &quot;&lt;/span&gt;&lt;/div&gt;&quot;, &quot;&lt;div id='stock-invest-content'&gt;&lt;img src='&quot; + money.images.invest_preloader + &quot;' /&gt;&lt;/div&gt;&quot;).show().appendTo(&quot;#content&quot;);
+
+			yootil.create.container(&quot;&lt;div style='display: inline;'&gt;&quot; + this.settings.text.stock_market + &quot;&lt;span id='stock-market-total'&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style='cursor: pointer; float: right'&gt;&lt;span id='stock-left'&gt;&amp;laquo; Previous&lt;/span&gt; &amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;span id='stock-right'&gt;Next &amp;raquo;&lt;/span&gt;&lt;/div&gt;&quot;, this.html).show().appendTo(&quot;#content&quot;);
+		},
+
+<span id='monetary-stock_market-method-setup'>		/**
+</span>		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
+
+		setup: function(){
+			if(money.plugin){
+				var settings = money.plugin.settings;
+
+				this.settings.enabled = (settings.stock_enabled == &quot;0&quot;)? false : true;
+				this.settings.show_chart = (settings.stock_show_chart == &quot;0&quot;)? false : true;
+				this.settings.compact = (settings.compact_layout &amp;&amp; settings.compact_layout == 1)? true : false;
+				this.settings.compact_width = (settings.stock_block_width &amp;&amp; parseInt(settings.stock_block_width) &gt; 0)? settings.stock_block_width : &quot;600&quot;;
+
+				if(parseInt(this.settings.compact_width) &lt; 533){
+					this.settings.compact_width = 533;
+				}
+
+				if(settings.stock_up_image &amp;&amp; settings.stock_up_image.length){
+					money.images.up = settings.stock_up_image;
+				}
+
+				if(settings.stock_down_image &amp;&amp; settings.stock_down_image.length){
+					money.images.down = settings.stock_down_image;
+				}
+
+				if(settings.stock_market_icon &amp;&amp; settings.stock_market_icon.length){
+					money.images.stock_market = settings.stock_market_icon;
+				}
+
+				if(settings.stock_replace &amp;&amp; settings.stock_replace.length){
+					for(var r = 0, l = settings.stock_replace.length; r &lt; l; r ++){
+						this.replacements[settings.stock_replace[r].current_symbol] = settings.stock_replace[r];
+					}
+				}
+
+				this.settings.text.stock_market = (settings.stock_market_text &amp;&amp; settings.stock_market_text.length)? settings.stock_market_text : this.settings.text.stock_market;
+			}
+		},
+
+<span id='monetary-stock_market-method-escape_expression'>		/**
+</span>		 * Data from the server needs escaping otherwise it breaks selectors.
+		 *
+		 * @returns {String}
+		 */
+
+		escape_expression: function(expr){
+			return expr.replace(&quot;.&quot;, &quot;\\.&quot;);
+		},
+
+<span id='monetary-stock_market-method-get_stock_name'>		/**
+</span>		 * Gets the stock name.  This checks in the replacements object to see if the forum has custom info they want to change.
+		 *
+		 * @param {String} stock_id The stock we want to look up.
+		 */
+
+		get_stock_name: function(stock_id){
+			if(this.replacements[stock_id] &amp;&amp; this.replacements[stock_id].new_name.length){
+				return this.replacements[stock_id].new_name;
+			}
+
+			if(this.symbols[stock_id]){
+				return this.symbols[stock_id].Name;
+			}
+
+			return stock_id;
+		},
+
+<span id='monetary-stock_market-method-get_stock_symbol'>		/**
+</span>		 * Gets the stock symbol, but checks if a replacement is needed first.
+		 *
+		 * @returns {String}
+		 */
+
+		get_stock_symbol: function(stock_id){
+			if(this.replacements[stock_id] &amp;&amp; this.replacements[stock_id].new_symbol.length){
+				return this.replacements[stock_id].new_symbol;
+			}
+
+			return stock_id;
+		},
+
+<span id='monetary-stock_market-method-fetch_stock_data'>		/**
+</span>		 * Gets the stock data from the server.  This data is pulled in from Yahoo and parsed.
+		 */
+
+		fetch_stock_data: function(){
+			this.fetching = true;
+
+			$.ajax({
+				url: &quot;http://pixeldepth.net/proboards/plugins/monetary_system/stock/quotes.php&quot;,
+				context: this,
+				crossDomain: true,
+				dataType: &quot;json&quot;
+			}).done(function(data){
+				this.fetching = false;
+
+				if(data &amp;&amp; data.results &amp;&amp; data.results.length){
+					this.data = data.results;
+
+<span id='monetary-stock_market-event-data_request_done'>					/**
+</span>					 * Triggers when the AJAX request is done and has the stock data.
+					 *
+					 *     $(monetary.event).on(&quot;stock_market.data_request_done&quot;, function(event, data){
+					 *         console.log(data);
+					 *     });
+					 *
+					 * @event data_request_done
+					 */
+
+					$(monetary.event).trigger(&quot;stock_market.data_request_done&quot;, {
+
+						data: data.results
+
+					});
+				}
+
+				this.build_stock_table();
+			});
+		},
+
+<span id='monetary-stock_market-method-has_invested'>		/**
+</span>		 * Checks to see if the user has invested in certain stock.
+		 *
+		 * @param {String} stock_symbol
+		 * @returns {Boolean}
+		 */
+
+		has_invested: function(stock_symbol){
+			var invest_data = money.data(yootil.user.id()).get.investments();
+
+			if(invest_data[stock_symbol]){
+				return true;
+			}
+
+			return false;
+		},
+
+<span id='monetary-stock_market-method-remove_from_data'>		/**
+</span>		 * Removes stock from the users stock data.
+		 *
+		 * @param {String} stock_symbol The stock to be removed.
+		 */
+
+		remove_from_data: function(stock_symbol){
+			if(this.has_invested(stock_symbol)){
+				var invest_data = money.data(yootil.user.id()).get.investments();
+
+				delete invest_data[stock_symbol];
+				money.data(yootil.user.id()).set.investments(invest_data, true);
+			}
+		},
+
+<span id='monetary-stock_market-method-offer_full_refund'>		/**
+</span>		 * If for some reason this module is disabled, then it gives the user the option to get a full refund.
+		 */
+
+		offer_full_refund: function(){
+			var show = (yootil.storage.get(&quot;monetary_stock_ignore_refund&quot;) == 1)? false : true;
+
+			if(!show){
+				return;
+			}
+
+			var total_stocks = 0;
+			var total_value = 0;
+			var invest_data = money.data(yootil.user.id()).get.investments();
+
+			for(var stock in invest_data){
+				var amount = this.invest_amount(stock);
+				var bid = invest_data[stock].b;
+				var total_cost = (parseFloat(bid) * amount);
+
+				total_value += total_cost;
+				total_stocks ++;
+			}
+
+			if(total_stocks &amp;&amp; total_value){
+				var info = &quot;&quot;;
+				var self = this;
+
+				info += &quot;Your investments can be refunded, as the&quot;;
+				info += &quot; Stock Market is currently disabled.&lt;br /&gt;&lt;br /&gt;&quot;;
+				info += &quot;Refund: &quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(total_value, true)));
+
+				pb.window.dialog(&quot;stock-refund-dialog&quot;, {
+					modal: true,
+					height: 220,
+					width: 320,
+					title: &quot;Refunding All Stock&quot;,
+					html: info,
+					resizable: false,
+					draggable: false,
+
+					buttons: {
+
+						&quot;Ignore Refund&quot;: function(){
+							var self = this;
+
+							pb.window.dialog(&quot;stock-ignore-refund-dialog&quot;, {
+								modal: true,
+								height: 220,
+								width: 320,
+								title: &quot;Ignore Refund&quot;,
+								html: &quot;Are you sure you want to keep your current investments?&lt;br /&gt;&lt;br /&gt;You will no longer receive the refund message if you choose this option.&quot;,
+								resizable: false,
+								draggable: false,
+
+								buttons: {
+
+									&quot;Ok&quot;: function(){
+										yootil.storage.set(&quot;monetary_stock_ignore_refund&quot;, 1, false, true);
+										$(this).dialog(&quot;close&quot;);
+										$(self).dialog(&quot;close&quot;);
+									},
+
+									&quot;Cancel&quot;: function(){
+										$(this).dialog(&quot;close&quot;);
+									}
+
+								}
+
+							});
+
+						},
+
+						&quot;Accept Refund&quot;: function(){
+							money.data(yootil.user.id()).increase.money(total_value, true);
+							money.data(yootil.user.id()).clear.investments(true);
+
+							self.save_investments();
+
+							$(this).dialog(&quot;close&quot;);
+						}
+					}
+				});
+			}
+		},
+
+<span id='monetary-stock_market-method-refund_stock'>		/**
+</span>		 * Handles refunding for the user.
+		 *
+		 * @param {String} stock_id
+		 */
+
+		refund_stock: function(stock_id){
+			var self = this;
+			var info = &quot;&quot;;
+			var invest_data = money.data(yootil.user.id()).get.investments();
+
+			info += &quot;Your investment in &quot; + yootil.html_encode(this.get_stock_symbol(stock_id)) + &quot; is being refunded, as the&quot;;
+			info += &quot; stock has been removed from the market.&lt;br /&gt;&lt;br /&gt;&quot;;
+			info += &quot;Refund: &quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(parseInt(invest_data[stock_id].a) * parseFloat(invest_data[stock_id].b), true)));
+
+			pb.window.dialog(&quot;stock-refund-dialog&quot;, {
+				modal: true,
+				height: 220,
+				width: 320,
+				title: &quot;Refunding Stock&quot;,
+				html: info,
+				resizable: false,
+				draggable: false,
+
+				buttons: {
+
+					&quot;Accept Refund&quot;: function(){
+
+						var amount = (self.has_invested(stock_id))? self.invest_amount(stock_id) : 0;
+
+						if(amount){
+							var bid = invest_data[stock_id].b;
+							var total_cost = (parseFloat(bid) * amount);
+
+							money.data(yootil.user.id()).increase.money(total_cost, true);
+							self.remove_from_data(stock_id);
+							self.update_wallet();
+							self.save_investments();
+						}
+
+						$(this).dialog(&quot;close&quot;);
+					}
+				}
+			});
+		},
+
+<span id='monetary-stock_market-method-invest_amount'>		/**
+</span>		 * Check how much the user has invested.
+		 *
+		 * @param {String} stock_symbol
+		 * @returns {Number} The amount of stock invested.
+		 */
+
+		invest_amount: function(stock_symbol){
+			var invest_data = money.data(yootil.user.id()).get.investments();
+
+			if(this.has_invested(stock_symbol)){
+				return invest_data[stock_symbol].a;
+			}
+
+			return 0;
+		},
+
+<span id='monetary-stock_market-method-save_investments'>		/**
+</span>		 * Saves the users investments to the key and triggers a sync call.
+		 */
+
+		save_investments: function(){
+			money.data(yootil.user.id()).update();
+			money.sync.trigger();
+		},
+
+<span id='monetary-stock_market-method-insert_invest_row'>		/**
+</span>		 * Inserts a new investment row when the user buys stock.
+		 *
+		 * @param {String} stock_id
+		 */
+
+		insert_invest_row: function(stock_id){
+			var invest_data = money.data(yootil.user.id()).get.investments();
+
+			var new_bid_total = (parseInt(invest_data[stock_id].a) * parseFloat(this.symbols[stock_id].BidRealtime));
+			var old_bid_total = (parseInt(invest_data[stock_id].a) * parseFloat(invest_data[stock_id].b));
+			var html = &quot;&lt;tr class='stock-invest-content-row' id='stock-invest-row-&quot; + yootil.html_encode(stock_id) + &quot;' style='display: none'&gt;&quot;;
+
+			html += &quot;&lt;td&gt;&quot; + this.get_stock_name(stock_id);
+
+			if(!this.settings.compact){
+				html += &quot; (&quot; + this.get_stock_symbol(stock_id) + &quot;)&quot;;
+			}
+
+			html += &quot;&lt;/td&gt;&quot;;
+			html += &quot;&lt;td&gt;&quot; + yootil.html_encode(yootil.number_format(invest_data[stock_id].b)) + &quot;&lt;/td&gt;&quot;;
+			html += &quot;&lt;td&gt;&quot; + yootil.html_encode(yootil.number_format(this.symbols[stock_id].BidRealtime)) + &quot;&lt;/td&gt;&quot;;
+
+			if(!this.settings.compact){
+				html += &quot;&lt;td&gt;&quot; + yootil.html_encode(yootil.number_format(invest_data[stock_id].a)) + &quot;&lt;/td&gt;&quot;;
+			}
+
+			html += &quot;&lt;td&gt;&quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(parseInt(invest_data[stock_id].a) * parseFloat(invest_data[stock_id].b), true))); + &quot;&lt;/td&gt;&quot;;
+			html += &quot;&lt;td&gt;&quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(new_bid_total - old_bid_total, true))) + &quot;&lt;/td&gt;&quot;;
+			html += &quot;&lt;td&gt;&lt;button class='stock-sell-button' data-stock-id='&quot; + yootil.html_encode(stock_id) + &quot;'&gt;Sell&lt;/button&gt;&lt;/td&gt;&quot;;
+
+			html += &quot;&lt;/tr&gt;&quot;;
+
+			var self = this;
+
+			if(!$(&quot;#stock-investments-table&quot;).length){
+				this.create_investment_headers();
+			}
+
+			if($(&quot;#stock-invest-row-&quot; + this.escape_expression(stock_id)).length){
+				$(&quot;#stock-invest-row-&quot; + this.escape_expression(stock_id)).replaceWith($(html));
+			} else {
+				$(&quot;#stock-investments-table&quot;).append($(html).hide());
+			}
+
+			$(&quot;#stock-investments-table&quot;).find(&quot;.stock-sell-button[data-stock-id=&quot; + this.escape_expression(stock_id) + &quot;]&quot;).click(function(){
+				$.proxy(self.bind_sell_event, self)(this);
+			});
+
+			$(&quot;#stock-invest-row-&quot; + this.escape_expression(stock_id)).show(&quot;normal&quot;);
+		},
+
+<span id='monetary-stock_market-method-remove_invest_row'>		/**
+</span>		 * Removes an investment row from the list of investments for the user.
+		 *
+		 * @param {String} stock_id
+		 */
+
+		remove_invest_row: function(stock_id){
+			$(&quot;#stock-invest-row-&quot; + this.escape_expression(stock_id)).hide(&quot;normal&quot;, function(){
+				$(this).remove();
+
+				var invest_table = $(&quot;#stock-investments-table&quot;);
+
+				if(invest_table.find(&quot;tr&quot;).length == 1){
+					invest_table.remove();
+					$(&quot;#stock-invest-content&quot;).html(&quot;&lt;span&gt;You currently have no investments.&lt;/span&gt;&quot;);
+				}
+			});
+		},
+
+<span id='monetary-stock_market-method-update_wallet'>		/**
+</span>		 * When the user buys stock, we update the wallet on the page.
+		 */
+
+		update_wallet: function(){
+			$(&quot;#pd_money_wallet_amount&quot;).html(yootil.html_encode(money.data(yootil.user.id()).get.money(true)));
+		},
+
+<span id='monetary-stock_market-method-buy_stock'>		/**
+</span>		 * Handles the buying aspect of stocks.
+		 *
+		 * @param {String} stock_symbol The stock to invest in.
+		 * @param {Number} amount The amount of stock to buy.
+		 * @param {Boolean} insert_invest_row If true, a new investment row is added to the list.
+		 */
+
+		buy_stock: function(stock_symbol, amount, insert_invest_row){
+			if(stock_symbol &amp;&amp; amount &amp;&amp; this.stock_exists(stock_symbol)){
+				var current_amount = (this.has_invested(stock_symbol))? this.invest_amount(stock_symbol) : 0;
+				var updating = (current_amount)? false : true;
+				var total_amount = (current_amount + amount);
+				var bid = this.symbols[stock_symbol].BidRealtime;
+				var total_cost = (bid * amount);
+
+				if(money.data(yootil.user.id()).get.money() &lt; total_cost){
+					pb.window.alert(&quot;Not Enough &quot; + money.settings.money_text, &quot;You do not have enough &quot; + money.settings.money_text.toLowerCase() + &quot; to make this purchase.&quot;, {
+						modal: true,
+						resizable: false,
+						draggable: false
+					});
+				} else {
+					money.data(yootil.user.id()).decrease.money(total_cost);
+
+					var invest_data = money.data(yootil.user.id()).get.investments();
+
+					invest_data[stock_symbol] = {
+						a: total_amount,
+						b: bid
+					};
+
+					money.data(yootil.user.id()).set.investments(invest_data, true);
+
+					this.insert_invest_row(stock_symbol);
+					this.update_wallet();
+					this.save_investments();
+				}
+			} else {
+				pb.window.alert(&quot;An Error Occurred&quot;, &quot;An error occurred, please try again.&quot;, {
+					modal: true,
+					resizable: false,
+					draggable: false
+				});
+			}
+		},
+
+<span id='monetary-stock_market-method-stock_exists'>		/**
+</span>		 * Checks to see stock exists.
+		 *
+		 * @param {String} stock_symbol
+		 * @returns {Boolean}
+		 */
+
+		stock_exists: function(stock_symbol){
+			if(this.symbols[stock_symbol]){
+				return true;
+			}
+
+			return false;
+		},
+
+<span id='monetary-stock_market-method-create_investment_headers'>		/**
+</span>		 * Creates the investment headers for the investment list for the user.
+		 *
+		 * @param {Boolean} return_html If true, the HTML is returned.
+		 * @returns {String}
+		 */
+
+		create_investment_headers: function(return_html){
+			var html = &quot;&quot;;
+
+			html += &quot;&lt;table id='stock-investments-table'&gt;&lt;tr class='stock-invest-content-headers'&gt;&quot;;
+			html += &quot;&lt;th style='width: 30%'&gt;Stock Name&lt;/th&gt;&quot;;
+			html += &quot;&lt;th style='width: 12%'&gt;Paid Bid&lt;/th&gt;&quot;;
+			html += &quot;&lt;th style='width: 12%'&gt;Current Bid&lt;/th&gt;&quot;;
+
+			if(!this.settings.compact){
+				html += &quot;&lt;th style='width: 12%'&gt;Total Units&lt;/th&gt;&quot;;
+			}
+
+			html += &quot;&lt;th style='width: 13%'&gt;Total Cost&lt;/th&gt;&quot;;
+			html += &quot;&lt;th style='width: 15%'&gt;Profit&lt;/th&gt;&quot;;
+			html += &quot;&lt;th style='width: 6%'&gt;&lt;/th&gt;&quot;;
+			html += &quot;&lt;/tr&gt;&quot;;
+
+			if(return_html){
+				return html;
+			}
+
+			html += &quot;&lt;/table&gt;&quot;;
+
+			$(&quot;#stock-invest-content&quot;).empty().html(html);
+		},
+
+<span id='monetary-stock_market-method-current_investment_list'>		/**
+</span>		 * Builds the users current investment list.
+		 */
+
+		current_investment_list: function(){
+			var invest = $(&quot;#stock-invest-content&quot;);
+			var html = &quot;&quot;;
+
+			html += this.create_investment_headers(true);
+
+			var table = &quot;&quot;;
+
+			var invest_data = money.data(yootil.user.id()).get.investments();
+
+			for(var key in invest_data){
+				if(!this.symbols[key]){
+					this.refund_stock(key);
+					continue;
+				}
+
+				table += &quot;&lt;tr class='stock-invest-content-row' id='stock-invest-row-&quot; + key + &quot;'&gt;&quot;;
+				table += &quot;&lt;td&gt;&quot; + yootil.html_encode(this.get_stock_name(key));
+
+				if(!this.settings.compact){
+					table += &quot; (&quot; + yootil.html_encode(this.get_stock_symbol(key)) + &quot;)&quot;;
+				}
+
+				table += &quot;&lt;/td&gt;&quot;;
+
+				table += &quot;&lt;td&gt;&quot; + yootil.html_encode(yootil.number_format(invest_data[key].b)) + &quot;&lt;/td&gt;&quot;;
+				table += &quot;&lt;td&gt;&quot; + yootil.html_encode(yootil.number_format(this.symbols[key].BidRealtime)) + &quot;&lt;/td&gt;&quot;;
+
+				if(!this.settings.compact){
+					table += &quot;&lt;td&gt;&quot; + yootil.html_encode(yootil.number_format(invest_data[key].a)) + &quot;&lt;/td&gt;&quot;;
+				}
+
+				table += &quot;&lt;td&gt;&quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(parseInt(invest_data[key].a) * parseFloat(invest_data[key].b), true))); + &quot;&lt;/td&gt;&quot;;
+
+				var profit_html = &quot;&quot;;
+				var new_bid_total = (parseInt(invest_data[key].a) * parseFloat(this.symbols[key].BidRealtime));
+				var old_bid_total = (parseInt(invest_data[key].a) * parseFloat(invest_data[key].b));
+				var formatted_total = money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(new_bid_total - old_bid_total, true)));
+
+				if(new_bid_total &lt; old_bid_total){
+					profit_html += &quot;&lt;span class='stock-market-loss'&gt;&quot; + formatted_total + &quot;&lt;/span&gt; &lt;img src='&quot; + money.images.down + &quot;' style='position: relative; top: 2px;' /&gt;&quot;;
+				} else {
+					if(new_bid_total &gt; old_bid_total){
+						profit_html += &quot;&lt;span class='stock-market-profit'&gt;&quot; + formatted_total + &quot;&lt;/span&gt; &lt;img src='&quot; + money.images.up + &quot;' style='position: relative; top: 2px;' /&gt;&quot;;
+					} else {
+						profit_html += formatted_total;
+					}
+				}
+
+				table += &quot;&lt;td&gt;&quot; + profit_html + &quot;&lt;/td&gt;&quot;;
+				table += &quot;&lt;td&gt;&lt;button class='stock-sell-button' data-stock-id='&quot; + yootil.html_encode(key) + &quot;'&gt;Sell&lt;/button&gt;&lt;/td&gt;&quot;;
+				table += &quot;&lt;/tr&gt;&quot;;
+			}
+
+			if(!table.length){
+				html = &quot;&lt;span&gt;You currently have no investments.&lt;/span&gt;&quot;;
+			} else {
+				table += &quot;&lt;/table&gt;&quot;;
+				html += table;
+			}
+
+			var stock_invest_obj = $(html);
+			var self = this;
+
+			stock_invest_obj.find(&quot;.stock-sell-button&quot;).click(function(){
+				$.proxy(self.bind_sell_event, self)(this);
+			});
+
+			invest.empty().append(stock_invest_obj);
+		},
+
+<span id='monetary-stock_market-method-bind_sell_event'>		/**
+</span>		 * Binds events to handle selling stock.
+		 *
+		 * @param {Object} button Button is passed in so we can get the stock id.
+		 */
+
+		bind_sell_event: function(button){
+			var stock_id = $(button).attr(&quot;data-stock-id&quot;);
+			var invest_data = money.data(yootil.user.id()).get.investments();
+			var amount = parseInt(invest_data[stock_id].a);
+			var bid = parseInt(this.symbols[stock_id].BidRealtime);
+			var s = (amount == 1)? &quot;&quot; : &quot;s&quot;;
+			var info = &quot;&quot;;
+
+			info += &quot;&lt;strong&gt;&quot; + yootil.html_encode(this.get_stock_name(stock_id)) + &quot; (&quot; + yootil.html_encode(this.get_stock_symbol(stock_id)) + &quot;)&lt;/strong&gt;&lt;br /&gt;&lt;br /&gt;&quot;;
+			info += &quot;Purchased Amount: &quot; + yootil.html_encode(yootil.number_format(amount)) + &quot; unit&quot; + s + &quot;&lt;br /&gt;&quot;;
+			info += &quot;Paid Bid: &quot; + yootil.html_encode(yootil.number_format(invest_data[stock_id].b)) + &quot;&lt;br /&gt;&quot;;
+			info += &quot;Current Bid: &quot; + yootil.html_encode(yootil.number_format(this.symbols[stock_id].BidRealtime)) + &quot;&lt;br /&gt;&lt;br /&gt;&quot;;
+			info += &quot;Total Return: &quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(amount * parseFloat(this.symbols[stock_id].BidRealtime), true)));
+
+			var self = this;
+
+			pb.window.dialog(&quot;stock-sell-dialog&quot;, {
+				modal: true,
+				height: 220,
+				width: 320,
+				title: &quot;Sell Stock&quot;,
+				html: info,
+				resizable: false,
+				draggable: false,
+
+				buttons: {
+
+					Cancel: function(){
+						$(this).dialog(&quot;close&quot;);
+					},
+
+					&quot;Sell Stock&quot;: function(){
+						pb.window.dialog(&quot;stock-sell-confirm-dialog&quot;, {
+							title: &quot;Confirm Selling Stock&quot;,
+							html: &quot;Are you sure you want to sell this stock?&quot;,
+							modal: true,
+							resizable: false,
+							draggable: false,
+
+							buttons: {
+
+								No: function(){
+									$(this).dialog('close');
+								},
+
+								&quot;Yes&quot;: function(){
+									self.sell_stock(stock_id);
+									$(this).dialog(&quot;close&quot;);
+								}
+							}
+						});
+
+						$(this).dialog(&quot;close&quot;);
+					}
+				}
+			});
+		},
+
+<span id='monetary-stock_market-method-sell_stock'>		/**
+</span>		 * If a user sells stock, then we need to remove it from the data, update wallet, and removed the investment
+		 * row from the list.
+		 *
+		 * @param {String} stock_id
+		 */
+
+		sell_stock: function(stock_id){
+			var amount = (this.has_invested(stock_id))? this.invest_amount(stock_id) : 0;
+
+			if(amount){
+				var bid = this.symbols[stock_id].BidRealtime;
+				var total_cost = (parseFloat(bid) * amount);
+
+				money.data(yootil.user.id()).increase.money(total_cost, true);
+
+				this.remove_from_data(stock_id);
+				this.update_wallet();
+				this.remove_invest_row(stock_id);
+				this.save_investments();
+			}
+		},
+
+<span id='monetary-stock_market-method-build_stock_table'>		/**
+</span>		 * Builds the stock table.  This allows the user to navigate between each stock.
+		 */
+
+		build_stock_table: function(){
+			var stock_table = $(&quot;&lt;div id='stock-content-strip'&gt;&lt;/div&gt;&quot;);
+			var self = this;
+			var compact_width = col_left_styles = col_center_styles = &quot;&quot;;
+			var chart_size = &quot;l&quot;;
+
+			if(this.settings.compact){
+				chart_size = &quot;m&quot;;
+
+				if(parseInt(this.settings.compact_width) &gt;= 807){
+					chart_size = &quot;l&quot;;
+				}
+			}
+
+			if(this.settings.compact){
+				compact_width = &quot; style='width: &quot; + this.settings.compact_width + &quot;px'&quot;;
+				col_left_styles = &quot; style='width: 48%;'&quot;;
+				col_center_styles = &quot; style='width: 48%; margin-right: 0px;'&quot;;
+			}
+
+			$(&quot;#stock-market-total&quot;).html(&quot; (&quot; + this.data.length + &quot;)&quot;);
+
+			for(var d = 0, dl = this.data.length; d &lt; dl; d ++){
+				var up_down = &quot;&quot;;
+				var stock_html = &quot;&quot;;
+
+				if(this.replacements[this.data[d].Symbol] &amp;&amp; this.replacements[this.data[d].Symbol].disabled &amp;&amp; this.replacements[this.data[d].Symbol].disabled == 1){
+					delete this.replacements[this.data[d].Symbol];
+					continue;
+				}
+
+				this.symbols[this.data[d].Symbol] = this.data[d];
+
+				if(parseFloat(this.data[d].PreviousClose) &lt; parseFloat(this.data[d].BidRealtime)){
+					up_down = &quot;&lt;img src='&quot; + money.images.up + &quot;' style='position: relative; top: 2px;' /&gt; &quot;;
+				} else if(parseFloat(this.data[d].PreviousClose) &gt; parseFloat(this.data[d].BidRealtime)){
+					up_down = &quot;&lt;img src='&quot; + money.images.down + &quot;' style='position: relative; top: 2px;' /&gt; &quot;;
+				}
+
+				if(this.data[d].ChangeAndPercent == 0){
+					this.data[d].ChangeAndPercent = &quot;0.00&quot;;
+				}
+
+				if(this.data[d].RealPercentChange == 0){
+					this.data[d].RealPercentChange = &quot;0.00&quot;;
+				}
+
+				stock_html += &quot;&lt;div class='stock-block'&quot; + compact_width + &quot;&gt;&quot;;
+				stock_html += &quot;&lt;div class='stock-block-header'&gt;&quot;;
+				stock_html += &quot;&lt;div style='float: left;'&gt;&quot; + yootil.html_encode(this.get_stock_name(this.data[d].Symbol)) + &quot; (&quot; + yootil.html_encode(this.get_stock_symbol(this.data[d].Symbol)) + &quot;) &lt;span style='position: relative; top: -2px;' id='stock-invest-buttons'&gt;&lt;button class='stock-buy-button' data-stock-id='&quot; + yootil.html_encode(this.data[d].Symbol) + &quot;'&gt;Buy&lt;/button&gt;&lt;/span&gt;&lt;/div&gt;&quot;;
+				stock_html += &quot;&lt;div style='float: right'&gt;&quot; + yootil.html_encode(this.data[d].BidRealtime) + &quot; &quot; + up_down + &quot;&lt;span style='font-size: 14px;'&gt;&quot; + yootil.html_encode(this.data[d].ChangeAndPercent) + &quot; (&quot; + yootil.html_encode(this.data[d].RealPercentChange) + &quot;%)&lt;/span&gt;&lt;/div&gt;&lt;br style='clear: both' /&gt;&lt;/div&gt;&quot;;
+
+				stock_html += &quot;&lt;table class='stock-block-table-left'&quot; + col_left_styles + &quot;&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Previous Close:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].PreviousClose) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Bid:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].BidRealtime) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Volume:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].Volume) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;1 Year Target:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].YearTarget) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;/table&gt;&quot;;
+				stock_html += &quot;&lt;table class='stock-block-table-center'&quot; + col_center_styles + &quot;&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Open:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].Open) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Day's Low:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].DaysLow) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Day's High:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].DaysHigh) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;tr&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;P/E:&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].PERatio) + &quot;&lt;/td&gt;&quot;;
+				stock_html += &quot;&lt;/tr&gt;&quot;;
+
+				stock_html += &quot;&lt;/table&gt;&quot;;
+
+				if(!this.settings.compact){
+					stock_html += &quot;&lt;table class='stock-block-table-right'&gt;&quot;;
+
+					stock_html += &quot;&lt;tr&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Days Range:&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].DaysRange) + &quot;&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;/tr&gt;&quot;;
+
+					stock_html += &quot;&lt;tr&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;52 Week Range:&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].Week52Range) + &quot;&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;/tr&gt;&quot;;
+
+					stock_html += &quot;&lt;tr&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;Market Cap.:&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].MarketCapitalization) + &quot;&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;/tr&gt;&quot;;
+
+					stock_html += &quot;&lt;tr&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-left'&gt;EPS&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;td class='stock-block-cell-right'&gt;&quot; + yootil.html_encode(this.data[d].EPS) + &quot;&lt;/td&gt;&quot;;
+					stock_html += &quot;&lt;/tr&gt;&quot;;
+
+					stock_html += &quot;&lt;/table&gt;&quot;;
+				}
+
+				stock_html += &quot;&lt;br style='clear: both' /&gt;&quot;;
+
+				if(this.settings.show_chart){
+					stock_html += &quot;&lt;div class='stock-block-chart'&gt;&quot;;
+					stock_html += &quot;&lt;img src='http://chart.finance.yahoo.com/z?s=&quot; + yootil.html_encode(this.data[d].Symbol) + &quot;&amp;t=2w&amp;l=off&amp;z=&quot; + chart_size + &quot;' /&gt;&quot;;
+					stock_html += &quot;&lt;/div&gt;&quot;;
+				}
+
+				stock_html += &quot;&lt;/div&gt;&quot;;
+
+				var stock_obj = $(stock_html);
+
+				stock_obj.find(&quot;.stock-buy-button&quot;).click(function(){
+					var stock_id = $(this).attr(&quot;data-stock-id&quot;);
+					var buy_element = &quot;&lt;div title='Buy Stock (&quot; + yootil.html_encode(self.get_stock_symbol(stock_id)) + &quot;)'&gt;&lt;p&gt;Stock Units: &lt;input type='text' style='width: 100px' name='stock-buy-&quot; + yootil.html_encode(stock_id) + &quot;' /&gt;&lt;/p&gt;&lt;/div&gt;&quot;;
+
+					var invest_data = money.data(yootil.user.id()).get.investments();
+
+					if(self.has_invested(stock_id) &amp;&amp; self.invest_amount(stock_id) &gt; 0){
+						if(invest_data[stock_id].b != self.symbols[stock_id].BidRealtime){
+							pb.window.alert(&quot;An Error Occurred&quot;, &quot;You have already made an investment in &quot; + yootil.html_encode(self.get_stock_name(stock_id)) + &quot; (&quot; + yootil.html_encode(self.get_stock_symbol(stock_id)) + &quot;) at a different price.  You will need to sell your current units before investing into this company again.&quot;, {
+								modal: true,
+								resizable: false,
+								draggable: false,
+								width: 350,
+								height: 200
+							});
+
+							return;
+						}
+					}
+
+					$(buy_element).dialog({
+						modal: true,
+						height: 140,
+						width: 300,
+						resizable: false,
+						draggable: false,
+						open: function(){
+							$(this).find(&quot;input[name=stock-buy-&quot; + self.escape_expression(stock_id) + &quot;]&quot;).val(&quot;&quot;);
+						},
+
+						buttons: {
+
+							Cancel: function(){
+								$(this).dialog(&quot;close&quot;);
+							},
+
+							&quot;Buy Stock&quot;: function(){
+								var amount = parseInt($(this).find(&quot;input[name=stock-buy-&quot; + self.escape_expression(stock_id) + &quot;]&quot;).val());
+
+								if(amount &gt; 0){
+									var s = (amount == 1)? &quot;&quot; : &quot;s&quot;;
+									var info = &quot;&quot;;
+
+									info += &quot;&lt;strong&gt;&quot; + yootil.html_encode(self.get_stock_name(stock_id)) + &quot; (&quot; + yootil.html_encode(self.get_stock_symbol(stock_id)) + &quot;)&lt;/strong&gt;&lt;br /&gt;&lt;br /&gt;&quot;;
+									info += &quot;Purchase Amount: &quot; + yootil.html_encode(yootil.number_format(amount)) + &quot; unit&quot; + s + &quot;&lt;br /&gt;&quot;;
+									info += &quot;Cost Per Unit: &quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(self.symbols[stock_id].BidRealtime)) + &quot;&lt;br /&gt;&lt;br /&gt;&quot;;
+									info += &quot;Total Purchase: &quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(amount * parseFloat(self.symbols[stock_id].BidRealtime), true)));
+
+									pb.window.dialog(&quot;stock-buy-confirm&quot;, {
+										title: &quot;Confirm Purchase&quot;,
+										html: info,
+										modal: true,
+										resizable: false,
+										draggable: false,
+
+										buttons: {
+
+											No: function(){
+												$(this).dialog('close');
+											},
+
+											&quot;Yes&quot;: function(){
+												self.buy_stock(stock_id, amount, true);
+												$(this).dialog(&quot;close&quot;);
+											}
+										}
+									});
+								} else {
+									pb.window.alert(&quot;Invalid Amount&quot;, &quot;You need to enter an amount greater than 0.&quot;, {
+										modal: true,
+										resizable: false,
+										draggable: false
+									});
+								}
+
+								$(this).dialog(&quot;close&quot;);
+							}
+
+						}
+					});
+				});
+
+				stock_table.append(stock_obj);
+
+				this.total ++;
+			}
+
+			var stock_content = $(&quot;&lt;div id='stock-content'&quot; + compact_width + &quot;&gt;&lt;/div&gt;&quot;).append(stock_table);
+
+			this.html = stock_content;
+			this.current_investment_list();
+			this.update();
+		},
+
+<span id='monetary-stock_market-method-update'>		/**
+</span>		 * Moves the stock (like a gallery) forward or back.
+		 */
+
+		update: function(){
+			var self = this;
+			var pixels = (self.settings.compact)? self.settings.compact_width : &quot;908&quot;;
+
+			$(&quot;#stock-wrapper&quot;).empty().append($(this.html));
+
+			$(&quot;#stock-right&quot;).click(function(){
+				if(self.current == self.total){
+					return false;
+				}
+
+				self.current ++;
+
+				var move_by = &quot;-=&quot; + pixels + &quot;px&quot;;
+
+				$(&quot;#stock-content-strip&quot;).animate({
+					&quot;left&quot;: move_by
+				}, &quot;slow&quot;);
+			});
+
+			$(&quot;#stock-left&quot;).click(function(){
+				if(self.current &lt;= 1){
+					return false;
+				}
+
+				self.current --;
+
+				var move_by = &quot;+=&quot; + pixels + &quot;px&quot;;
+
+				$(&quot;#stock-content-strip&quot;).animate({
+					&quot;left&quot;: move_by
+				}, &quot;slow&quot;);
+			});
+
+		}
+
+	};
+
+})().register();</pre>
+</body>
+</html>

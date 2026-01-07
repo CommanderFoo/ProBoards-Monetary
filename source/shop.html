@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='monetary-shop'>/**
+</span> * @class monetary.shop
+ * @static
+ *
+ * Creates a shop on the forum so that members can purchase items.
+ */
+
+monetary.shop = (function(){
+
+	return {
+
+<span id='monetary-shop-property-required_monetary_version'>		/**
+</span>		 * @property {String} required_monetary_version The minimum version required of the Monetary System.
+		 */
+
+		required_monetary_version: &quot;0.9.0&quot;,
+
+<span id='monetary-shop-property-VERSION'>		/**
+</span>		 * @property {String} VERSION Current version.
+		 */
+
+		VERSION: &quot;{VER}&quot;,
+
+<span id='monetary-shop-property-settings'>		/**
+</span>		 * @property {Object} settings Default settings for the shop, these get overwritten in setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Boolean} settings.icon_enabled If enable, an icon will show in the Yootil bar.
+		 * @property {String} settings.base_image The base URL for the images.
+		 * @property {Boolean} settings.show_total_bough If enabled, on profiles it will show total bought.
+		 * @property {Boolean} settings.items_private Items can be private to the user if enabled (kinda pointless).
+		 * @property {Number} settings.refund_percent The default refund percentage amount per item.
+		 * @property {Boolean} settings.allow_removing If disable then items can not be removed.
+		 * @property {Array} settings.no_members Users who are not allowed to use the shop.
+		 * @property {Array} settings.no_groups Groups that can not use the shop.
+		 * @property {Number} settings.image_width Image width for shop and profile.
+		 * @property {Number} settings.image_height Image height for shop and profile.
+		 * @property {Number} settings.image_percent Used when doing percentage scaling.
+		 * @property {Boolean} settings.show_in_mini_profile If enable, items will show in mini profiles.
+		 * @property {Number} settings.mini_image_width The width of images in the mini profile.
+		 * @property {Number} settings.mini_image_height The height of images in the mini profile.
+		 * @property {Number} settings.mini_image_percent Used when doing percentage scaling.
+		 * @property {Number} settings.mini_limit_shown Can limit the amount of items that show in a mini profile.
+		 * @property {Boolean} settings.show_quantity_drop_down If enable, the drop down will show on the shop page.
+		 * @property {Object} settings.text Text replacements.
+		 * @property {String} settings.text.monetary_shop Name of the shop.
+		 * @property {String} settings.text.shop
+		 * @property {String} settings.text.name
+		 * @property {String} settings.text.description
+		 * @property {String} settings.text.item
+		 * @property {String} settings.text.basket
+		 * @property {String} settings.text.search
+		 * @property {String} settings.text.results
+		 * @property {String} settings.text.purchase
+		 * @property {String} settings.text.purchased
+		 * @property {String} settings.text.price
+		 * @property {String} settings.text.last_bought
+		 * @property {String} settings.text.total_cost
+		 * @property {String} settings.text.total_amount
+		 * @property {String} settings.text.thank_you
+		 * @property {String} settings.text.add_to_cart
+		 * @property {String} settings.text.checkout
+		 * @property {String} settings.text.remove
+		 * @property {String} settings.text.quantity
+		 * @property {String} settings.text.paid
+		 * @property {String} settings.text.refund
+		 * @property {String} settings.text.accept
+		 * @property {Boolean} settings.welcome_message_enabled If enable, a welcome message will show on the shop page.
+		 * @property {String} settings.welcome_message_title
+		 * @property {String} settings.welcome_message_message
+		 * @property {String} settings.random_image Default image used when it can't find the item image.
+		 */
+
+		settings: {
+
+			enabled: true,
+			icon_enabled: true,
+			base_image: &quot;&quot;,
+			show_total_bought: true,
+			items_private: false,
+			refund_percent: 50,
+			allow_removing: false,
+			no_members: [],
+			no_groups: [],
+
+			image_width: 0,
+			image_height: 0,
+			image_percent: 0,
+
+			show_in_mini_profile: true,
+			mini_image_width: 0,
+			mini_image_height: 0,
+			mini_image_percent: 0,
+			mini_limit_shown: 0,
+			
+			show_quantity_drop_down: false,
+
+			text: {
+
+				monetary_shop: &quot;Monetary Shop&quot;,
+				shop: &quot;Shop&quot;,
+				name: &quot;Name&quot;,
+				description: &quot;Description&quot;,
+				item: &quot;Item&quot;,
+				basket: &quot;Basket&quot;,
+				search: &quot;Search&quot;,
+				results: &quot;Results&quot;,
+				purchase: &quot;Purchase&quot;,
+				purchased: &quot;Purchased&quot;,
+				price: &quot;Price&quot;,
+				last_bought: &quot;Last Bought&quot;,
+				total_cost: &quot;Total Cost&quot;,
+				total_amount: &quot;Total Amount&quot;,
+				thank_you: &quot;Thank You&quot;,
+				add_to_cart: &quot;Add To Cart&quot;,
+				checkout: &quot;Checkout&quot;,
+				remove: &quot;Remove&quot;,
+				quantity: &quot;Quantity&quot;,
+				paid: &quot;Paid&quot;,
+				refund: &quot;Refund&quot;,
+				accept: &quot;Accept&quot;
+
+			},
+
+			welcome_message_enabled: false,
+			welcome_message_title: &quot;&quot;,
+			welcome_message_message: &quot;&quot;,
+			
+			random_image: null
+
+		},
+
+<span id='monetary-shop-property-images'>		/**
+</span>		 * @property {Object} images Plugin images.
+		 */
+
+		images: {},
+
+<span id='monetary-shop-property-plugin'>		/**
+</span>		 * @property {Object} plugin The ProBoards plugin.
+		 */
+
+		plugin: {},
+
+<span id='monetary-shop-property-items'>		/**
+</span>		 * @property {Array} items Holds all the items stored in the plugin.
+		 */
+
+		items: [],
+
+<span id='monetary-shop-property-categories'>		/**
+</span>		 * @property {Array} categories Categories created by the use in the plugin admin area.
+		 */
+
+		categories: [],
+
+<span id='monetary-shop-property-category_lookup'>		/**
+</span>		 * @property {Object} category_lookup Stores all the categories for quick lookup.  Key is cat id.
+		 */
+
+		category_lookup: {},
+
+<span id='monetary-shop-property-category_items'>		/**
+</span>		 * @property {Object} category_items Holds all the items in certain category tables.
+		 */
+
+		category_items: {},
+
+<span id='monetary-shop-property-cart'>		/**
+</span>		 * @property {Array} cart Items the user has added to their cart.
+		 */
+
+		cart: [],
+
+<span id='monetary-shop-property-lookup'>		/**
+</span>		 * @property {Object} lookup Item lookup table.
+		 */
+
+		lookup: {},
+
+<span id='monetary-shop-property-user_data_table'>		/**
+</span>		 * @property {Object} user_data_table Holds all the data for each user here for lookup.
+		 */
+
+		user_data_table: {},
+
+<span id='monetary-shop-property-KEY'>		/**
+</span>		 * @property {String} KEY The key for this plugin.
+		 */
+
+		KEY: &quot;pixeldepth_money_shop&quot;,
+
+<span id='monetary-shop-property-modules'>		/**
+</span>		 * @property {Array} modules Sub modules are added here.
+		 */
+
+		modules: [],
+
+<span id='monetary-shop-property-random_id_pool'>		/**
+</span>		 * @property {Object} random_id_pool Used for random items in the shop.  Lookup for random items pool.
+		 */
+		
+		random_id_pool: {},
+
+<span id='monetary-shop-method-init'>		/**
+</span>		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
+
+		init: function(){
+			if(typeof yootil == &quot;undefined&quot;){
+				return;
+			}
+
+			this.check_monetary_version();
+			this.setup_user_data_table();
+			this.setup();
+
+			if(!this.settings.enabled){
+				monetary.show_default();
+				return;
+			}
+
+			if(yootil.user.logged_in() &amp;&amp; this.settings.icon_enabled){
+				if(this.images.shop){
+					yootil.bar.add(&quot;/?monetaryshop&quot;, this.images.shop, this.settings.text.shop, &quot;pdmsshop&quot;);
+				}
+			}
+
+			if(yootil.user.logged_in() &amp;&amp; location.href.match(/\?monetaryshop$/i)){
+				if(this.can_use_shop()){
+					yootil.create.nav_branch(yootil.html_encode(location.href), this.settings.text.monetary_shop);
+					yootil.create.page(&quot;?monetaryshop&quot;, this.settings.text.monetary_shop);
+
+					this.build_shop_html();
+				} else {
+					yootil.create.nav_branch(yootil.html_encode(location.href), this.settings.text.monetary_shop + &quot; - An Error Has Occurred&quot;);
+					yootil.create.page(&quot;?monetaryshop&quot;, this.settings.text.monetary_shop + &quot; - An Error Has Occurred&quot;);
+
+					var html = &quot;&quot;;
+
+					html += &quot;&lt;div class='monetary-shop-notice-icon'&gt;&lt;img src='&quot; + monetary.images.info + &quot;' /&gt;&lt;/div&gt;&quot;;
+					html += &quot;&lt;div class='monetary-shop-notice-content'&gt;You do not have permission to access the &quot; + this.settings.text.shop + &quot;.&lt;/div&gt;&quot;;
+
+					var container = yootil.create.container(&quot;An Error Has Occurred&quot;, html).show();
+
+					container.appendTo(&quot;#content&quot;);
+				}
+			} else if(yootil.location.profile_home()){
+				if(yootil.user.is_staff() || !this.settings.items_private || (this.settings.items_private &amp;&amp; yootil.user.id() == yootil.page.member.id())){
+					this.create_shop_item_box();
+				}
+			}
+
+			var location_check = (yootil.location.search_results() || yootil.location.message_thread() || yootil.location.thread() || yootil.location.recent_posts());
+
+			if(this.settings.show_in_mini_profile &amp;&amp; location_check){
+				this.show_in_mini_profile();
+				yootil.ajax.after_search(this.show_in_mini_profile, this);
+			}
+
+			if(this.modules.length){
+				for(var m = 0, ml = this.modules.length; m &lt; ml; m ++){
+					if(this.modules[m].init){
+						this.modules[m].init();
+					}
+				}
+			}
+		},
+
+<span id='monetary-shop-method-version'>		/**
+</span>		 * Returns the curren version of the shop.
+		 *
+		 * @returns {String}
+		 */
+
+		version: function(){
+			return this.VERSION;
+		},
+
+<span id='monetary-shop-method-check_monetary_version'>		/**
+</span>		 * Checks the version of the Monetary System plugin is compatiable with this module.
+		 */
+
+		check_monetary_version: function(){
+			var versions = yootil.convert_versions(monetary.version(), this.required_monetary_version);
+
+			if(versions[0] &lt; versions[1]){
+				var msg = &quot;&lt;p&gt;The Monetary System - Shop requires at least &quot; + yootil.html_encode(this.required_monetary_version) + &quot; of the &lt;a href='http://support.proboards.com/thread/429360/'&gt;Monetary System&lt;/a&gt; plugin to function correctly.&lt;/p&gt;&quot;;
+				msg += &quot;&lt;p style='margin-top: 8px;'&gt;For more information, please visit the the &lt;a href='http://support.proboards.com'&gt;ProBoards support forum&lt;/a&gt;.&lt;/p&gt;&quot;;
+
+				var container = yootil.create.container(&quot;Monetary System - Shop&quot;, msg).show();
+
+				$(&quot;div#content&quot;).prepend(container);
+			}
+		},
+
+<span id='monetary-shop-method-setup'>		/**
+</span>		 * Handles overwriting default values.  These come from the plugin settings.
+		 * Lookup tables for categories, items etc are created here as well.
+		 */
+
+		setup: function(){
+			if(monetary.plugin){
+				this.plugin = pb.plugin.get(&quot;pixeldepth_monetary_shop&quot;);
+
+				var settings = this.plugin.settings;
+
+				this.images = this.plugin.images;
+
+				if(this.plugin &amp;&amp; this.plugin.settings){
+					this.settings.enabled = (!! ~~ settings.shop_enabled)? true : false;
+					this.settings.icon_enabled = (!! ~~ settings.shop_icon_enabled)? true : false;
+					this.items = (settings.shop_items &amp;&amp; settings.shop_items.length)? settings.shop_items : this.items;
+					this.settings.base_image = (settings.item_image_base &amp;&amp; settings.item_image_base.length)? settings.item_image_base : this.settings.base_image;
+					this.settings.refund_percent = (settings.refund_percent &amp;&amp; settings.refund_percent.length)? settings.refund_percent : this.settings.refund_amount;
+					this.settings.show_total_bought = (!! ~~ settings.show_total_bought)? true : false;
+					this.settings.items_private = (!! ~~ settings.items_private)? true : false;
+					this.settings.allow_removing = (!! ~~ settings.allow_removing)? true : false;
+					this.settings.no_members = settings.no_members || [];
+					this.settings.no_groups = settings.no_groups || [];
+
+					this.settings.text.monetary_shop = (settings.txt_monetary_shop &amp;&amp; settings.txt_monetary_shop.length)? settings.txt_monetary_shop : this.settings.text.monetary_shop;
+					this.settings.text.shop = (settings.txt_shop &amp;&amp; settings.txt_shop.length)? settings.txt_shop : this.settings.text.shop;
+					this.settings.text.name = (settings.txt_name &amp;&amp; settings.txt_name.length)? settings.txt_name : this.settings.text.name;
+					this.settings.text.description = (settings.txt_description &amp;&amp; settings.txt_description.length)? settings.txt_description : this.settings.text.description;
+					this.settings.text.item = (settings.txt_item &amp;&amp; settings.txt_item.length)? settings.txt_item : this.settings.text.item;
+					this.settings.text.basket = (settings.txt_basket &amp;&amp; settings.txt_basket.length)? settings.txt_basket : this.settings.text.basket;
+					this.settings.text.search = (settings.txt_search &amp;&amp; settings.txt_search.length)? settings.txt_search : this.settings.text.search;
+					this.settings.text.results = (settings.txt_results &amp;&amp; settings.txt_results.length)? settings.txt_results : this.settings.text.results;
+					this.settings.text.purchase = (settings.txt_purchase &amp;&amp; settings.txt_purchase.length)? settings.txt_purchase : this.settings.text.purchase;
+					this.settings.text.purchased = (settings.txt_purchased &amp;&amp; settings.txt_purchased.length)? settings.txt_purchased : this.settings.text.purchased;
+					this.settings.text.price = (settings.txt_price &amp;&amp; settings.txt_price.length)? settings.txt_price : this.settings.text.price;
+					this.settings.text.last_bought = (settings.txt_last_bought &amp;&amp; settings.txt_last_bought.length)? settings.txt_last_bought : this.settings.text.last_bought;
+					this.settings.text.total_cost = (settings.txt_total_cost &amp;&amp; settings.txt_total_cost.length)? settings.txt_total_cost : this.settings.text.total_cost;
+					this.settings.text.total_amount = (settings.txt_total_amount &amp;&amp; settings.txt_total_amount.length)? settings.txt_total_amount : this.settings.text.total_amount;
+					this.settings.text.thank_you = (settings.txt_thank_you &amp;&amp; settings.txt_thank_you.length)? settings.txt_thank_you : this.settings.text.thank_you;
+					this.settings.text.add_to_cart = (settings.txt_add_to_cart &amp;&amp; settings.txt_add_to_cart.length)? settings.txt_add_to_cart : this.settings.text.add_to_cart;
+					this.settings.text.checkout = (settings.txt_checkout &amp;&amp; settings.txt_checkout.length)? settings.txt_checkout : this.settings.text.checkout;
+					this.settings.text.remove = (settings.txt_remove &amp;&amp; settings.txt_remove.length)? settings.txt_remove : this.settings.text.remove;
+					this.settings.text.quantity = (settings.txt_quantity &amp;&amp; settings.txt_quantity.length)? settings.txt_quantity : this.settings.text.quantity;
+					this.settings.text.paid = (settings.txt_paid &amp;&amp; settings.txt_paid.length)? settings.txt_paid : this.settings.text.paid;
+					this.settings.text.refund = (settings.txt_refund &amp;&amp; settings.txt_refund.length)? settings.txt_refund : this.settings.text.refund;
+					this.settings.text.accept = (settings.txt_accept &amp;&amp; settings.txt_accept.length)? settings.txt_accept : this.settings.text.accept;
+
+					this.settings.welcome_message_enabled = (!! ~~ settings.show_message)? true : false;
+					this.settings.welcome_message_title = (settings.welcome_title &amp;&amp; settings.welcome_title.length)? settings.welcome_title : this.settings.welcome_message_title;
+					this.settings.welcome_message_message = (settings.welcome_message &amp;&amp; settings.welcome_message.length)? settings.welcome_message : this.settings.welcome_message_message;
+
+					this.settings.image_width = (settings.item_img_width &amp;&amp; settings.item_img_width.length)? settings.item_img_width : 0;
+					this.settings.image_height = (settings.item_img_height &amp;&amp; settings.item_img_height.length)? settings.item_img_height : 0;
+					this.settings.image_percent = (settings.img_size_percent &amp;&amp; settings.img_size_percent.length)? settings.img_size_percent : 0;
+
+					this.settings.show_in_mini_profile = (!! ~~ settings.show_in_mini_profile)? true : false;
+					this.settings.mini_image_width = (settings.mini_img_width &amp;&amp; settings.mini_img_width.length)? settings.mini_img_width : 0;
+					this.settings.mini_image_height = (settings.mini_img_height &amp;&amp; settings.mini_img_height.length)? settings.mini_img_height : 0;
+					this.settings.mini_image_percent = (settings.mini_img_percent &amp;&amp; settings.mini_img_percent.length)? settings.mini_img_percent : 0;
+					this.settings.mini_limit_shown = (!! ~~ settings.limit_shown)? (~~ settings.limit_shown) : 0;
+
+					this.settings.show_quantity_drop_down = (!! ~~ settings.show_quantity_select)? true : false;
+
+					var categories = settings.categories;
+
+					if(categories.length){
+						categories = categories.sort(function(a, b){
+   							return (a[&quot;category_name&quot;] &gt; b[&quot;category_name&quot;])? 1 : 0;
+						});
+
+						for(var c = 0; c &lt; categories.length; c ++){
+							this.category_lookup[categories[c].category_id] = categories[c];
+							this.categories.push(categories[c].category_name);
+						}
+
+						this.categories.sort();
+					}
+					
+					// Support for extra items
+					// Current we support 3 extra plugins, but it does allow for more
+					
+					var extra_items_plugin_1 = proboards.plugin.get(&quot;monetary_shop_extra_items_1&quot;);
+					
+					if(extra_items_plugin_1 &amp;&amp; extra_items_plugin_1.settings){
+						var extra_1_settings = extra_items_plugin_1.settings;
+						
+						if(extra_1_settings.shop_items &amp;&amp; extra_1_settings.shop_items.length){
+							this.items = this.items.concat(extra_1_settings.shop_items);
+						}
+					}
+
+					var extra_items_plugin_2 = proboards.plugin.get(&quot;monetary_shop_extra_items_2&quot;);
+
+					if(extra_items_plugin_2 &amp;&amp; extra_items_plugin_2.settings){
+						var extra_2_settings = extra_items_plugin_2.settings;
+
+						if(extra_2_settings.shop_items &amp;&amp; extra_2_settings.shop_items.length){
+							this.items = this.items.concat(extra_2_settings.shop_items);
+						}
+					}
+
+					var extra_items_plugin_3 = proboards.plugin.get(&quot;monetary_shop_extra_items_3&quot;);
+
+					if(extra_items_plugin_3 &amp;&amp; extra_items_plugin_3.settings){
+						var extra_3_settings = extra_items_plugin_3.settings;
+
+						if(extra_3_settings.shop_items &amp;&amp; extra_3_settings.shop_items.length){
+							this.items = this.items.concat(extra_3_settings.shop_items);
+						}
+					}
+					
+					for(var i = 0, l = this.items.length; i &lt; l; i ++){
+						this.lookup[this.items[i].item_id] = this.items[i];
+
+						if(typeof this.items[i].item_max_quantity === &quot;undefined&quot;){
+							this.lookup[this.items[i].item_id].item_max_quantity = 0;
+						}
+
+						if(typeof this.items[i].item_show === &quot;undefined&quot; || !this.items[i].item_show.length){
+							this.lookup[this.items[i].item_id].item_show = 1;
+						}
+
+						if(this.category_lookup[this.items[i].item_category]){
+							if(this.items[i].item_show == 1){
+								if(!this.category_items[this.items[i].item_category]){
+									this.category_items[this.items[i].item_category] = [];
+								}
+
+								this.category_items[this.items[i].item_category].push(this.items[i]);
+							}
+						}
+					}
+					
+					this.settings.random_image = this.images.hidden;
+					
+					if(settings.random_items &amp;&amp; settings.random_items.length){
+						this.prepare_random_items(settings.random_items);	
+					}
+
+					//this.setup_specials();
+				}
+			}
+		},
+		
+		// If there is no id pool, then we don't add the random item
+		// to the lookup table
+
+<span id='monetary-shop-method-prepare_random_items'>		/**
+</span>		 * Prepares random items.
+		 * Random items can be based on a list of ids, or min and max price.
+		 * Each random item that is valid gets added to the random pool lookup table that is used later at checkout.
+		 *
+		 * @param {Array} items Random items from the plugin.
+		 */
+		
+		prepare_random_items: function(items){
+			for(var i = 0, l = items.length; i &lt; l; i ++){
+				var id_pool = [];
+				
+				if(items[i].item_ids.length){
+					var tmp_id_pool = items[i].item_ids.replace(/\s+/g, &quot;&quot;).split(&quot;,&quot;);
+
+					// Loop through and make sure the item exists
+
+					for(var e = 0, el = tmp_id_pool.length; e &lt; el; e ++){
+						if(this.lookup[tmp_id_pool[e]]){
+							id_pool.push(tmp_id_pool[e]);
+						}
+					}
+				}
+
+				if(items[i].minimum_price &amp;&amp; items[i].maximum_price &amp;&amp; items[i].minimum_price.length &amp;&amp; items[i].maximum_price.length){
+					var min_price = parseFloat(items[i].minimum_price);
+					var max_price = parseFloat(items[i].maximum_price);
+
+					if(max_price &lt; min_price){
+						max_price = min_price;
+					}
+					
+					for(var key in this.lookup){
+						if(parseFloat(this.lookup[key].item_price) &gt;= min_price &amp;&amp; parseFloat(this.lookup[key].item_price) &lt;= max_price){
+							id_pool.push(key);
+						}	
+					}
+				}
+
+				if(items[i].use_cat_id &amp;&amp; items[i].use_cat_id.length){
+					var the_items = this.category_items[items[i].use_cat_id];
+
+					if(the_items &amp;&amp; the_items.length){
+						for(var ci = 0, cil = the_items.length; ci &lt; cil; ci ++){
+							id_pool.push(the_items[ci].item_id);
+						}
+					}
+				}
+
+				if(id_pool.length){
+					this.random_id_pool[&quot;___&quot; + i + &quot;___&quot;] = id_pool;
+				} else {
+					continue;	
+				}
+				
+				items[i].item_id = &quot;___&quot; + i + &quot;___&quot;;
+				items[i].item_discount = 0;
+				items[i].item_show = 1;
+				items[i].item_tradable = 1;
+				items[i].item_refundable = 1;
+				
+				this.lookup[items[i].item_id] = items[i];
+
+				if(typeof items[i].item_max_quantity === &quot;undefined&quot;){
+					this.lookup[items[i].item_id].item_max_quantity = 0;
+				}
+
+				if(typeof items[i].item_show === &quot;undefined&quot; || !items[i].item_show.length){
+					this.lookup[items[i].item_id].item_show = 1;
+				}
+				
+				if(this.category_lookup[items[i].item_category]){
+					if(!this.category_items[items[i].item_category]){
+						this.category_items[items[i].item_category] = [];
+					}
+
+					this.category_items[items[i].item_category].push(items[i]);
+				}
+			}
+		},
+
+<span id='monetary-shop-method-safe_id'>		/**
+</span>		 * Makes the id safer to use.
+		 *
+		 * @param {String} id
+		 * @return {String}
+		 */
+
+		safe_id: function(id){
+			return id.toString().replace(/[^\d\.\_]+/g, &quot;&quot;);
+		},
+
+<span id='monetary-shop-method-can_use_shop'>		/**
+</span>		 * Checks to see if the user can use the shop.  This check the no_members and no_groups arrays.
+		 *
+		 * @returns {Boolean}
+		 */
+
+		can_use_shop: function(){
+			if(this.settings.no_members.length){
+				if($.inArrayLoose(yootil.user.id(), this.settings.no_members) &gt; -1){
+					return false;
+				}
+			}
+
+			if(this.settings.no_groups.length){
+				var user_groups = yootil.user.group_ids();
+
+				for(var g = 0, l = user_groups.length; g &lt; l; g ++){
+					if($.inArrayLoose(user_groups[g], this.settings.no_groups) &gt; -1){
+						return false;
+					}
+				}
+			}
+
+			return true;
+		},
+
+<span id='monetary-shop-method-data'>		/**
+</span>		 * Gets the users data, if it doesn't exist then a new instance of Data is created and added to the lookup.
+		 *
+		 * @param {Number} user_id
+		 * @returns {Object}
+		 */
+
+		data: function(user_id){
+			var user_data = this.user_data_table[((user_id)? user_id : yootil.user.id())];
+
+			if(!user_data){
+				user_data = new this.Data(user_id);
+				this.user_data_table[user_id] = user_data;
+			}
+
+			return user_data;
+		},
+
+<span id='monetary-shop-method-setup_user_data_table'>		/**
+</span>		 * This sets up the lookup table for all users on the current page.  Each entry is an instance of Data.  Always
+		 * look here before creating your own instance, as multiple instances would not be good.
+		 *
+		 *  It is recommended that if you do create an instance of Data to update the lookup table (key being user id).
+		 */
+
+		setup_user_data_table: function(){
+			var all_data = proboards.plugin.keys.data[this.KEY];
+
+			for(var key in all_data){
+				this.user_data_table[key] = new this.Data(key, all_data[key]);
+			}
+		},
+
+<span id='global-method-setup_specials'>		/**
+</span>		 * Coming soon...
+		 * @ignore
+		 */
+
+		setup_specials: function(){
+			var colored_name = {
+
+				item_id: &quot;s1&quot;,
+				item_name: &quot;Colored Name&quot;,
+				item_description: &quot;Have a colored name across the forum.&quot;,
+				item_price: 1500,
+				item_image: &quot;&quot;,
+				item_category: 99,
+				item_refundable: 0,
+				item_tradable: 0
+
+			};
+
+			this.category_items[99] = [];
+			this.category_items[99].push(colored_name);
+			this.lookup[&quot;s1&quot;] = colored_name;
+		},
+
+<span id='monetary-shop-method-register'>		/**
+</span>		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
+		register: function(){
+			monetary.modules.push(this);
+			return this;
+		},
+
+<span id='monetary-shop-method-has_items'>		/**
+</span>		 * Checks to see if the user has any items.
+		 *
+		 * @returns {Boolean}
+		 */
+
+		has_items: function(){
+			var user_id = yootil.page.member.id() || yootil.user.id();
+			var items = this.data(user_id).get.items();
+
+			for(var key in items){
+				if(this.lookup[key]){
+					return true;
+				}
+			}
+
+			return false;
+		},
+
+<span id='monetary-shop-method-get_size_css'>		/**
+</span>		 * Checks what image settings are being used and return the inline style.
+		 *
+		 * @param {Boolean} mini Is it for the mini profile or profiles.
+		 * @returns {String} inline style created.
+		 */
+
+		get_size_css: function(mini){
+			if(mini){
+				if(this.settings.mini_image_width &gt; 0 &amp;&amp; this.settings.mini_image_height &gt; 0){
+					return 'style=&quot;max-height: ' + this.settings.mini_image_height + 'px; max-width: ' + this.settings.mini_image_width + 'px;&quot;';
+				}
+			} else {
+				if(this.settings.image_width &gt; 0 &amp;&amp; this.settings.image_height &gt; 0){
+					return ' style=&quot;max-height: ' + this.settings.image_height + 'px; max-width: ' + this.settings.image_width + 'px;&quot;';
+				}
+			}
+
+			return &quot;&quot;;
+		},
+
+<span id='monetary-shop-method-get_image_src'>		/**
+</span>		 * Gets the item image, otherwise uses the default image setup by the plugin.
+		 *
+		 * @param {Object} item The item.
+		 * @returns {String}
+		 */
+
+		get_image_src: function(item){
+			var img = (item.item_image &amp;&amp; item.item_image.length)? item.item_image : this.settings.random_image;
+			
+			if(!img.match(/^http/i)){
+				img = this.settings.base_image + img;	
+			}
+			
+			return img;
+		},
+
+<span id='monetary-shop-method-create_shop_item_box'>		/**
+</span>		 * Creates the box for the items on user profiles.
+		 */
+
+		create_shop_item_box: function(){
+			if(!this.has_items()){
+				return;
+			}
+
+			var box = yootil.create.profile_content_box();
+			var first_box = $(&quot;form.form_user_status .content-box:first&quot;);
+			var using_custom = false;
+
+			if($(&quot;#monetary_shop_items&quot;).length){
+				first_box = $(&quot;#monetary_shop_items&quot;);
+				using_custom = true;
+			}
+
+			if(first_box.length){
+				var items_html = &quot;&quot;;
+				var user_id = yootil.page.member.id() || yootil.user.id();
+				var items = this.data(user_id).get.items();
+				var time_24 = (yootil.user.time_format() == &quot;12hr&quot;)? false : true;
+				var img_size = this.get_size_css();
+				var disp = (!img_size.length &amp;&amp; parseInt(this.settings.image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+
+				for(var key in items){
+					var num = &quot;&quot;;
+
+					if(items[key].q &gt; 1 &amp;&amp; this.settings.show_total_bought){
+						num = '&lt;span class=&quot;shop_item&quot;&gt;';
+						num += '&lt;img' + disp + ' class=&quot;shop_item_x&quot; src=&quot;' + this.images.x + '&quot; /&gt;';
+
+						if(items[key].q &gt;= 99){
+							num += 	'&lt;img' + disp + ' class=&quot;shop_item_num&quot; src=&quot;' + this.images[&quot;9&quot;] + '&quot; /&gt;&lt;img class=&quot;shop_item_num shop_item_num_last&quot; src=&quot;' + this.images[&quot;9&quot;] + '&quot; /&gt;';
+						} else {
+							var str = items[key].q.toString();
+
+							for(var s = 0; s &lt; str.length; s ++){
+								var klass = (s &gt; 0)? &quot; shop_item_num_last&quot; : &quot;&quot;;
+
+								num += 	'&lt;img' + disp + ' class=&quot;shop_item_num' + klass + '&quot; src=&quot;' + this.images[str.substr(s, 1)] + '&quot; /&gt;';
+							}
+						}
+
+						num += '&lt;/span&gt;';
+					}
+
+					if(this.lookup[key]){
+						items_html += '&lt;div data-shop-item-id=&quot;' + this.lookup[key].item_id + '&quot; title=&quot;' + yootil.html_encode(this.lookup[key].item_name) + '&quot; class=&quot;shop_items_list&quot;&gt;&lt;img src=&quot;' + this.get_image_src(this.lookup[key]) + '&quot;' + img_size + disp + ' /&gt;' + num + '&lt;/div&gt;';
+					}
+				}
+
+				if(using_custom){
+					first_box.addClass(&quot;monetary_shop_profile_box&quot;).show().html(items_html);
+				} else {
+					box.addClass(&quot;monetary_shop_profile_box&quot;);
+					box.html(items_html);
+
+					if(yootil.user.id() == yootil.page.member.id()){
+						box.insertAfter(first_box);
+					} else {
+						box.insertBefore(first_box);
+					}
+				}
+
+				if(parseInt(this.settings.image_percent) &gt; 0){
+					var self = this;
+
+					$(&quot;.shop_items_list&quot;).each(function(){
+						$(this).find(&quot;img:first&quot;).bind(&quot;load&quot;, function(){
+							var width = this.width;
+							var height = this.height;
+
+							this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+							this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+							$(this).parent().find(&quot;img&quot;).fadeIn(&quot;slow&quot;);
+						});
+					});
+				}
+
+				this.bind_refundable_dialog();
+
+				/*if(yootil.user.id() == yootil.page.member.id()){
+					this.setup_reordering();
+				}*/
+			}
+		},
+
+		// Browsers reorder the elements if the keys look like numbers
+		// It's too later to be changing the type, and I don't really
+		// want to start storing indexes in the key to allow ordering.
+		// Disabled for now.
+
+		/*setup_reordering: function(){
+			var self = this;
+			var box = $(&quot;.monetary_shop_profile_box&quot;);
+
+			if(box.length){
+				box.sortable({
+
+					axis: &quot;x&quot;,
+					cursor: &quot;move&quot;,
+					items: &quot; &gt; div&quot;,
+					opacity: 0.5,
+					revert: true,
+					helper: &quot;clone&quot;,
+					update: function(evt, ui){
+						var item_id = ui.item.attr(&quot;data-shop-item-id&quot;);
+						var items = self.data(yootil.user.id()).get.items();
+						var tmp_obj = {};
+
+						if(items[item_id]){
+							tmp_obj[item_id.toString()] = items[item_id];
+
+							for(var k in items){
+								if(k != item_id){
+									tmp_obj[k.toString()] = items[k];
+								}
+							}
+
+							console.log(tmp_obj);
+						}
+					}
+
+				});
+			}
+		},*/
+
+<span id='monetary-shop-method-update_item_count'>		/**
+</span>		 * Updates the item count (if enabled) of items when an action is performed (i.e refund).
+		 *
+		 * @param {String} item_id
+		 * @param {Number} quantity
+		 */
+
+		update_item_count: function(item_id, quantity){
+			if(!this.settings.show_total_bought){
+				return;
+			}
+
+			var item = $(&quot;.shop_items_list[data-shop-item-id='&quot; + this.safe_id(item_id) + &quot;'] .shop_item&quot;);
+
+			if(item){
+				item.empty();
+
+				var num = &quot;&quot;;
+
+				if(quantity &gt; 1){
+					num += '&lt;img class=&quot;shop_item_x&quot; src=&quot;' + this.images.x + '&quot; /&gt;';
+
+					if(quantity &gt;= 99){
+						num += 	'&lt;img class=&quot;shop_item_num&quot; src=&quot;' + this.images[&quot;9&quot;] + '&quot; /&gt;&lt;img class=&quot;shop_item_num shop_item_num_last&quot; src=&quot;' + this.images[&quot;9&quot;] + '&quot; /&gt;';
+					} else {
+						var str = quantity.toString();
+
+						for(var s = 0; s &lt; str.length; s ++){
+							var klass = (s &gt; 0)? &quot; shop_item_num_last&quot; : &quot;&quot;;
+
+							num += 	'&lt;img class=&quot;shop_item_num' + klass + '&quot; src=&quot;' + this.images[str.substr(s, 1)] + '&quot; /&gt;';
+						}
+					}
+				}
+
+				item.html(num);
+			}
+		},
+
+<span id='monetary-shop-method-build_item_info_dialog'>		/**
+</span>		 * Builds the info dialog when clicking on an item on the profile page.
+		 *
+		 * @param {Object} item_elem The div the item sits in.
+		 */
+
+		build_item_info_dialog: function(item_elem){
+			var self = this;
+			var owner = yootil.page.member.id() || yootil.user.id();
+			var item_id = this.safe_id($(item_elem).attr(&quot;data-shop-item-id&quot;));
+			var bought_item = self.data(owner).get.item(item_id);
+			var shop_item = self.lookup[item_id];
+
+			if(!shop_item){
+				return;
+			}
+
+			var msg = &quot;&quot;;
+
+			msg += &quot;&lt;div&gt;&quot;;
+
+			msg += &quot;&lt;div class='item_info_img'&gt;&lt;img src='&quot; + self.get_image_src(shop_item) + &quot;' /&gt;&lt;/div&gt;&quot;;
+			msg += &quot;&lt;div class='item_info_info'&gt;&quot;;
+
+			msg += &quot;&lt;p&gt;&lt;strong&gt;&quot; + self.settings.text.item + &quot; &quot; + self.settings.text.name + &quot;:&lt;/strong&gt; &quot; + shop_item.item_name + &quot;&lt;/p&gt;&quot;;
+			msg += &quot;&lt;p&gt;&lt;strong&gt;&quot; + self.settings.text.quantity + &quot;:&lt;/strong&gt; &lt;span id='shop_item_quantity'&gt;&quot; + bought_item.q + &quot;&lt;/span&gt;&lt;/p&gt;&quot;;
+			msg += &quot;&lt;p&gt;&lt;strong&gt;&quot; + self.settings.text.price + &quot; &quot; + self.settings.text.paid + &quot;:&lt;/strong&gt; &quot; + monetary.settings.money_symbol + yootil.number_format(monetary.format(bought_item.p, true)) + &quot;&lt;/p&gt;&quot;;
+			msg += &quot;&lt;p&gt;&lt;strong&gt;&quot; + self.settings.text.total_cost + &quot;:&lt;/strong&gt; &lt;span id='shop_item_total_cost'&gt;&quot; + monetary.settings.money_symbol + yootil.number_format(monetary.format(bought_item.p * bought_item.q, true)) + &quot;&lt;/span&gt;&lt;/p&gt;&quot;;
+
+			msg += &quot;&lt;p class='item_info_desc'&gt;&quot; + pb.text.nl2br(shop_item.item_description) + &quot;&lt;/p&gt;&quot;;
+
+			msg += &quot;&lt;/div&gt;&quot;;
+			msg += &quot;&lt;/div&gt;&quot;;
+
+			var info_buttons = {
+
+				&quot;Close&quot;: function(){
+					$(this).dialog(&quot;close&quot;);
+				}
+
+			};
+
+			if(shop_item.item_refundable == &quot;1&quot; &amp;&amp; yootil.user.id() == owner){
+				var refund_buttons = {
+
+					&quot;Close&quot;: function(){
+						$(this).dialog(&quot;close&quot;);
+					}
+
+				};
+
+				refund_buttons[self.settings.text.accept + &quot; &quot; + self.settings.text.refund] = this.build_refund_dialog(item_id);
+
+				info_buttons[self.settings.text.refund] = function(){
+					pb.window.dialog(&quot;monetaryshop-item-refund-dialog&quot;, {
+						modal: true,
+						height: 220,
+						width: 350,
+						title: self.settings.text.refund,
+						html: self.build_refund_msg(item_id),
+						resizable: false,
+						draggable: false,
+						buttons: refund_buttons
+					});
+				};
+			}
+
+			if(this.settings.allow_removing &amp;&amp; yootil.user.is_staff()){
+				info_buttons[&quot;Remove&quot;] = function(){
+					var elem = this;
+
+					pb.window.dialog(&quot;monetaryshop-item-remove-dialog&quot;, {
+						modal: true,
+						height: 160,
+						width: 350,
+						title: self.settings.text.remove,
+						html: self.build_remove_msg(item_id),
+						resizable: false,
+						draggable: false,
+						buttons: {
+
+							&quot;Cancel&quot;: function(){
+								$(this).dialog(&quot;close&quot;);
+							},
+
+							&quot;Remove&quot;: self.build_remove_dialog(item_id)
+
+						}
+					});
+				};
+			}
+
+			var refund_txt = &quot;&quot;;
+
+			if(yootil.user.id() == owner){
+				refund_txt = (shop_item.item_refundable == &quot;1&quot;)? &quot;&quot; : &quot; (Not Refundable)&quot;;
+			}
+
+			pb.window.dialog(&quot;monetaryshop-item-info-dialog&quot;, {
+				modal: true,
+				height: 320,
+				width: 600,
+				title: shop_item.item_name + refund_txt,
+				html: msg,
+				resizable: false,
+				draggable: false,
+				buttons: info_buttons
+
+			});
+
+		},
+
+<span id='monetary-shop-method-build_remove_msg'>		/**
+</span>		 * Builds the remove message when removing items from the profile.
+		 *
+		 * @param {String} item_id The ID for the item that will get removed.
+		 * @returns {Object} Message jQuery wrapped.
+		 */
+
+		build_remove_msg: function(item_id){
+			var self = this;
+			var item_counter = 0;
+			var remove_msg = &quot;&lt;strong&gt;&quot; + self.settings.text.quantity + &quot; to &quot; + self.settings.text.remove.toLowerCase() + &quot;:&lt;/strong&gt; &quot;;
+			var	bought_item = self.data(yootil.page.member.id()).get.item(item_id);
+			var one_remove = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * 1;
+
+			remove_msg += &quot;&lt;select id='shop_item_remove_quantity'&gt;&quot;;
+
+			while(item_counter &lt; bought_item.q){
+				item_counter ++;
+				remove_msg += &quot;&lt;option value='&quot; + item_counter + &quot;'&gt; &quot; + item_counter + &quot; &lt;/option&gt;&quot;;
+			}
+
+			remove_msg += &quot;&lt;/select&gt;&quot;;
+			remove_msg = $(&quot;&lt;div&gt;&quot; + remove_msg + &quot;&lt;/div&gt;&quot;);
+
+			return remove_msg;
+		},
+
+<span id='monetary-shop-method-build_remove_dialog'>		/**
+</span>		 * Builds the remove item dialog for items on the profile page.
+		 *
+		 * @param {String} item_id The item id for which item will be removed.
+		 * @returns {Function}
+		 */
+
+		build_remove_dialog: function(item_id){
+			var self = this;
+
+			return function(){
+				var remove_quantity = parseInt($(&quot;#shop_item_remove_quantity option:selected&quot;).val());
+				var bought_item = self.data(yootil.page.member.id()).get.item(item_id);
+
+				if(remove_quantity &lt;= bought_item.q){
+					var info_dialog = $(&quot;#monetaryshop-item-info-dialog&quot;);
+
+					self.data(yootil.page.member.id()).reduce.quantity(item_id, remove_quantity);
+
+					bought_item = self.data(yootil.page.member.id()).get.item(item_id);
+
+					if(!bought_item){
+						var item_elem = $(&quot;.shop_items_list[data-shop-item-id='&quot; + self.safe_id(item_id) + &quot;']&quot;);
+
+						item_elem.hide(&quot;slow&quot;, function(){
+							item_elem.remove();
+						});
+
+						info_dialog.dialog(&quot;close&quot;);
+
+						if(!$(&quot;.shop_items_list&quot;).length){
+							$(&quot;.monetary_shop_profile_box&quot;).hide();
+						}
+					} else {
+						info_dialog.find(&quot;span#shop_item_quantity&quot;).html(bought_item.q);
+						info_dialog.find(&quot;span#shop_item_total_cost&quot;).html(monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(monetary.format(bought_item.q * bought_item.p, true))));
+						self.update_item_count(item_id, bought_item.q);
+
+					}
+				} else {
+					self.error(&quot;Could not remove item&quot;);
+				}
+
+				$(this).dialog(&quot;destroy&quot;).remove();
+			};
+		},
+
+<span id='monetary-shop-method-build_refund_msg'>		/**
+</span>		 * Builds the refund message when refunding items on the profile page,
+		 *
+		 * @param {String} item_id The item id for which item is going to be refunded.
+		 * @returns {Object} jQuery wrapped message.
+		 */
+
+		build_refund_msg: function(item_id){
+			var self = this;
+			var item_counter = 0;
+			var refund_msg = &quot;&lt;strong&gt;&quot; + self.settings.text.quantity + &quot; to &quot; + self.settings.text.refund.toLowerCase() + &quot;:&lt;/strong&gt; &quot;;
+			var	bought_item = self.data(yootil.user.id()).get.item(item_id);
+			var one_refund = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * 1;
+
+			refund_msg += &quot;&lt;select id='shop_item_refund_quantity'&gt;&quot;;
+
+			while(item_counter &lt; bought_item.q){
+				item_counter ++;
+				refund_msg += &quot;&lt;option value='&quot; + item_counter + &quot;'&gt; &quot; + item_counter + &quot; &lt;/option&gt;&quot;;
+			}
+
+			refund_msg += &quot;&lt;/select&gt;&quot;;
+			refund_msg += &quot;&lt;br /&gt;&lt;br /&gt;&lt;span id='shop_item_refund_total_back'&gt;&lt;strong&gt;&quot; + self.settings.text.refund + &quot;:&lt;/strong&gt; &quot; + monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(monetary.format(one_refund, true))) + &quot; (&quot; + self.settings.refund_percent + &quot;%)&lt;/span&gt;&quot;;
+			refund_msg = $(&quot;&lt;div&gt;&quot; + refund_msg + &quot;&lt;/div&gt;&quot;);
+
+			refund_msg.find(&quot;select&quot;).change(function(){
+				var selected_quantity = parseInt(this.value);
+				var refund_amount = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * selected_quantity;
+
+				$(&quot;#shop_item_refund_total_back&quot;).html(&quot;&lt;strong&gt;&quot; + self.settings.text.refund + &quot;&lt;/strong&gt;: &quot; + monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(monetary.format(refund_amount, true))) + &quot; (&quot; + self.settings.refund_percent + &quot;%)&quot;);
+			});
+
+			return refund_msg;
+		},
+
+<span id='monetary-shop-method-build_refund_dialog'>		/**
+</span>		 * Builds the refund item dialog for items on the profile page.
+		 *
+		 * @param {String} item_id The item id for which item will be refunded.
+		 * @returns {Function}
+		 */
+
+		build_refund_dialog: function(item_id){
+			var self = this;
+
+			return function(){
+				var refund_quantity = parseInt($(&quot;#shop_item_refund_quantity option:selected&quot;).val());
+				var bought_item = self.data(yootil.user.id()).get.item(item_id);
+
+				if(refund_quantity &lt;= bought_item.q){
+					var amount = (parseFloat(bought_item.p) * (self.settings.refund_percent / 100)) * refund_quantity;
+					var info_dialog = $(&quot;#monetaryshop-item-info-dialog&quot;);
+
+					self.data(yootil.user.id()).refund.item(item_id, refund_quantity);
+					monetary.data(yootil.user.id()).increase.money(amount, false, null, true);
+
+					// Update wallet &amp; profile money
+
+					var user_money = monetary.data(yootil.user.id()).get.money(true);
+
+					$(&quot;.pd_money_amount_&quot; + yootil.user.id()).text(yootil.number_format(user_money));
+
+					var wallet = $(&quot;#pd_money_wallet_amount&quot;);
+
+					if(wallet.length){
+						wallet.text(yootil.number_format(user_money));
+					}
+
+					var other_wallet = $(&quot;.money_wallet_amount&quot;);
+
+					if(other_wallet.length){
+						other_wallet.html(monetary.settings.text.wallet + monetary.settings.money_separator + monetary.settings.money_symbol + yootil.html_encode(user_money));
+					}
+
+					bought_item = self.data(yootil.user.id()).get.item(item_id);
+
+					if(!bought_item){
+						var item_elem = $(&quot;.shop_items_list[data-shop-item-id='&quot; + self.safe_id(item_id) + &quot;']&quot;);
+
+						item_elem.hide(&quot;slow&quot;, function(){
+							item_elem.remove();
+						});
+
+						info_dialog.dialog(&quot;close&quot;);
+
+						if(!$(&quot;.shop_items_list&quot;).length){
+							$(&quot;.monetary_shop_profile_box&quot;).hide();
+						}
+					} else {
+						info_dialog.find(&quot;span#shop_item_quantity&quot;).html(bought_item.q);
+						info_dialog.find(&quot;span#shop_item_total_cost&quot;).html(monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(monetary.format(bought_item.q * bought_item.p, true))));
+						self.update_item_count(item_id, bought_item.q);
+
+					}
+				} else {
+					self.error(&quot;Could not issue refund&quot;);
+				}
+
+				$(this).dialog(&quot;destroy&quot;).remove();
+			};
+		},
+
+<span id='monetary-shop-method-error'>		/**
+</span>		 * Generic error to show
+		 *
+		 * @param {String} msg
+		 */
+
+		error: function(msg){
+			pb.window.alert(&quot;An Error Has Occurred&quot;, msg, {
+				modal: true,
+				height: 220,
+				width: 400,
+				resizable: false,
+				draggable: false
+			});
+		},
+
+<span id='monetary-shop-method-bind_refundable_dialog'>		/**
+</span>		 * Binds the refundable dialog to the items on the profile.
+		 */
+
+		bind_refundable_dialog: function(){
+			var self = this;
+
+			$(&quot;div[data-shop-item-id]&quot;).click(function(){
+				self.build_item_info_dialog(this);
+			});
+		},
+
+<span id='monetary-shop-method-build_shop_html'>		/**
+</span>		 * Builds hte shop HTML to show all the categories, items, and search.
+		 */
+
+		build_shop_html: function(){
+			var self = this;
+			var title = '&lt;div&gt;';
+
+			title += '&lt;div style=&quot;float: left&quot;&gt;' + this.settings.text.monetary_shop + '&lt;/div&gt;';
+			title += '&lt;div style=&quot;float: right&quot; id=&quot;pd_money_wallet&quot;&gt;' + monetary.settings.text.wallet + ': ' + monetary.settings.money_symbol + '&lt;span id=&quot;pd_money_wallet_amount&quot;&gt;' + yootil.html_encode(monetary.data(yootil.user.id()).get.money(true)) + '&lt;/span&gt;&lt;/div&gt;';
+
+			title += '&lt;/div&gt;&lt;br style=&quot;clear: both&quot; /&gt;';
+
+			var html = &quot;&quot;;
+			var div_counter = 0;
+
+			html += this.create_shop_tabs();
+
+			var img_size = this.get_size_css();
+			var disp = (!img_size.length &amp;&amp; parseInt(this.settings.image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+			var quantity_options = &quot;&quot;;
+			var q_counter = 0;
+			
+			if(this.settings.show_quantity_drop_down){
+				while(q_counter &lt; 100){
+					quantity_options += &quot;&lt;option value='&quot; + (++ q_counter) + &quot;'&gt;&quot; + q_counter + &quot;&lt;/option&gt;&quot;;	
+				}
+			}
+			
+			for(var key in this.category_items){
+				var cat_id = parseInt(key);
+				var inline_css = &quot;&quot;;
+				
+				html += '&lt;div id=&quot;item_category_' + cat_id + '&quot;' + ((div_counter != 0)? ' style=&quot;display: none;&quot;' : '') + '&gt;';
+				
+				if(this.category_lookup[cat_id].category_desc &amp;&amp; this.category_lookup[cat_id].category_desc.length){
+					html += '&lt;div class=&quot;item_shop_category_description&quot;&gt;' + pb.text.nl2br(this.category_lookup[cat_id].category_desc) + '&lt;/div&gt;';
+					inline_css = &quot; border-top-width: 1px;&quot;;
+				}
+				
+				html += '&lt;table class=&quot;list&quot;&gt;&lt;thead&gt;&lt;tr class=&quot;head&quot;&gt;&lt;th style=&quot;width: 140px;' + inline_css + '&quot;&gt;&amp;nbsp;&lt;/th&gt;&lt;th style=&quot;width: 22%;' + inline_css + '&quot;&gt;' + this.settings.text.item + ' ' + this.settings.text.name + '&lt;/th&gt;&lt;th style=&quot;width: 78%;' + inline_css + '&quot; class=&quot;main&quot;&gt;' + this.settings.text.description + '&lt;/th&gt;&lt;th style=&quot;width: 110px;' + inline_css + '&quot;&gt;' + this.settings.text.price + '&lt;/th&gt;&lt;th style=&quot;width: 150px;' + inline_css + '&quot;&gt;&amp;nbsp;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody class=&quot;list-content&quot;&gt;';
+
+				var counter = 0;
+
+				for(var i = 0; i &lt; this.category_items[key].length; i ++){
+					klass = (counter == 0)? &quot; first&quot; : ((counter == (this.category_items.length - 1))? &quot; last&quot; : &quot;&quot;);
+
+					var ribbon = &quot;&quot;;
+					var extra_ribbon_class = &quot;&quot;;
+					var price = parseFloat(this.category_items[key][i].item_price);
+
+					if(this.category_items[key][i].item_discount &amp;&amp; this.category_items[key][i].item_discount &gt; 0){
+						var discount = this.category_items[key][i].item_discount | 0;
+
+						if(this.images[&quot;ribbon&quot; + discount]){
+							ribbon = &quot;background-image: url(&quot; + this.images[&quot;ribbon&quot; + discount] + &quot;);&quot;;
+							extra_ribbon_class = &quot; shop_ribbon_&quot; + discount;
+							price -= (price * (discount / 100));
+						}
+					}
+
+					html += '&lt;tr class=&quot;item' + klass + '&quot;&gt;';
+					html += '&lt;td style=&quot;text-align: center;' + ribbon + '&quot; class=&quot;shop_ribbon' + extra_ribbon_class + '&quot;&gt;&lt;img src=&quot;' + this.get_image_src(this.category_items[key][i]) + '&quot;' + img_size + disp + ' alt=&quot;' + yootil.html_encode(this.category_items[key][i].item_name) + '&quot; title=&quot;' + yootil.html_encode(this.category_items[key][i].item_name) + '&quot; /&gt;&lt;/td&gt;';
+					html += '&lt;td&gt;' + this.category_items[key][i].item_name + '&lt;/td&gt;';
+					html += '&lt;td&gt;' + pb.text.nl2br(this.category_items[key][i].item_description) + '&lt;/td&gt;';
+					html += '&lt;td&gt;' + monetary.settings.money_symbol + yootil.number_format(monetary.format(price, true)) + '&lt;/td&gt;';
+
+					var disabled_button = &quot;&quot;;
+					var current_qty = this.data(yootil.user.id()).get.quantity(this.category_items[key][i].item_id);
+					var id = this.category_items[key][i].item_id;
+
+					if(this.lookup[id].item_max_quantity != 0 &amp;&amp; current_qty &gt;= this.category_items[key][i].item_max_quantity){
+						disabled_button = &quot; style='opacity: 0.5;'&quot;;
+					}
+
+					html += '&lt;td style=&quot;text-align: center;&quot;&gt;';
+					
+					if(this.settings.show_quantity_drop_down){
+						html += '&lt;select class=&quot;monetary-shop-cart-quantity&quot; name=&quot;quantity&quot; data-item-id=&quot;' + this.category_items[key][i].item_id + '&quot;&gt;';
+						html += quantity_options;
+						html += &quot;&lt;/select&gt;&lt;br /&gt;&quot;;
+					}
+					
+					html += '&lt;button' + disabled_button + ' class=&quot;add_to_cart&quot; data-item-id=&quot;' + this.category_items[key][i].item_id + '&quot;&gt;' + this.settings.text.add_to_cart + '&lt;/button&gt;&lt;/td&gt;';
+
+					counter ++;
+				}
+
+				html += '&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;';
+				div_counter ++;
+			}
+
+			html += '&lt;div id=&quot;search_results&quot; style=&quot;display: none;&quot;&gt;';
+			html += '&lt;div id=&quot;search_no_results&quot; style=&quot;display: none; text-align: center; padding: 5px;&quot;&gt;No ' + this.settings.text.item.toLowerCase() + 's were found.&lt;/div&gt;';
+			html += '&lt;table style=&quot;display: none&quot; class=&quot;list&quot; id=&quot;search_results_items&quot;&gt;&lt;thead&gt;&lt;tr class=&quot;head&quot;&gt;&lt;th style=&quot;width: 130px;&quot;&gt;&amp;nbsp;&lt;/th&gt;&lt;th style=&quot;width: 22%&quot;&gt;' + this.settings.text.item + ' ' + this.settings.text.name + '&lt;/th&gt;&lt;th style=&quot;width: 78%&quot; class=&quot;main&quot;&gt;' + this.settings.text.description + '&lt;/th&gt;&lt;th style=&quot;width: 110px&quot;&gt;' + this.settings.text.price + '&lt;/th&gt;&lt;th style=&quot;width: 150px;&quot;&gt;&amp;nbsp;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody class=&quot;list-content&quot;&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;';
+
+			html += '&lt;div id=&quot;basket_items&quot; style=&quot;display: none;&quot;&gt;';
+			html += '&lt;div id=&quot;basket_no_items&quot; style=&quot;display: none; text-align: center; padding: 5px;&quot;&gt;You have no items in your ' + this.settings.text.basket.toLowerCase() + '&lt;/div&gt;';
+			html += '&lt;table style=&quot;display: none&quot; class=&quot;list&quot; id=&quot;basket_items_list&quot;&gt;&lt;thead&gt;&lt;tr class=&quot;head&quot;&gt;&lt;th style=&quot;width: 130px;&quot;&gt;&amp;nbsp;&lt;/th&gt;&lt;th style=&quot;width: 22%&quot;&gt;' + this.settings.text.item + ' ' + this.settings.text.name + '&lt;/th&gt;&lt;th style=&quot;width: 78%&quot; class=&quot;main&quot;&gt;' + this.settings.text.description + '&lt;/th&gt;&lt;th style=&quot;width: 110px&quot;&gt;' + this.settings.text.price + '&lt;/th&gt;&lt;th style=&quot;width: 150px;&quot;&gt;&amp;nbsp;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody class=&quot;list-content&quot;&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;';
+
+			var container = yootil.create.container(title, html).show();
+
+			container.find(&quot;div.pad-all&quot;).removeClass(&quot;pad-all&quot;).addClass(&quot;cap-bottom&quot;);
+
+			var tabs = container.find(&quot;div.ui-tabMenu li[id*=category_tab_]&quot;);
+
+			tabs.click(function(e){
+				var id = $(this).attr(&quot;id&quot;).match(/(\d+)$/)[1];
+
+				if(id){
+					$(&quot;div.container_monetaryshop div[id*=item_category_]&quot;).hide();
+					$(&quot;div.container_monetaryshop li[id*=category_tab_]&quot;).removeClass(&quot;ui-active&quot;);
+
+					$(&quot;div.container_monetaryshop li#search_results_tab&quot;).removeClass(&quot;ui-active&quot;);
+					$(&quot;div.container_monetaryshop div#search_results&quot;).hide();
+
+					$(&quot;div.container_monetaryshop li#basket_items_tab&quot;).removeClass(&quot;ui-active&quot;);
+					$(&quot;div.container_monetaryshop div#basket_items&quot;).hide();
+
+					$(&quot;div.container_monetaryshop li#category_tab_&quot; + id).addClass(&quot;ui-active&quot;);
+					$(&quot;div.container_monetaryshop div#item_category_&quot; + id).show();
+				}
+
+				return false;
+			});
+			
+			container.find(&quot;div[id*=item_category_] button[data-item-id]&quot;).click(function(){
+				var id = $(this).attr(&quot;data-item-id&quot;);
+				var current_qty = self.data(yootil.user.id()).get.quantity(id);
+				var wanted_quantity = 1;
+				var item_max_quantity = ~~ self.lookup[id].item_max_quantity;
+				
+				if(self.settings.show_quantity_drop_down){
+					wanted_quantity = ~~ $(&quot;select.monetary-shop-cart-quantity[data-item-id=&quot; + id + &quot;]&quot;).val();
+				}
+				
+				if(item_max_quantity == 0 || current_qty &lt; item_max_quantity){
+					if(item_max_quantity != 0 &amp;&amp; wanted_quantity &gt;= item_max_quantity){
+						wanted_quantity = item_max_quantity;
+						
+						if((wanted_quantity + current_qty) &gt; item_max_quantity){
+							wanted_quantity = Math.abs(item_max_quantity - current_qty);	
+						}
+						
+						if(wanted_quantity &gt; item_max_quantity){
+							wanted_quantity = 0;	
+						}
+					}
+
+					self.add_to_cart(this, id, wanted_quantity);
+				}
+			});
+
+			container.find(&quot;input#search_field&quot;).on(&quot;keyup&quot;, function(){
+				var val = this.value;
+
+				if(val.length &gt;= 3){
+					self.search_shop(val);
+				}
+			});
+
+			container.find(&quot;li#search_results_tab&quot;).click(function(){
+				$(&quot;div.container_monetaryshop div[id*=item_category_]&quot;).hide();
+				$(&quot;div.container_monetaryshop li[id*=category_tab_]&quot;).removeClass(&quot;ui-active&quot;);
+
+				$(&quot;div.container_monetaryshop li#search_results_tab&quot;).addClass(&quot;ui-active&quot;);
+				$(&quot;div.container_monetaryshop div#search_results&quot;).show();
+
+				$(&quot;div.container_monetaryshop li#basket_items_tab&quot;).removeClass(&quot;ui-active&quot;);
+				$(&quot;div.container_monetaryshop div#basket_items&quot;).hide();
+
+				return false;
+			});
+
+			container.find(&quot;li#basket_items_tab&quot;).click(function(){
+				$(&quot;div.container_monetaryshop div[id*=item_category_]&quot;).hide();
+				$(&quot;div.container_monetaryshop li[id*=category_tab_]&quot;).removeClass(&quot;ui-active&quot;);
+				$(&quot;div.container_monetaryshop li#search_results_tab&quot;).removeClass(&quot;ui-active&quot;);
+				$(&quot;div.container_monetaryshop div#search_results&quot;).hide();
+
+				$(&quot;div.container_monetaryshop li#basket_items_tab&quot;).addClass(&quot;ui-active&quot;);
+				$(&quot;div.container_monetaryshop div#basket_items_list tbody&quot;).empty();
+
+				if(self.cart.length){
+					self.populate_basket_list();
+					$(&quot;div.container_monetaryshop div#basket_no_items&quot;).hide();
+					$(&quot;div.container_monetaryshop div#basket_items_list&quot;).show();
+				} else {
+					$(&quot;div.container_monetaryshop table#basket_items_list&quot;).hide();
+					$(&quot;div.container_monetaryshop div#basket_no_items&quot;).show();
+				}
+
+				$(&quot;div.container_monetaryshop div#basket_items&quot;).show();
+
+				return false;
+			});
+
+			container.addClass(&quot;container_monetaryshop&quot;);
+
+			if(this.settings.welcome_message_enabled){
+				var welcome_container = yootil.create.container(this.settings.welcome_message_title, pb.text.nl2br(this.settings.welcome_message_message)).show();
+
+				welcome_container.appendTo(&quot;#content&quot;);
+			}
+
+			container.appendTo(&quot;#content&quot;);
+
+			if(parseInt(this.settings.image_percent) &gt; 0){
+				$(&quot;.container_monetaryshop table tr td.shop_ribbon img&quot;).bind(&quot;load&quot;, function(){
+					var width = this.width;
+					var height = this.height;
+
+					this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+					this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+					$(this).fadeIn(&quot;slow&quot;);
+				});
+			}
+		},
+
+<span id='monetary-shop-method-create_shop_tabs'>		/**
+</span>		 * Creates the shop tabs on the shop page.
+		 *
+		 * @returns {String}
+		 */
+
+		create_shop_tabs: function(){
+			var html = '&lt;div class=&quot;ui-tabMenu&quot;&gt;&lt;ul class=&quot;ui-helper-clearfix&quot;&gt;';
+			var counter = 0;
+
+			for(var key in this.category_items){
+				var id = parseInt(key);
+
+				if(this.category_lookup[id]){
+					var klass = (counter == 0)? ' class=&quot;ui-active&quot;' : &quot;&quot;;
+					var cat_name = (id == 99)? &quot;Forum Enhancements&quot; : this.category_lookup[id].category_name;
+					var css = (id == 99)? &quot; style='margin-left: 25px'&quot; : &quot;&quot;;
+
+					html += '&lt;li' + css + klass + ' id=&quot;category_tab_' + id + '&quot;&gt;&lt;a href=&quot;#&quot;&gt;' + cat_name + '&lt;/a&gt;&lt;/li&gt;';
+					counter ++;
+				}
+			}
+
+			html += '&lt;li style=&quot;float: right&quot;&gt;&lt;div class=&quot;ui-search&quot; style=&quot;padding: 3px 10px 0px 4px;&quot;&gt;&lt;input width=&quot;90px&quot; style=&quot;height: 17px&quot; type=&quot;text&quot; class=&quot;search-input&quot; maxlength=&quot;50&quot; placeholder=&quot;' + this.settings.text.search + ' ' + this.settings.text.shop + '...&quot; role=&quot;search&quot; accesskey=&quot;w&quot; id=&quot;search_field&quot;&gt;&lt;span style=&quot;height: 16px&quot; class=&quot;search-filters-button&quot;&gt;&lt;span class=&quot;icon&quot;&gt;&lt;img src=&quot;//images.proboards.com/v5/images/icon-search-filters.png&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/li&gt;';
+
+			html += '&lt;li style=&quot;float: right; margin-right: 10px&quot; id=&quot;basket_items_tab&quot;&gt;&lt;a href=&quot;#&quot;&gt;' + this.settings.text.basket + ' (0)&lt;/a&gt;&lt;/li&gt;';
+			html += '&lt;li style=&quot;float: right; margin-right: 10px; display: none;&quot; id=&quot;search_results_tab&quot;&gt;&lt;a href=&quot;#&quot;&gt;' + this.settings.text.search + ' ' + this.settings.text.results + ' (0)&lt;/a&gt;&lt;/li&gt;';
+
+			html += &quot;&lt;/ul&gt;&lt;/div&gt;&quot;;
+
+			return html;
+		},
+
+<span id='monetary-shop-method-search_shop'>		/**
+</span>		 * Basic search functionality for the shop.
+		 *
+		 * @param {String} txt The search term.  Needs to be 3 characters or more.
+		 */
+
+		search_shop: function(txt){
+			if(txt &amp;&amp; txt.length &gt;= 3){
+				var self = this;
+
+				$(&quot;div.container_monetaryshop div[id*=item_category_]&quot;).hide();
+				$(&quot;div.container_monetaryshop li[id*=category_tab_]&quot;).removeClass(&quot;ui-active&quot;);
+
+				$(&quot;div.container_monetaryshop li#basket_items_tab&quot;).removeClass(&quot;ui-active&quot;);
+				$(&quot;div.container_monetaryshop div#basket_items&quot;).hide();
+
+				$(&quot;div.container_monetaryshop div#search_results&quot;).show();
+				$(&quot;div.container_monetaryshop li#search_results_tab&quot;).addClass(&quot;ui-active&quot;).show();
+
+				txt = txt.toLowerCase();
+
+				var results = [];
+
+				for(var i = 0, l = this.items.length; i &lt; l; i ++){
+					if(this.items[i].item_show == 1){
+						var name = this.items[i].item_name.toLowerCase();
+						var desc = this.items[i].item_description.toLowerCase();
+
+						if(name.match(txt) || desc.match(txt)){
+							results.push(this.items[i]);
+						}
+					}
+				}
+
+				$(&quot;div.container_monetaryshop li#search_results_tab a&quot;).html(this.settings.text.search + &quot; &quot; + this.settings.text.results + &quot; (&quot; + yootil.number_format(results.length) + &quot;)&quot;);
+
+				if(results.length){
+					$(&quot;div.container_monetaryshop div#search_no_results&quot;).hide();
+
+					var results_table = $(&quot;div.container_monetaryshop table#search_results_items&quot;);
+
+					results_table.find(&quot;tbody&quot;).empty();
+					results_table.show();
+
+					var counter = 0;
+					var result_html = &quot;&quot;;
+					var img_size = this.get_size_css();
+					var disp = (!img_size.length &amp;&amp; parseInt(this.settings.image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+
+					var quantity_options = &quot;&quot;;
+					var q_counter = 0;
+
+					if(this.settings.show_quantity_drop_down){
+						while(q_counter &lt; 100){
+							quantity_options += &quot;&lt;option value='&quot; + (++ q_counter) + &quot;'&gt;&quot; + q_counter + &quot;&lt;/option&gt;&quot;;
+						}
+					}
+
+					for(var r = 0; r &lt; results.length; r ++){
+						klass = (counter == 0)? &quot; first&quot; : ((counter == (results.length - 1))? &quot; last&quot; : &quot;&quot;);
+
+						var ribbon = &quot;&quot;;
+						var extra_ribbon_class = &quot;&quot;;
+						var price = parseFloat(results[r].item_price);
+
+						if(results[r].item_discount &amp;&amp; results[r].item_discount &gt; 0){
+							var discount = results[r].item_discount | 0;
+
+							if(this.images[&quot;ribbon&quot; + discount]){
+								ribbon = &quot;background-image: url(&quot; + this.images[&quot;ribbon&quot; + discount] + &quot;);&quot;;
+								extra_ribbon_class = &quot; shop_ribbon_&quot; + discount;
+								price -= (price * (discount / 100));
+							}
+						}
+
+						var disabled_button = &quot;&quot;;
+
+						if(this.lookup[results[r].item_id].item_max_quantity != 0 &amp;&amp; this.at_max_quantity(results[r].item_id)){
+							disabled_button = &quot; style='opacity: 0.5;'&quot;;
+						}
+
+						result_html += '&lt;tr class=&quot;item' + klass + '&quot;&gt;';
+						result_html += '&lt;td style=&quot;text-align: center;' + ribbon + '&quot; class=&quot;shop_ribbon' + extra_ribbon_class + '&quot;&gt;&lt;img src=&quot;' + this.get_image_src(results[r]) + '&quot;' + img_size + disp + ' alt=&quot;' + yootil.html_encode(results[r].item_name) + '&quot; title=&quot;' + yootil.html_encode(results[r].item_name) + '&quot; /&gt;&lt;/td&gt;';
+						result_html += '&lt;td&gt;' + results[r].item_name + '&lt;/td&gt;';
+						result_html += '&lt;td&gt;' + pb.text.nl2br(results[r].item_description) + '&lt;/td&gt;';
+						result_html += '&lt;td&gt;' + monetary.settings.money_symbol + yootil.number_format(monetary.format(price, true)) + '&lt;/td&gt;';
+
+						result_html += '&lt;td style=&quot;text-align: center;&quot;&gt;';
+
+						if(this.settings.show_quantity_drop_down){
+							result_html += '&lt;select class=&quot;monetary-shop-cart-quantity monetary-shop-search-quantity&quot; name=&quot;quantity&quot; data-item-id=&quot;' + results[r].item_id + '&quot;&gt;';
+							result_html += quantity_options;
+							result_html += &quot;&lt;/select&gt;&lt;br /&gt;&quot;;
+						}
+
+						result_html += '&lt;button' + disabled_button + ' class=&quot;add_to_cart&quot; data-item-id=&quot;' + results[r].item_id + '&quot;&gt;' + this.settings.text.add_to_cart + '&lt;/button&gt;&lt;/td&gt;';
+
+						counter ++;
+					}
+
+					var result_items_table = $(&quot;div.container_monetaryshop table#search_results_items&quot;);
+
+					result_items_table.find(&quot;tbody&quot;).html(result_html);
+
+					result_items_table.find(&quot;button[data-item-id]&quot;).click(function(){
+						var id = $(this).attr(&quot;data-item-id&quot;);
+						var current_qty = self.data(yootil.user.id()).get.quantity(id);
+						var wanted_quantity = 1;
+						var item_max_quantity = ~~ self.lookup[id].item_max_quantity;
+
+						if(self.settings.show_quantity_drop_down){
+							wanted_quantity = ~~ $(&quot;select.monetary-shop-search-quantity[data-item-id=&quot; + id + &quot;]&quot;).val();
+						}
+
+						if(item_max_quantity == 0 || current_qty &lt; item_max_quantity){
+							if(item_max_quantity != 0 &amp;&amp; wanted_quantity &gt;= item_max_quantity){
+								wanted_quantity = item_max_quantity;
+
+								if((wanted_quantity + current_qty) &gt; item_max_quantity){
+									wanted_quantity = Math.abs(item_max_quantity - current_qty);
+								}
+
+								if(wanted_quantity &gt; item_max_quantity){
+									wanted_quantity = 0;
+								}
+							}
+
+							self.add_to_cart(this, id, wanted_quantity);
+						}
+					});
+
+					if(parseInt(this.settings.image_percent) &gt; 0){
+						$(&quot;.container_monetaryshop table tr td.shop_ribbon img&quot;).bind(&quot;load&quot;, function(){
+							var width = this.width;
+							var height = this.height;
+
+							this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+							this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+							$(this).fadeIn(&quot;slow&quot;);
+						});
+					}
+				} else {
+					$(&quot;div.container_monetaryshop div#search_no_results&quot;).show();
+					$(&quot;div.container_monetaryshop table#search_results_items&quot;).hide();
+				}
+			}
+		},
+
+<span id='monetary-shop-method-at_max_quantity'>		/**
+</span>		 * Checks to see if the user is at the max allowed quantity if a limit has been set for the item.
+		 *
+		 * @param {String} id The item we are checking.
+		 * @returns {Boolean}
+		 */
+
+		at_max_quantity: function(id){
+			var current_qty = ~~ this.data(yootil.user.id()).get.quantity(id);
+			var cart_quantity = 0;
+
+			for(var c = 0; c &lt; this.cart.length; c ++){
+				if(this.cart[c] == id){
+					cart_quantity ++;
+				}
+			}
+
+			if((current_qty + cart_quantity) &gt;= this.lookup[id].item_max_quantity){
+				return true;
+			}
+
+			return false;
+		},
+
+<span id='monetary-shop-method-add_to_cart'>		/**
+</span>		 * Adds an item to the virtual cart.
+		 *
+		 * @param {Object} button The button that the action was on.
+		 * @param {String} item_id The item ID that is being added to the cart.
+		 * @param {Number} quantity The quantity being added.
+		 */
+
+		add_to_cart: function(button, item_id, quantity){
+			if(button &amp;&amp; this.lookup[item_id] &amp;&amp; this.lookup[item_id].item_show == 1){
+				var add_button = $(&quot;.container_monetaryshop button.add_to_cart[data-item-id=&quot; + item_id + &quot;]&quot;);
+
+				if(this.lookup[item_id].item_max_quantity != 0 &amp;&amp; this.at_max_quantity(item_id)){
+					return;
+				} else {
+					while(quantity){
+						this.cart.push(item_id);
+						quantity --;
+					}
+
+					if(this.lookup[item_id].item_max_quantity != 0 &amp;&amp; this.at_max_quantity(item_id)){
+						add_button.css(&quot;opacity&quot;, .5);
+					}
+				}
+
+				$(&quot;div.container_monetaryshop li#basket_items_tab a&quot;).html(this.settings.text.basket + &quot; (&quot; + yootil.number_format(this.cart.length) + &quot;)&quot;);
+
+				var img = $(button).parent().parent().find(&quot;img:first&quot;);
+				var clone = img.clone();
+
+				clone.offset({
+
+					top: img.offset().top,
+					left: img.offset().left
+
+				}).css({
+
+					opacity: &quot;0.5&quot;,
+					position: &quot;absolute&quot;,
+					height: img.height(),
+					width: img.width(),
+					&quot;z-index&quot;: 100,
+					display: &quot;&quot;
+
+				}).appendTo($(&quot;body&quot;)).animate({
+
+					top: $(&quot;div.container_monetaryshop li#basket_items_tab&quot;).offset().top + 7,
+					left: $(&quot;div.container_monetaryshop li#basket_items_tab&quot;).offset().left + 40,
+					width: img.width() / 4,
+					height: img.height() / 4
+
+				}, {
+					duration: 2500,
+					easing: &quot;easeInOutExpo&quot;,
+					queue: true,
+					complete: function(){
+						$(this).remove();
+					}
+				});
+
+				setTimeout(function(){
+					var basket = $(&quot;div.container_monetaryshop li#basket_items_tab&quot;);
+
+					basket.css(&quot;background-color&quot;, &quot;#FCFCFC&quot;).delay(1600).queue(function(next){
+						basket.css(&quot;background-color&quot;, &quot;&quot;);
+						next();
+					});
+				}, 1500);
+			}
+		},
+
+<span id='monetary-shop-method-populate_basket_list'>		/**
+</span>		 * Populates the basket with all the items the user has added.
+		 */
+
+		populate_basket_list: function(){
+			var self = this;
+			var counter = 0;
+			var basket_html = &quot;&quot;;
+			var total = 0;
+			var img_size = this.get_size_css();
+			var disp = (!img_size.length &amp;&amp; parseInt(this.settings.image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+
+			for(var i = 0; i &lt; this.cart.length; i ++){
+				var item = self.lookup[this.cart[i]];
+
+				if(item.item_show != 1){
+					continue;
+				}
+
+				klass = (counter == 0)? &quot; first&quot; : &quot;&quot;;
+
+				var ribbon = &quot;&quot;;
+				var extra_ribbon_class = &quot;&quot;;
+				var price = parseFloat(item.item_price);
+
+				if(item.item_discount &amp;&amp; item.item_discount &gt; 0){
+					var discount = item.item_discount | 0;
+
+					if(this.images[&quot;ribbon&quot; + discount]){
+						ribbon = &quot;background-image: url(&quot; + this.images[&quot;ribbon&quot; + discount] + &quot;);&quot;;
+						extra_ribbon_class = &quot; shop_ribbon_&quot; + discount;
+						price -= (price * (discount / 100));
+					}
+				}
+
+				basket_html += '&lt;tr class=&quot;item' + klass + '&quot;&gt;';
+				basket_html += '&lt;td style=&quot;text-align: center;' + ribbon + '&quot; class=&quot;shop_ribbon' + extra_ribbon_class + '&quot;&gt;&lt;img src=&quot;' + this.get_image_src(item) + '&quot;' + img_size + disp + ' alt=&quot;' + yootil.html_encode(item.item_name) + '&quot; title=&quot;' + yootil.html_encode(item.item_name) + '&quot; /&gt;&lt;/td&gt;';
+				basket_html += '&lt;td&gt;' + item.item_name + '&lt;/td&gt;';
+				basket_html += '&lt;td&gt;' + pb.text.nl2br(item.item_description) + '&lt;/td&gt;';
+				basket_html += '&lt;td&gt;' + monetary.settings.money_symbol + yootil.number_format(monetary.format(price, true)) + '&lt;/td&gt;';
+				basket_html += '&lt;td style=&quot;text-align: center;&quot;&gt;&lt;button data-item-id=&quot;' + item.item_id + '&quot;&gt;' + this.settings.text.remove + '&lt;/button&gt;&lt;/td&gt;';
+
+				total += parseFloat(price);
+				counter ++;
+			}
+
+			var total_html = &quot;&lt;tr class='item' style='height: 30px'&gt;&lt;td colspan='5'&gt;&lt;/td&gt;&lt;/tr&gt;&quot;;
+
+			total_html += &quot;&lt;tr class='item last'&gt;&lt;td colspan='3' style='text-align: right; font-weight: bold'&gt;&quot; + this.settings.text.total_amount + &quot;: &lt;/td&gt;&lt;td style='font-weight: bold'&gt;&quot; + monetary.settings.money_symbol + &quot;&lt;span id='basket_total_amount'&gt;&quot; + yootil.number_format(monetary.format(total, true)) + &quot;&lt;/span&gt;&lt;/td&gt;&lt;td style='text-align: center'&gt;&lt;button id='shop_checkout'&gt;&quot; + this.settings.text.checkout + &quot;&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;&quot;;
+
+			var basket_items_table = $(&quot;div.container_monetaryshop table#basket_items_list&quot;);
+
+			basket_items_table.find(&quot;tbody&quot;).html(basket_html + total_html);
+			basket_items_table.find(&quot;button[data-item-id]&quot;).click(function(){
+				self.remove_from_cart(this, $(this).attr(&quot;data-item-id&quot;));
+			});
+
+			basket_items_table.find(&quot;button#shop_checkout&quot;).click(function(){
+				self.checkout();
+			});
+
+			if(parseInt(this.settings.image_percent) &gt; 0){
+				$(&quot;.container_monetaryshop table tr td.shop_ribbon img&quot;).bind(&quot;load&quot;, function(){
+					var width = this.width;
+					var height = this.height;
+
+					this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+					this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+					$(this).fadeIn(&quot;slow&quot;);
+				});
+			}
+
+			basket_items_table.show();
+		},
+
+<span id='monetary-shop-method-update_total_amount'>		/**
+</span>		 * Updates the total items in the cart (tab).
+		 */
+
+		update_total_amount: function(){
+			var total = 0;
+
+			for(var i = 0; i &lt; this.cart.length; i ++){
+				var item = this.lookup[this.cart[i]];
+
+				if(item.item_show != 1){
+					continue;
+				}
+
+				var price = parseFloat(item.item_price);
+
+				if(item.item_discount &amp;&amp; item.item_discount &gt; 0){
+					var discount = item.item_discount | 0;
+
+					if(this.images[&quot;ribbon&quot; + discount]){
+						price -= (price * (discount / 100));
+					}
+				}
+
+				total += parseFloat(price);
+			}
+
+			$(&quot;div.container_monetaryshop span#basket_total_amount&quot;).html(yootil.number_format(monetary.format(total, true)));
+		},
+
+<span id='monetary-shop-method-remove_from_cart'>		/**
+</span>		 * Allows for an item to be removed from the cart.
+		 *
+		 * @param {Object} button The button the action was on.
+		 * @param {String} item_id The item being removed.
+		 */
+
+		remove_from_cart: function(button, item_id){
+			var self = this;
+			var index = $.inArrayLoose(item_id, this.cart);
+
+			if(index &gt; -1){
+				var add_button = $(&quot;.container_monetaryshop button.add_to_cart[data-item-id=&quot; + item_id + &quot;]&quot;);
+
+				add_button.css(&quot;opacity&quot;, &quot;1&quot;);
+				this.cart.splice(index, 1);
+
+				$(button).parent().parent().hide(&quot;slow&quot;, function(){
+					$(this).remove();
+
+					if(!self.cart.length){
+						$(&quot;div.container_monetaryshop table#basket_items_list&quot;).hide();
+						$(&quot;div.container_monetaryshop div#basket_no_items&quot;).show();
+					} else if(self.cart.length == 1){
+						$(&quot;div.container_monetaryshop table#basket_items_list tbody tr:first&quot;).addClass(&quot;first&quot;);
+					}
+				});
+
+				self.update_total_amount();
+
+				$(&quot;div.container_monetaryshop li#basket_items_tab a&quot;).html(self.settings.text.basket + &quot; (&quot; + yootil.number_format(this.cart.length) + &quot;)&quot;);
+			}
+		},
+
+<span id='monetary-shop-method-checkout'>		/**
+</span>		 * Final step of the cart is checking out.  We show the items to the user one last time.
+		 */
+
+		checkout: function(){
+			var self = this;
+			var users_money = parseFloat(monetary.data(yootil.user.id()).get.money());
+			var total = 0;
+
+			for(var i = 0; i &lt; this.cart.length; i ++){
+				var item = this.lookup[this.cart[i]];
+
+				if(item.item_show != 1){
+					continue;
+				}
+
+				var price = parseFloat(item.item_price);
+
+				if(item.item_discount &amp;&amp; item.item_discount &gt; 0){
+					var discount = item.item_discount | 0;
+
+					if(this.images[&quot;ribbon&quot; + discount]){
+						price -= (price * (discount / 100));
+					}
+				}
+
+				total += parseFloat(price);
+			}
+
+			if(total &gt; users_money){
+				var msg = &quot;You do not have enough money to pay for the &quot; + this.settings.text.item + &quot;s in your &quot; + this.settings.text.basket.toLowerCase() + &quot;.&lt;br /&gt;&lt;br /&gt;&quot;;
+
+				msg += this.settings.text.total_amount + &quot;: &lt;strong&gt;&quot; + monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(monetary.format(total, true))) + &quot;&lt;/strong&gt;&lt;br /&gt;&lt;br /&gt;&quot;;
+				msg += &quot;You need &lt;strong&gt;&quot; + monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(monetary.format(total - users_money, true))) + &quot;&lt;/strong&gt; more in your &quot; + monetary.settings.text.wallet + &quot;, then you can &quot; + this.settings.text.checkout.toLowerCase() + &quot;.&quot;;
+
+				pb.window.alert(&quot;Not Enough Money&quot;, msg, {
+					modal: true,
+					height: 220,
+					width: 500,
+					resizable: false,
+					draggable: false
+				});
+			} else {
+				var msg = &quot;Are you sure you want to &quot; + this.settings.text.purchase.toLowerCase() + &quot; the following &quot; + this.settings.text.item + &quot;s?&lt;br /&gt;&lt;br /&gt;&quot;;
+				var grouped_items = {};
+				var total_items = 0;
+
+				for(var i = 0; i &lt; this.cart.length; i ++){
+					if(grouped_items[this.cart[i]]){
+						grouped_items[this.cart[i]].quantity ++;
+					} else {
+						grouped_items[this.cart[i]] = {
+
+							quantity: 1
+
+						};
+					}
+				}
+
+				msg += this.settings.text.total_amount + &quot;: &lt;strong&gt;&quot; + monetary.settings.money_symbol + yootil.html_encode(yootil.number_format(monetary.format(total, true))) + &quot;&lt;/strong&gt;&lt;br /&gt;&lt;br /&gt;&quot;;
+
+				msg += '&lt;table class=&quot;list&quot;&gt;&lt;thead&gt;&lt;tr class=&quot;head&quot;&gt;&lt;th style=&quot;width: 130px;&quot;&gt;&amp;nbsp;&lt;/th&gt;&lt;th&gt;' + this.settings.text.item + ' ' + this.settings.text.name + '&lt;/th&gt;&lt;th&gt;' + this.settings.text.quantity + '&lt;/th&gt;&lt;th&gt;' + this.settings.text.item + ' ' + this.settings.text.price + '&lt;/th&gt;&lt;th&gt;' + this.settings.text.total_cost + '&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody class=&quot;list-content&quot;&gt;';
+
+				var img_size = this.get_size_css();
+				var disp = (!img_size.length &amp;&amp; parseInt(this.settings.image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+
+				for(var key in grouped_items){
+					var item = this.lookup[key];
+
+					if(item.item_show != 1){
+						continue;
+					}
+
+					total_items ++;
+
+					var ribbon = &quot;&quot;;
+					var extra_ribbon_class = &quot;&quot;;
+					var price = parseFloat(item.item_price);
+
+					if(item.item_discount &amp;&amp; item.item_discount &gt; 0){
+						var discount = item.item_discount | 0;
+
+						if(this.images[&quot;ribbon&quot; + discount]){
+							ribbon = &quot;background-image: url(&quot; + this.images[&quot;ribbon&quot; + discount] + &quot;);&quot;;
+							extra_ribbon_class = &quot; shop_ribbon_&quot; + discount;
+							price -= (price * (discount / 100));
+						}
+					}
+
+					msg += &quot;&lt;tr class='item'&gt;&quot;;
+					msg += &quot;&lt;td style='width: 130px;&quot; + ribbon + &quot;' class='monetaryshop_item_img shop_ribbon&quot; + extra_ribbon_class + &quot;'&gt;&lt;img src='&quot; + this.get_image_src(item) + &quot;'' + img_size + disp + ' /&gt;&lt;/td&gt;&quot;;
+					msg += &quot;&lt;td&gt;&quot; + item.item_name + &quot;&lt;/td&gt;&quot;;
+					msg += &quot;&lt;td style='width: 80px;'&gt;&quot; + grouped_items[key].quantity + &quot;&lt;/td&gt;&quot;;
+					msg += &quot;&lt;td&gt;&quot; + monetary.settings.money_symbol + yootil.number_format(monetary.format(price, true)) + &quot;&lt;/td&gt;&quot;;
+					msg += &quot;&lt;td&gt;&quot; + monetary.settings.money_symbol + yootil.number_format(monetary.format(price * grouped_items[key].quantity, true)) + &quot;&lt;/td&gt;&quot;;
+					msg += &quot;&lt;/tr&gt;&quot;;
+				}
+
+				msg + &quot;&lt;/tbody&gt;&lt;/table&gt;&quot;;
+
+				var plu = (total_items == 1)? &quot;&quot; : &quot;s&quot;;
+				var title = &quot;Confirm &quot; + this.settings.text.purchase + plu;
+				var buttons = {
+
+					Cancel: function(){
+						$(this).dialog(&quot;close&quot;);
+					}
+
+				};
+
+				var return_data = self.check_and_give_random_items(grouped_items);
+				
+				grouped_items = return_data[0];
+
+				buttons[this.settings.text.purchase] = function(){
+
+<span id='monetary-shop-event-before_purchase'>					/**
+</span>					 * Triggers before purchase.
+					 *
+					 *     $(monetary.event).on(&quot;shop.before_purchase&quot;, function(event, data){
+					 *         console.log(data.items);
+					 *     });
+					 *
+					 * @event before_purchase
+					 */
+
+					$(monetary.event).trigger(&quot;shop.before_purchase&quot;, {
+
+						items: grouped_items
+
+					});
+
+					var total = 0;
+
+					for(var key in grouped_items){
+						var item = self.lookup[key];
+
+						// This line breaks &quot;secret&quot; items
+						// Is there a reason we need this?
+						// If yes, then lookup in the pool to see
+						// if it is in a secret item.
+
+						if(item.item_show != 1){
+							if(return_data[2]){
+								var random_but_can_buy = false;
+
+								for(var the_pool_id in return_data[2]){
+									if($.inArrayLoose(key, self.random_id_pool[the_pool_id]) != -1){
+										random_but_can_buy = true;
+										break;
+									}
+								}
+							}
+
+							if(!random_but_can_buy) {
+								continue;
+							}
+						}
+
+						var price = (grouped_items[key].temp_price)? parseFloat(grouped_items[key].temp_price) : parseFloat(item.item_price);
+
+						if(item.item_discount &amp;&amp; item.item_discount &gt; 0){
+							var discount = item.item_discount | 0;
+
+							if(self.images[&quot;ribbon&quot; + discount]){
+								price -= (price * (discount / 100));
+							}
+						}
+
+						var the_item = {
+
+							id: key,
+							quantity: grouped_items[key].quantity,
+							price: parseFloat(item.item_price)
+
+						};
+						
+						self.data(yootil.user.id()).add.item(the_item, true);
+
+						total += price * grouped_items[key].quantity;
+					}
+
+<span id='monetary-shop-event-after_purchase'>					/**
+</span>					 * Triggers after purchase.
+					 *
+					 *     $(monetary.event).on(&quot;shop.after_purchase&quot;, function(event, data){
+					 *         console.log(data.total);
+					 *         console.log(data.items);
+					 *     });
+					 *
+					 * @event after_purchase
+					 */
+
+					$(monetary.event).trigger(&quot;shop.after_purchase&quot;, {
+
+						total: total,
+						items: grouped_items
+
+					});
+
+					self.cart = [];
+					self.data(yootil.user.id()).update();
+					monetary.data(yootil.user.id()).decrease.money(total, false, null, true);
+
+					var wallet = $(&quot;#pd_money_wallet_amount&quot;);
+
+					if(wallet.length){
+						wallet.text(yootil.number_format(monetary.data(yootil.user.id()).get.money(true)));
+					}
+
+					$(&quot;div.container_monetaryshop div#basket_items_list tbody&quot;).empty();
+					$(&quot;div.container_monetaryshop table#basket_items_list&quot;).hide();
+					$(&quot;div.container_monetaryshop div#basket_no_items&quot;).show();
+					$(&quot;div.container_monetaryshop li#basket_items_tab a&quot;).html(&quot;Basket (0)&quot;);
+
+					var msg = &quot;Your &quot; + self.settings.text.item.toLowerCase() + &quot; was successfully &quot; + self.settings.text.purchased + &quot;.&lt;br /&gt;&lt;br /&gt;You can view your &quot; + self.settings.text.purchased + &quot; &quot; + self.settings.text.item + &quot; from the profile page &lt;a href='/user/&quot; + yootil.user.id() + &quot;/'&gt;here&lt;/a&gt;.&quot;;
+
+					if(total_items &gt; 1){
+						msg = &quot;Your &quot; + self.settings.text.item.toLowerCase() + &quot;s were successfully &quot; + self.settings.text.purchased + &quot;.&lt;br /&gt;&lt;br /&gt;You can view your &quot; + self.settings.text.purchased + &quot; &quot; + self.settings.text.item + &quot;s from the profile page &lt;a href='/user/&quot; + yootil.user.id() + &quot;/'&gt;here&lt;/a&gt;.&quot;;
+					}
+
+					var height = 200;
+										
+					if(return_data[1] &amp;&amp; return_data[1].length){
+						var random_items = return_data[1];
+						
+						height = 300;
+						
+						msg += &quot;&lt;br /&gt;&lt;br /&gt;&lt;strong&gt;Your random &quot; + self.settings.text.item.toLowerCase() + &quot;s:&lt;/strong&gt;&lt;div style='margin-top: 10px; margin-left: 10px;'&gt;&quot;;
+						
+						for(var index in random_items){
+							var item = self.lookup[random_items[index].item_id];
+							
+							if(item){
+								msg += &quot;&lt;img src='&quot; + self.get_image_src(item) + &quot;'' + img_size + disp + ' /&gt; &quot;;
+							}	
+						}
+						
+						msg += &quot;&lt;/div&gt;&quot;;
+					}
+
+					$(this).dialog(&quot;close&quot;);
+
+					pb.window.dialog(&quot;monetaryshop-thanks-dialog&quot;, {
+						modal: true,
+						height: height,
+						width: 460,
+						title: &quot;Thank You&quot;,
+						html: msg,
+						resizable: false,
+						draggable: false,
+						buttons: {
+
+							&quot;Close&quot;: function(){
+								$(this).dialog(&quot;close&quot;);
+							}
+
+						}
+
+					});
+
+				};
+
+				var confirm = pb.window.dialog(&quot;monetaryshop-buy-dialog&quot;, {
+					modal: true,
+					height: 380,
+					width: 700,
+					title: title,
+					html: msg,
+					resizable: false,
+					draggable: false,
+
+					buttons: buttons
+
+				});
+
+				if(parseInt(this.settings.image_percent) &gt; 0){
+					$(&quot;#monetaryshop-buy-dialog table tr td.shop_ribbon img&quot;).bind(&quot;load&quot;, function(){
+						var width = this.width;
+						var height = this.height;
+
+						this.width = (width - (width * (parseInt(self.settings.image_percent) / 100)));
+						this.height = (height - (height * (parseInt(self.settings.image_percent) / 100)));
+
+						$(this).fadeIn(&quot;slow&quot;);
+					});
+				}
+			}
+		},
+
+<span id='monetary-shop-method-check_and_give_random_items'>		/**
+</span>		 * If the user has a random item in their cart and is checking out with it, then we need to give them
+		 * a random item from the build random pool.
+		 *
+		 * @param {Object} grouped_items The item pool.
+		 * @returns {Array}
+		 */
+
+		check_and_give_random_items: function(grouped_items){
+			var random_items = [];
+			var random_item_ids = {};
+
+			for(var key in grouped_items){
+				var item = this.lookup[key];
+				
+				if(item.item_ids || (item.maximum_price &amp;&amp; item.minimum_price) || item.use_cat_id){
+					if(key.match(/^___\d+___$/)){						
+						var total = grouped_items[key].quantity;
+						var id_pool = this.random_id_pool[key];
+
+						random_item_ids[key] = key;
+
+						while(total --){
+							var rand = Math.floor(Math.random() * id_pool.length);
+							var random_id = id_pool[rand];
+							
+							if(random_id &amp;&amp; this.lookup[random_id]){
+								random_items.push(this.lookup[random_id]);
+								
+								if(!grouped_items[random_id]){
+									grouped_items[random_id] = {
+										
+										quantity: 1
+										
+									};
+								} else {
+									grouped_items[random_id].quantity ++;
+								}
+								
+								grouped_items[random_id].temp_price = item.item_price;
+							}	
+						}
+						
+						delete grouped_items[key];
+					}
+				} 
+			}
+			
+			return [grouped_items, random_items, random_item_ids];
+		},
+
+<span id='monetary-shop-method-show_in_mini_profile'>		/**
+</span>		 * If enabled, items can be shown in the mini profile for users.
+		 */
+		
+		show_in_mini_profile: function(){
+			var minis = $(&quot;div.mini-profile&quot;);
+
+			if(minis &amp;&amp; minis.length){
+				if(minis.find(&quot;div.info div[class*=pd_shop_]&quot;).length){
+					return;
+				}
+
+				var self = this;
+				var time_24 = (yootil.user.time_format() == &quot;12hr&quot;)? false : true;
+				var img_size = this.get_size_css();
+				var disp = (!img_size.length &amp;&amp; parseInt(this.settings.mini_image_percent) &gt; 0)? &quot; style='display: none;'&quot; : &quot;&quot;;
+
+				minis.each(function(){
+					var user_link = $(this).find(&quot;a.user-link[href*='user']:first&quot;);
+
+					if(user_link &amp;&amp; user_link.length){
+						var user_id_match = user_link.attr(&quot;href&quot;).match(/\/user\/(\d+)\/?/i);
+
+						if(user_id_match &amp;&amp; user_id_match.length == 2){
+							var user_id = parseInt(user_id_match[1]);
+
+							if(!user_id){
+								return;
+							}
+
+							var items = self.data(user_id).get.items();
+							var str = &quot;&quot;;
+
+							var counter = 0;
+
+							for(var key in items){
+								if(self.settings.mini_limit_shown != 0 &amp;&amp; counter &gt;= self.settings.mini_limit_shown){
+									break;
+								}
+
+								if(self.lookup[key]){
+									str += '&lt;span class=&quot;pd_shop_mini_item&quot; data-shop-item-id=&quot;' + self.lookup[key].item_id + '&quot; title=&quot;' + yootil.html_encode(self.lookup[key].item_name) + ' (x' + items[key].q + ')&quot;&gt;&lt;img src=&quot;' + self.get_image_src(self.lookup[key]) + '&quot;' + img_size + disp + ' /&gt;&lt;/span&gt;';
+
+									counter ++;
+								}
+							}
+
+							var custom = $(this).find(&quot;.monetary_shop_items&quot;);
+
+							if(custom.length){
+								custom.append($(str));
+							} else {
+								var info = $(this).find(&quot;div.info&quot;);
+
+								str = &quot;&lt;br /&gt;&lt;div class='monetary_shop_items pd_shop_items_&quot; + user_id + &quot;'&gt;&quot; + str + &quot;&lt;/div&gt;&quot;;
+
+								if(info.length){
+									$(str).insertAfter(info);
+								} else {
+									$(this).append($(str));
+								}
+							}
+
+							if(parseInt(self.settings.mini_image_percent) &gt; 0){
+								$(this).find(&quot;.monetary_shop_items span[data-shop-item-id] img&quot;).bind(&quot;load&quot;, function(){
+									var width = this.width;
+									var height = this.height;
+
+									this.width = (width - (width * (parseInt(self.settings.mini_image_percent) / 100)));
+									this.height = (height - (height * (parseInt(self.settings.mini_image_percent) / 100)));
+
+									$(this).fadeIn(&quot;slow&quot;);
+								});
+							}
+						}
+					}
+				});
+			}
+		}
+
+	};
+
+})().register();</pre>
+</body>
+</html>

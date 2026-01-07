@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='monetary-gift'>/**
+</span> * @class monetary.gift
+ * @static
+ *
+ * Gift money module handles giving out created gift codes to members.
+ */
+
+money.gift = (function(){
+
+	return {
+
+<span id='monetary-gift-property-settings'>		/**
+</span>		 * @property {Object} settings Default settings which can be overwritten from setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Number} settings.paid_into Where the money is going to be paid into.
+		 * @property {Array} codes Active codes that are create in the plugin settings.
+		 */
+
+		settings: {
+
+			enabled: true,
+			paid_into: 0,
+			codes: []
+
+		},
+
+<span id='monetary-gift-property-lookup'>		/**
+</span>		 * @property {Object} lookup All gift objects go ito this object for quick lookup.
+		 */
+
+		lookup: {},
+
+<span id='monetary-gift-property-array_lookup'>		/**
+</span>		 * @property {Array} array_lookup All unique gift code strings are pushed into this lookup array.
+		 */
+
+		array_lookup: [],
+
+<span id='monetary-gift-property-current_code'>		/**
+</span>		 * @property {String} current_code The current gift code the user is trying to access.
+		 */
+
+		current_code:  &quot;&quot;,
+
+<span id='monetary-gift-method-init'>		/**
+</span>		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
+
+		init: function(){
+
+			// Basic checking so we don't need to run setup on each page
+
+			if(yootil.user.logged_in() &amp;&amp; money.can_earn_money){
+				this.setup();
+
+				if(!this.settings.enabled){
+					money.show_default();
+					return;
+				}
+
+				this.add_to_yootil_bar();
+
+				if(location.href.match(/\?monetarygift=(.+?)?$/i)){
+					var unsafe_code = decodeURIComponent(RegExp.$1);
+
+					yootil.create.nav_branch(yootil.html_encode(location.href), &quot;Gift Money&quot;);
+					yootil.create.page(&quot;?monetarygift&quot;, &quot;Gift Money&quot;);
+
+					if(!this.gift_money()){
+						var code_msg = &quot;&quot;;
+
+						if(unsafe_code &amp;&amp; unsafe_code.length){
+							code_msg = &quot; quoting the code \&quot;&lt;strong&gt;&quot; + yootil.html_encode(unsafe_code) + &quot;&lt;/strong&gt;\&quot;&quot;;
+						}
+
+						this.show_error(&quot;&lt;p&gt;The gift code you are trying to access either isn't for you, doesn't exist, or you have already accepted.&lt;/p&gt;&lt;p&gt;If you think this is an error, please contact a member of staff&quot; + code_msg + &quot;.&lt;/p&gt;&quot;);
+					}
+				}
+			}
+		},
+
+<span id='monetary-gift-method-setup'>		/**
+</span>		 * Handles overwriting default values.  These come from the plugin settings.
+		 * Also populates the lookup object and array.
+		 */
+
+		setup: function(){
+			if(money.plugin){
+				var settings = money.plugin.settings;
+
+				this.settings.enabled = (!! ~~ settings.free_money_enabled)? true : false;
+				this.settings.paid_into = (!! ~~ settings.free_money_paid_into)? 1 : 0;
+				this.settings.codes = (settings.free_money_codes &amp;&amp; settings.free_money_codes.length)? settings.free_money_codes : [];
+
+				if(!money.bank.settings.enabled){
+					this.settings.paid_into = 0;
+				}
+
+				if(settings.gift_money_image &amp;&amp; settings.gift_money_image.length){
+					money.images.giftmoney = settings.gift_money_image;
+				}
+
+				if(settings.gift_money_image_small &amp;&amp; settings.gift_money_image_small.length){
+					money.images.giftmoneysmall = settings.gift_money_image_small;
+				}
+
+				for(var c = 0, l = this.settings.codes.length; c &lt; l; c ++){
+					this.lookup[this.settings.codes[c].unique_code.toLowerCase()] = {
+						code: this.settings.codes[c].unique_code.toLowerCase(),
+						amount: this.settings.codes[c].amount,
+						message: this.settings.codes[c].message,
+						members: this.settings.codes[c].members,
+						groups: this.settings.codes[c].groups,
+						show_icon: (this.settings.codes[c].show_gift_icon &amp;&amp; this.settings.codes[c].show_gift_icon == &quot;0&quot;)? false : true
+					};
+
+					this.array_lookup.push(this.settings.codes[c].unique_code.toLowerCase());
+				}
+			}
+		},
+
+<span id='monetary-gift-method-register'>		/**
+</span>		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
+		register: function(){
+			money.modules.push(this);
+			return this;
+		},
+
+<span id='monetary-gift-method-add_to_yootil_bar'>		/**
+</span>		 * Adds gift icon to the yootil bar if the icon is enabled.
+		 */
+
+		add_to_yootil_bar: function(){
+			for(var key in this.lookup){
+				if(this.lookup[key].show_icon){
+					if(!this.has_received(key) &amp;&amp; this.allowed_gift(this.lookup[key])){
+						yootil.bar.add(&quot;/?monetarygift=&quot; + key, money.images.giftmoneysmall, &quot;Gift Money&quot;, &quot;gift_&quot; + key);
+					}
+				}
+			}
+		},
+
+<span id='monetary-gift-method-show_error'>		/**
+</span>		 * Creates an error container and shows the message to the user.
+		 *
+		 * @param {String} msg The message to show.
+		 */
+
+		show_error: function(msg){
+			var html = &quot;&quot;;
+
+			html += &quot;&lt;div class='monetary-gift-notice-icon'&gt;&lt;img src='&quot; + money.images.giftmoney + &quot;' /&gt;&lt;/div&gt;&quot;;
+			html += &quot;&lt;div class='monetary-gift-notice-content'&gt;&quot; + msg + &quot;&lt;/div&gt;&quot;;
+
+			var container = yootil.create.container(&quot;An Error Has Occurred&quot;, html).show();
+
+			container.appendTo(&quot;#content&quot;);
+		},
+
+<span id='monetary-gift-method-gift_money'>		/**
+</span>		 * Handles gifting the money to the user if the gift code is valid and not already accepted.
+		 *
+		 * @returns {Boolean}
+		 */
+
+		gift_money: function(){
+			var code = this.get_gift_code();
+			var gift = this.valid_code(code);
+
+			if(gift){
+				if(!this.has_received(code) &amp;&amp; this.allowed_gift(gift)){
+					var html = &quot;&quot;;
+					var paid_where = (this.settings.paid_into == 1)? money.bank.settings.text.bank : money.settings.text.wallet;
+
+					html += &quot;&lt;div class='monetary-gift-notice-icon'&gt;&lt;img src='&quot; + money.images.giftmoney + &quot;' /&gt;&lt;/div&gt;&quot;;
+					html += &quot;&lt;div class='monetary-gift-notice-content'&gt;&lt;div class='monetary-gift-notice-content-top'&gt;&lt;p&gt;You have recieved a gift of &lt;strong&gt;&quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(gift.amount))) + &quot;&lt;/strong&gt; that will be paid into your &quot; + paid_where + &quot;.&lt;/p&gt;&quot;;
+
+					if(gift.message.length){
+						html += &quot;&lt;p&gt;&quot; + gift.message.replace(/\n/g, &quot;&lt;br /&gt;&quot;) + &quot;&lt;/p&gt;&quot;;
+					}
+
+					html+= &quot;&lt;/div&gt;&quot;;
+
+					html += &quot;&lt;p class='monetary-gift-notice-content-accept'&gt;Do you want to accept this gift?  &lt;button&gt;Yes&lt;/button&gt;&lt;/p&gt;&lt;/div&gt;&lt;br style='clear: both' /&gt;&quot;;
+
+					var container = yootil.create.container(&quot;You Have Received Some Money&quot;, html).show();
+					var self = this;
+
+					container.find(&quot;button&quot;).click(function(){
+						if(self.collect_gift()){
+							var msg = &quot;&quot;;
+
+							msg += &quot;&lt;p&gt;You have successfully received a gift of &lt;strong&gt;&quot; + money.settings.money_symbol + yootil.html_encode(yootil.number_format(money.format(gift.amount))) + &quot;&lt;/strong&gt;.&lt;/p&gt;&quot;;
+							msg += &quot;&lt;p&gt;This has been paid into your &quot; + paid_where + &quot;.&lt;/p&gt;&quot;;
+
+							$(&quot;.monetary-gift-notice-content&quot;).html(msg);
+
+							yootil.bar.remove(&quot;gift_&quot; + gift.code);
+						} else {
+							pb.window.alert(&quot;An Error Occurred&quot;, &quot;Could not collect gift.&quot;, {
+								modal: true,
+								resizable: false,
+								draggable: false
+							});
+						}
+					});
+
+					container.appendTo(&quot;#content&quot;);
+
+					return true;
+				}
+			}
+
+			return false;
+		},
+
+<span id='monetary-gift-method-collect_gift'>		/**
+</span>		 * Gives the gift to the user.  This will update the wallet or bank depending on settings.
+		 *
+		 * @returns {Boolean}
+		 */
+
+		collect_gift: function(gift){
+			if(this.current_code &amp;&amp; this.lookup[this.current_code]){
+				money.data(yootil.user.id()).push.gift(this.current_code);
+
+				// Add money to wallet or bank
+
+				var into_bank = false;
+				var amount = this.lookup[this.current_code].amount || 0;
+
+				if(!amount){
+					return false;
+				}
+
+				if(this.settings.paid_into == 1){
+					into_bank = true;
+				}
+
+				money.data(yootil.user.id()).increase[((into_bank)? &quot;bank&quot; : &quot;money&quot;)](amount, true);
+
+				if(into_bank){
+					money.bank.create_transaction(8, amount, 0, true);
+				}
+
+				this.remove_old_codes();
+				this.save_money_data();
+
+				money.sync.trigger();
+
+				return true;
+			}
+
+			return false;
+		},
+
+<span id='monetary-gift-method-save_money_data'>		/**
+</span>		 * Wrapper around user Data class update method to update the key.
+		 */
+
+		save_money_data: function(){
+			money.data(yootil.user.id()).update();
+		},
+
+<span id='monetary-gift-method-allowed_gift'>		/**
+</span>		 * Checks to see if the user is allowed this gift.  Various checks are done here against members and groups.
+		 *
+		 * @param {Object} gift The gift.
+		 * @returns {Boolean}
+		 */
+
+		allowed_gift: function(gift){
+			if(gift){
+
+				// Check if this is for everyone
+
+				if(!gift.members.length &amp;&amp; !gift.groups.length){
+					return true;
+				} else {
+
+					// Check members first, this overrides groups
+
+					if($.inArrayLoose(yootil.user.id(), gift.members) &gt; -1){
+						return true;
+					}
+
+					// Now check the group
+
+					var user_groups = yootil.user.group_ids();
+
+					for(var g = 0, l = user_groups.length; g &lt; l; g ++){
+						if($.inArrayLoose(user_groups[g], gift.groups) &gt; -1){
+							return true;
+						}
+					}
+				}
+			}
+
+			return false;
+		},
+
+<span id='monetary-gift-method-has_received'>		/**
+</span>		 * Checks to see if the user has already received the gift.
+		 *
+		 * @param {String} code The gift code.
+		 * @returns {Boolean}
+		 */
+
+		has_received: function(code){
+			if($.inArrayLoose(code, money.data(yootil.user.id()).get.gifts()) != -1){
+				return true;
+			}
+
+			return false;
+		},
+
+<span id='monetary-gift-method-get_gift_code'>		/**
+</span>		 * Gets the gift code from the URL.
+		 *
+		 * @returns {Mixed}
+		 */
+
+		get_gift_code: function(){
+			var url = location.href;
+
+			if(location.href.match(/\?monetarygift=(\w+)/i)){
+				return RegExp.$1.toLowerCase();
+			}
+
+			return false;
+		},
+
+<span id='monetary-gift-method-valid_code'>		/**
+</span>		 * Checks to make sure that the code is valid and exists in the lookup table.
+		 *
+		 * @returns {Mixed}
+		 */
+
+		valid_code: function(code){
+			if(code){
+				if(this.lookup[code]){
+					this.current_code = code;
+
+					return this.lookup[code];
+				}
+			}
+
+			return false;
+		},
+
+<span id='monetary-gift-method-remove_old_codes'>		/**
+</span>		 * Handles removing old codes that do not exist to try and reduce the key length.
+		 */
+
+		remove_old_codes: function(){
+			if(!this.settings.codes.length){
+				money.data(yootil.user.id()).clear.gifts();
+
+				return;
+			}
+
+			var gifts = money.data(yootil.user.id()).get.gifts();
+			var len = gifts.length;
+
+			while(len --){
+				if(!this.lookup[gifts[len]]){
+					gifts.splice(len, 1);
+				}
+			}
+
+			money.data(yootil.user.id()).set.gifts(gifts);
+		}
+
+	};
+
+})().register();</pre>
+</body>
+</html>

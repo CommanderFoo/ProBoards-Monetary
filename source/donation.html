@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='monetary-donation'>/**
+</span> * @class monetary.donation
+ * @static
+ *
+ * 	Allows members to donate money to each other.
+ */
+
+money.donation = (function(){
+
+	return {
+
+<span id='monetary-donation-property-settings'>		/**
+</span>		 * @property {Object} settings Default settings which can be overwritten from setup.
+		 * @property {Boolean} settings.enabled Module enabled or not.
+		 * @property {Boolean} settings.show_profile_button If true, the donation button will show on members profile.
+		 * @property {Number} settings.minimum_donation The minimum amount that a donation can be.
+		 * @property {Number} settings.maximum_donation The maximum amount that a donation can be.
+		 * @property {Boolean} settings.page_timer_enabled If true, then pages can expire if the user takes too long.
+		 * @property {Number} settings.message_max_len The maximum length a message can be.
+		 * @property {Boolean} settings.show_total_sent_mini_profile If true, the total of all donations sent will show in the mini profile.
+		 * @property {Boolean} settings.show_total_received_mini_profile If true, the total of all donations received will show in the mini profile.
+		 * @property {Boolean} settings.show_total_sent_profile If true, the total of all donations sent will show on the profile.
+		 * @property {Boolean} settings.show_total_received_profile If true, the total of all donations received will show on the profile.
+		 * @property {String} settings.donation_image The image that will be used in the Yootil bar.
+		 * @property {Object} text Text replacements.
+		 * @property {String} text.donation
+		 * @property {String} text.donations
+		 * @property {Array} excluded Members who are excluded from using the donation system.
+		 */
+
+		settings: {
+
+			enabled: true,
+			show_profile_button: true,
+
+			minimum_donation: 0.01,
+			maximum_donation: 0,
+
+			page_timer_enabled: true,
+
+			message_max_len: 50,
+
+			show_total_sent_mini_profile: false,
+			show_total_received_mini_profile: false,
+			show_total_sent_profile: false,
+			show_total_received_profile: false,
+
+			donation_image: null,
+
+			text: {
+
+				donation: &quot;Donation&quot;,
+				donations: &quot;Donations&quot;
+
+			},
+
+			excluded: []
+
+		},
+
+<span id='monetary-donation-property-page_timer'>		/**
+</span>		 * @property {Number} page_timer The current time spent on the page when using the donation feature.
+		 */
+
+		page_timer: 0,
+
+<span id='monetary-donation-property-PAGE_TIME_EXPIRY'>		/**
+</span>		 * @property {Number} PAGE_TIME_EXPIRY The time until the donation feature expires.
+		 */
+
+		PAGE_TIME_EXPIRY: 45,
+
+<span id='monetary-donation-property-interval'>		/**
+</span>		 * @property {Number} interval The set interval id.
+		 */
+
+		interval: 0,
+
+<span id='monetary-donation-property-donation_to'>		/**
+</span>		 * @property {Object} donation_to Holds tmp data for the user the donation is to.
+		 * @property {String} donation_to.name
+		 * @property {String} donation_to.url
+		 * @property {String} donation_to.avatar
+		 */
+
+		donation_to: {
+
+			name: &quot;&quot;,
+			url: &quot;&quot;,
+			avatar: &quot;&quot;
+
+		},
+
+<span id='monetary-donation-property-donation_from'>		/**
+</span>		 * @property {Object} donation_from Holds tmp data for the user the donation is from.
+		 * @property {String} donation_from.name
+		 * @property {String} donation_from.url
+		 * @property {String} donation_from.avatar
+		 */
+
+		donation_from: {
+
+			name: &quot;&quot;,
+			url: &quot;&quot;,
+			avatar: &quot;&quot;
+
+		},
+
+<span id='monetary-donation-method-init'>		/**
+</span>		 * This is called from the main class.  Each module gets registered and a loop goes through and calls this.
+		 */
+
+		init: function(){
+			this.setup();
+
+			if(yootil.user.logged_in()){
+				if(!this.settings.enabled){
+					money.show_default();
+					return;
+				}
+
+				var self = this;
+				var total_donations = self.get_total_donations();
+
+				if(/*total_donations &amp;&amp;*/ this.can_send_receive()){
+					yootil.bar.add(&quot;/user/&quot; + yootil.user.id() + &quot;?monetarydonation&amp;view=2&quot;, this.settings.donation_image, this.settings.text.donations, &quot;pdmsdonate&quot;);
+
+					/*$(&quot;#yootil-bar&quot;).ready(function(){
+						var bar_link = $(&quot;#yootil-bar a[href*=monetarydonation\\&amp;view\\=2]&quot;);
+
+						var tip = '&lt;div class=&quot;monetary-donation-tip-holder&quot;&gt;&lt;div class=&quot;monetary-donation-tip-number&quot;&gt;' + total_donations + '&lt;/div&gt;&lt;span class=&quot;monetary-donation-tip&quot;&gt;&lt;/span&gt;&lt;/div&gt;';
+
+						bar_link.append($(tip));
+					});*/
+				}
+
+				this.check_rejected_donations();
+
+				if(yootil.location.profile_home()){
+					if(location.href.match(/\?monetarydonation&amp;view=(\d+)/i) &amp;&amp; RegExp.$1 &amp;&amp; parseInt(RegExp.$1) &gt;= 1 &amp;&amp; parseInt(RegExp.$1) &lt;= 3){
+						var id = ~~ yootil.page.member.id();
+						var view = ~~ RegExp.$1;
+
+						switch(view){
+
+							// Sending
+
+							case 1:
+								if(yootil.page.member.id() != yootil.user.id()){
+									yootil.create.page(new RegExp(&quot;\\/user\\/&quot; + id + &quot;\\?monetarydonation&amp;view=1&quot;), &quot;Send &quot; + this.settings.text.donation);
+									yootil.create.nav_branch(&quot;/user/&quot; + id + &quot;?monetarydonation&amp;view=1&quot;, &quot;Send &quot; + this.settings.text.donation);
+
+									if(this.can_send_receive()){
+										this.collect_donation_to_details();
+										this.build_send_donation_html();
+
+										if(this.settings.page_timer_enabled){
+											this.monitor_time_on_page();
+										}
+									} else {
+										this.show_error(&quot;You do not have permission to send &quot; + this.settings.text.donations.toLowerCase() + &quot;.&quot;);
+									}
+								} else {
+									money.show_default();
+								}
+
+								break;
+
+							// View received donation list
+
+							case 2:
+								yootil.create.page(new RegExp(&quot;\\/user\\/&quot; + yootil.user.id() + &quot;\\?monetarydonation&amp;view=2&quot;), &quot;Received &quot; + this.settings.text.donations);
+								yootil.create.nav_branch(&quot;/user/&quot; + yootil.user.id() + &quot;?monetarydonation&amp;view=2&quot;, &quot;Received &quot; + this.settings.text.donations);
+
+								if(this.can_send_receive()){
+									this.build_received_donations_html();
+								} else {
+									this.show_error(&quot;You do not have permission to view this page.&quot;);
+								}
+
+								break;
+
+							// Viewing a donation
+							// All donations have to be accepted
+
+							case 3:
+								var don_id = (location.href.match(/view=3&amp;id=([\d\.]+)/))? RegExp.$1 : -1;
+
+								if(don_id){
+									yootil.create.page(new RegExp(&quot;\\/user\\/&quot; + id + &quot;\\?monetarydonation&amp;view=3&amp;id=[\\d\\.]+&quot;), &quot;Viewing &quot; + this.settings.text.donation);
+
+									if(this.can_send_receive()){
+										this.build_view_donation_html(don_id);
+									} else {
+										this.show_error(&quot;You do not have permission to receive &quot; + this.settings.text.donations.toLowerCase() + &quot;.&quot;);
+									}
+								} else {
+									money.show_default();
+								}
+
+								break;
+
+						}
+					} else if(yootil.page.member.id() != yootil.user.id() &amp;&amp; this.settings.show_profile_button){
+						if(this.can_send_receive()){
+							this.create_donation_button();
+						}
+					}
+				}
+			}
+		},
+
+<span id='monetary-donation-method-get_total_donations'>		/**
+</span>		 * Gets the users total donations.
+		 *
+		 * @returns {Number}
+		 */
+
+		get_total_donations: function(){
+			var donations = money.data(yootil.user.id()).get.donations();
+
+			return donations.length;
+		},
+
+<span id='monetary-donation-method-check_rejected_donations'>		/**
+</span>		 * Checks to see if there have been any rejected donations, if so, displays a mesage to the user.
+		 */
+
+		check_rejected_donations: function(){
+			var rejected = money.data(yootil.user.id()).get.rejected_donations();
+
+			if(rejected.length){
+				var reject = rejected[0];
+				var donation_id = reject.t + &quot;&quot; + reject.r[0];
+				var content = &quot;Your &quot; + this.settings.text.donation.toLowerCase() + &quot; of &quot; + money.settings.money_symbol + money.format(reject.a, true) + &quot; to &lt;a href='/user/&quot; + yootil.html_encode(reject.r[0]) + &quot;'&gt;&quot; + yootil.html_encode(reject.r[1], true) + &quot;&lt;/a&gt; was rejected.&quot;;
+
+				pb.window.dialog(&quot;montary-donation-reject&quot;, {
+					modal: true,
+					height: 160,
+					resizable: false,
+					draggable: false,
+					title: (this.settings.text.donation + &quot; Rejected&quot;),
+					html: content,
+					buttons: {
+						&quot;Place In Wallet&quot;: function(){
+							var ok = money.data(yootil.user.id()).donation.accept_reject(reject);
+
+							// Lets look for any wallets or amounts on the page and update
+
+							if(ok){
+								var user_money = money.data(yootil.user.id()).get.money(true);
+								var user_money_display = $(&quot;.pd_money_amount_&quot; + yootil.user.id());
+
+								if(user_money_display.length){
+									user_money_display.text(user_money);
+								}
+
+								// Now wallet
+
+								var wallet = $(&quot;#pd_money_wallet_amount&quot;);
+
+								if(wallet.length){
+									wallet.text(user_money);
+								}
+
+								var other_wallet = $(&quot;.money_wallet_amount&quot;);
+
+								if(other_wallet.length){
+									other_wallet.html(money.settings.text.wallet + money.settings.money_separator + money.settings.money_symbol + yootil.html_encode(user_money));
+								}
+
+								// Donation sent
+
+								var user_donations_sent = money.data(yootil.user.id()).get.total_sent_donations(true);
+								var user_donations_sent_display = $(&quot;.pd_donations_sent_amount_&quot; + yootil.user.id());
+
+								if(user_donations_sent_display.length){
+									user_donations_sent_display.text(user_donations_sent);
+								}
+							}
+
+							$(this).dialog(&quot;close&quot;);
+						}
+					}
+				});
+			}
+		},
+
+<span id='monetary-donation-method-monitor_time_on_page'>		/**
+</span>		 * Handles timing out the donation feature to prevent stale data.
+		 */
+
+		monitor_time_on_page: function(){
+			var self = this;
+
+			this.interval = setInterval(function(){
+				if(self.page_timer &gt;= self.PAGE_TIME_EXPIRY){
+					$(&quot;.monetary-donation-form&quot;).css(&quot;opacity&quot;, .3);
+					$(&quot;.monetary-donation-fields input&quot;).attr(&quot;disabled&quot;, true);
+					$(&quot;.monetary-donation-fields textarea&quot;).attr(&quot;disabled&quot;, true);
+					$(&quot;dd.monetary-donation-button button&quot;).css(&quot;visibility&quot;, &quot;hidden&quot;);
+
+					$(&quot;#monetary-donation-page-expiry&quot;).html(&quot;Page Expires In: expired&quot;);
+
+					pb.window.alert(&quot;Page Expired&quot;, &quot;This page has expired, please refresh.&quot;, {
+						modal: true,
+						height: 160,
+						resizable: false,
+						draggable: false
+					});
+
+					clearInterval(self.interval);
+
+					return;
+				}
+
+				self.page_timer ++;
+
+				var time_left = self.PAGE_TIME_EXPIRY - self.page_timer;
+
+				time_left = (time_left &lt; 0)? 0 : time_left;
+
+				$(&quot;#monetary-donation-page-expiry&quot;).html(&quot;Page Expires In: &quot; + time_left + &quot; second&quot; + ((time_left == 1)? &quot;&quot; : &quot;s&quot;));
+			}, 1000);
+		},
+
+<span id='monetary-donation-method-cancel_expiration'>		/**
+</span>		 * Cancels the page expiration when donation has been sent.
+		 */
+
+		cancel_expiration: function(){
+			$(&quot;.monetary-donation-sending-to-title&quot;).html(this.settings.text.donation + &quot; Sent&quot;);
+			clearInterval(this.interval);
+		},
+
+<span id='monetary-donation-method-collect_donation_to_details'>		/**
+</span>		 * Collects the users details who will be receiving the donation and stores them for later use.
+		 *
+		 * @param {Boolean} from If true, we store in the donation_from object, otherwise in the donation_to object.
+		 */
+
+		collect_donation_to_details: function(from){
+			var member_avatar = $(&quot;.avatar-wrapper:first img:first&quot;).attr(&quot;src&quot;);
+			var member_name = yootil.page.member.name();
+			var member_url = yootil.page.member.url();
+			var member_id = yootil.page.member.id();
+			var member_money = money.data(member_id).get.money(true);
+			var key = (from)? &quot;donation_from&quot; : &quot;donation_to&quot;;
+
+			this[key] = {
+
+				name: member_name,
+				url: member_url,
+				avatar: member_avatar,
+				user_id: member_id,
+				money: member_money
+
+			};
+		},
+
+<span id='monetary-donation-method-collect_donation_from_details'>		/**
+</span>		 *  Collects the users details who is sending the donation and stores them for later use.
+		 */
+
+		collect_donation_from_details: function(){
+			this.collect_donation_to_details(true);
+		},
+
+<span id='monetary-donation-method-show_error'>		/**
+</span>		 * Shows an error to the user.
+		 *
+		 * @param {String} msg The message the user will see.
+		 */
+
+		show_error: function(msg){
+			var html = &quot;&quot;;
+
+			html += &quot;&lt;div class='monetary-donation-notice-icon'&gt;&lt;img src='&quot; + money.images.info + &quot;' /&gt;&lt;/div&gt;&quot;;
+			html += &quot;&lt;div class='monetary-donation-notice-content'&gt;&quot; + msg + &quot;&lt;/div&gt;&quot;;
+
+			var container = yootil.create.container(&quot;An Error Has Occurred&quot;, html).show();
+
+			container.appendTo(&quot;#content&quot;);
+		},
+
+<span id='monetary-donation-method-setup'>		/**
+</span>		 * Handles overwriting default values.  These come from the plugin settings.
+		 */
+
+		setup: function(){
+			if(money.plugin){
+				var settings = money.plugin.settings;
+
+				this.settings.enabled = (!! ~~ settings.donations_enabled)? true : false;
+				this.settings.show_profile_button = (!! ~~ settings.show_profile_button)? true : false;
+				this.settings.minimum_donation = parseFloat(settings.minimum_donation);
+				this.settings.maximum_donation = parseFloat(settings.maximum_donation);
+
+				if(this.settings.minimum_donation &lt; 1){
+					if(!money.settings.decimal_money){
+						this.settings.minimum_donation = 1;
+					} else if(this.settings.minimum_donation &lt;= 0){
+						this.settings.minimum_donation = 0.01;
+					}
+				}
+
+				this.settings.text.donation = (settings.donation_text &amp;&amp; settings.donation_text.length)? settings.donation_text : this.settings.text.donation;
+				this.settings.text.donations = this.settings.text.donation;
+
+				if(!this.settings.text.donations.match(/s$/)){
+					this.settings.text.donations += &quot;s&quot;;
+				}
+
+				this.settings.show_total_sent_mini_profile = (!! ~~ settings.donations_sent_mp)? true : false;
+				this.settings.show_total_received_mini_profile = (!! ~~ settings.donations_received_mp)? true : false;
+				this.settings.show_total_sent_profile = (!! ~~ settings.donations_sent_profile)? true : false;
+				this.settings.show_total_received_profile = (!! ~~ settings.donations_received_profile)? true : false;
+
+				this.settings.excluded = (settings.exc_don_grps &amp;&amp; settings.exc_don_grps.length)? settings.exc_don_grps : this.settings.excluded;
+
+				this.settings.donation_image = (settings.don_img &amp;&amp; settings.don_img.length)? settings.don_img : money.images.donate;
+			}
+		},
+
+<span id='monetary-donation-method-can_send_receive'>		/**
+</span>		 * Checks to see if the user is excluded or not.
+		 *
+		 * @returns {Boolean}
+		 */
+
+		can_send_receive: function(){
+			if(this.settings.excluded &amp;&amp; this.settings.excluded.length){
+				var grps = yootil.user.group_ids();
+
+				for(var g = 0; g &lt; grps.length; g ++){
+					if($.inArrayLoose(grps[g], this.settings.excluded) &gt; -1){
+						return false;
+					}
+				}
+			}
+
+			return true;
+		},
+
+<span id='monetary-donation-method-register'>		/**
+</span>		 * Registers this module to the money class.
+		 * @returns {Object}
+		 */
+
+		register: function(){
+			money.modules.push(this);
+			return this;
+		},
+
+<span id='monetary-donation-method-create_donation_button'>		/**
+</span>		 * Creates the donation button on user profiles.
+		 */
+
+		create_donation_button: function(){
+
+			// Let's see if the send message button exists, if so, clone it, and insert
+			// donation button
+
+			var send_button = $(&quot;.controls a.button[href^='/conversation/new/']&quot;);
+
+			if(send_button.length){
+				var clone = send_button.clone();
+				var id = ~~ yootil.page.member.id();
+
+				clone.attr(&quot;href&quot;, &quot;/user/&quot; + id + &quot;?monetarydonation&amp;view=1&quot;).text(&quot;Send &quot; + this.settings.text.donation);
+				clone.insertAfter(send_button);
+			}
+		},
+
+<span id='monetary-donation-method-build_send_donation_html'>		/**
+</span>		 * Builds the page that is used for sending donations.
+		 */
+
+		build_send_donation_html: function(){
+			var html = &quot;&quot;;
+
+			var title = &quot;&lt;div class='monetary-donation'&gt;&quot;;
+
+			var donation_to_user = &quot;&lt;a href='&quot; + yootil.html_encode(this.donation_to.url) + &quot;'&gt;&quot; + yootil.html_encode(this.donation_to.name, true) + &quot;&lt;/a&gt;&quot;;
+
+            title += &quot;&lt;div class='monetary-donation-sending-to-title'&gt;Sending &quot; + this.settings.text.donation + &quot; - &lt;span id='monetary-donation-page-expiry'&gt;Page Expires In: &quot; + this.PAGE_TIME_EXPIRY + &quot; seconds&lt;/span&gt;&lt;/div&gt;&quot;;
+            title += &quot;&lt;div class='monetary-donation-sending-amount-title' id='pd_money_wallet'&gt;&quot; + money.settings.text.wallet + ': ' + money.settings.money_symbol + &quot;&lt;span id='pd_money_wallet_amount'&gt;&quot; + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + &quot;&lt;/span&gt;&lt;/div&gt;&quot;;
+
+			html += &quot;&lt;div class='monetary-donation-form'&gt;&quot;;
+			html += &quot;&lt;div class='monetary-donation-avatar-img'&gt;&lt;img title='&quot; + yootil.html_encode(this.donation_to.name, true) + &quot;' src='&quot; + yootil.html_encode(this.donation_to.avatar) + &quot;'&gt;&lt;p class='monetary-donation-to-current-amount'&gt;&quot; + money.settings.money_symbol + yootil.html_encode(this.donation_to.money) + &quot;&lt;/p&gt;&lt;/div&gt;&quot;;
+			html += &quot;&lt;div class='monetary-donation-fields'&gt;&quot;;
+
+			html += &quot;&lt;dl&gt;&quot;;
+
+			html += &quot;&lt;dt&gt;&lt;strong&gt;&quot; + this.settings.text.donation + &quot; To:&lt;/strong&gt;&lt;/dt&gt;&quot;;
+			html += &quot;&lt;dd&gt;&quot; + donation_to_user + &quot;&lt;/dd&gt;&quot;;
+
+			html += &quot;&lt;dt&gt;&lt;strong&gt;&quot; + this.settings.text.donation + &quot; Amount:&lt;/strong&gt;&lt;/dt&gt;&quot;;
+			html += &quot;&lt;dd&gt;&lt;input id='pd_donation_amount' type='text' value='0.00' /&gt;&lt;span id='pd_donation_amount_error'&gt;&lt;/span&gt;&lt;/dd&gt;&quot;;
+
+			html += &quot;&lt;dt&gt;&lt;strong&gt;Message:&lt;/strong&gt;&lt;/dt&gt;&quot;;
+			html += &quot;&lt;dd&gt;&lt;textarea name='pd_donation_message' id='pd_donation_message'&gt;&lt;/textarea&gt;&quot;;
+			html += &quot;&lt;span style='display: none' class='monetary-donation-message-chars-remain'&gt;Characters Remaining: &lt;span id='monatary-donation-chars-remain'&gt;&quot; + this.settings.message_max_len + &quot;&lt;/span&gt;&lt;/dd&gt;&quot;;
+
+			html += &quot;&lt;dt class='monetary-donation-button'&gt; &lt;/dt&gt;&quot;;
+			html += &quot;&lt;dd class='monetary-donation-button'&gt;&lt;button&gt;Send &quot; + this.settings.text.donation + &quot;&lt;/button&gt;&lt;/dd&gt;&quot;;
+
+			html += &quot;&lt;/dl&gt;&quot;;
+
+			html += &quot;&lt;/div&gt;&lt;br style='clear: both' /&gt;&quot;;
+			html += &quot;&lt;/div&gt;&quot;;
+
+			var container = yootil.create.container(title + &quot;&lt;br style='clear: both;' /&gt;&quot;, html).show();
+
+			var self = this;
+
+			container.find(&quot;input#pd_donation_amount&quot;).focus(function(){
+				$(this).val(&quot;&quot;);
+			});
+
+			container.find(&quot;input#pd_donation_amount&quot;).blur(function(){
+				if(!$(this).val().length){
+					$(this).val(money.format(0, true));
+				}
+			});
+
+			container.find(&quot;.monetary-donation-message-chars-remain&quot;).show();
+			container.find(&quot;.monetary-donation-button button&quot;).click($.proxy(this.send_donation_handler, this));
+			container.appendTo(&quot;#content&quot;);
+
+			var msg_len_handler = function(){
+			    var len = this.value.length;
+			    var remain = (self.settings.message_max_len - this.value.length);
+
+			    remain = (remain &lt; 0)? 0 : remain;
+			    $(&quot;#monatary-donation-chars-remain&quot;).html(remain);
+			};
+
+			$(&quot;#pd_donation_message&quot;).bind(&quot;keyup keydown&quot;,  msg_len_handler);
+		},
+
+<span id='monetary-donation-method-build_received_donations_html'>		/**
+</span>		 * Builds the page for receiving donations.
+		 */
+
+		build_received_donations_html: function(){
+			var donations = money.data(yootil.user.id()).get.donations();
+			var html = &quot;&quot;;
+
+			html = &quot;&lt;table class='monetary-donation-received-list list'&gt;&quot;;
+			html += &quot;&lt;thead&gt;&lt;tr class='head'&gt;&quot;;
+			html += &quot;&lt;th class='monetary-donation-icon'&gt; &lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='main monetary-donation-amount'&gt;&quot; + this.settings.text.donation + &quot; Amount&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-donation-from'&gt;&quot; + this.settings.text.donation + &quot; From&lt;/th&gt;&quot;;
+			html += &quot;&lt;th class='monetary-donation-date'&gt;Date Sent&lt;/th&gt;&quot;;
+			html += &quot;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&quot;;
+			html += &quot;&lt;tbody class='list-content'&gt;&quot;;
+
+			var counter = 0;
+			var time_24 = (yootil.user.time_format() == &quot;12hr&quot;)? false : true;
+
+			if(donations.length){
+				for(var d = 0, l = donations.length; d &lt; l; d ++){
+					var amount = money.format(donations[d].a, true);
+					var date = money.correct_date(donations[d].t);
+					var day = date.getDate() || 1;
+					var month = money.months[date.getMonth()];
+					var year = date.getFullYear();
+					var hours = date.getHours();
+					var mins = date.getMinutes();
+					var date_str = money.days[date.getDay()] + &quot; &quot; + day + &quot;&lt;sup&gt;&quot; + money.get_suffix(day) + &quot;&lt;/sup&gt; of &quot; + month + &quot;, &quot; + year + &quot; at &quot;;
+					var am_pm = &quot;&quot;;
+
+					mins = (mins &lt; 10)? &quot;0&quot; + mins : mins;
+
+					if(!time_24){
+						am_pm = (hours &gt; 11)? &quot;pm&quot; : &quot;am&quot;;
+						hours = hours % 12;
+						hours = (hours)? hours : 12;
+					}
+
+					date_str += hours + &quot;:&quot; + mins + am_pm;
+
+					klass = (counter == 0)? &quot; first&quot; : ((counter == (l - 1))? &quot; last&quot; : &quot;&quot;);
+
+					html += &quot;&lt;tr class='item conversation&quot; + klass + &quot;' data-donation-from='&quot; + yootil.html_encode(donations[d].f[0]) + &quot;'&gt;&quot;;
+					html += &quot;&lt;td&gt;&lt;img src='&quot; + money.images.donate_big + &quot;' alt='&quot; + this.settings.text.donation + &quot;' title='&quot; + this.settings.text.donations + &quot;' /&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + money.settings.money_symbol + yootil.html_encode(amount) + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&lt;a href='/user/&quot; + yootil.html_encode(donations[d].f[0]) + &quot;'&gt;&quot; + yootil.html_encode(donations[d].f[1], true) + &quot;&lt;/a&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td&gt;&quot; + date_str + &quot;&lt;/td&gt;&quot;;
+					html += &quot;&lt;td class='monetary-donation-button'&gt;&lt;button data-donation-id='&quot; + yootil.html_encode(donations[d].t) + &quot;&quot; + yootil.html_encode(donations[d].f[0]) + &quot;'&gt;View &quot; + this.settings.text.donation + &quot;&lt;/button&gt;&lt;/td&gt;&quot;;
+					html += &quot;&lt;/tr&gt;&quot;;
+
+					counter ++;
+				}
+			} else {
+				html += &quot;&lt;tr class='item conversation last'&gt;&lt;td colspan='5'&gt;&lt;em&gt;You have not received any &quot; + this.settings.text.donations.toLowerCase() + &quot;.&lt;/em&gt;&lt;/td&gt;&lt;/tr&gt;&quot;;
+			}
+
+			html += &quot;&lt;/tbody&gt;&lt;/table&gt;&quot;;
+
+			var container = yootil.create.container(&quot;Donations Received (&quot; + donations.length + &quot;)&quot;, html).show();
+
+			container.find(&quot;tr.item&quot;).mouseenter(function(){
+				$(this).addClass(&quot;state-hover&quot;);
+			}).mouseleave(function(){
+				$(this).removeClass(&quot;state-hover&quot;);
+			});
+
+			container.find(&quot;div.pad-all&quot;).removeClass(&quot;pad-all&quot;).addClass(&quot;cap-bottom&quot;);
+			container.find(&quot;.monetary-donation-button button&quot;).click(function(){
+				var id = $(this).attr(&quot;data-donation-id&quot;);
+				var from = ~~ $(this).parent().parent().attr(&quot;data-donation-from&quot;);
+
+				location.href = &quot;/user/&quot; + from + &quot;?monetarydonation&amp;view=3&amp;id=&quot; + id;
+			});
+
+			container.appendTo(&quot;#content&quot;);
+		},
+
+<span id='monetary-donation-method-parse_donation_message'>		/**
+</span>		 * Donations can include a message, here we parse it.
+		 *
+		 * @param {String} msg
+		 * @return {String}
+		 */
+
+		parse_donation_message: function(msg){
+			if(msg &amp;&amp; msg.length){
+				msg = yootil.html_encode(msg);
+
+				return msg.replace(/\[br\]/g, &quot;&lt;br /&gt;&quot;);
+			}
+
+			return &quot;----&quot;;
+		},
+
+<span id='monetary-donation-method-fetch_donation'>		/**
+</span>		 * Fetches a donation for the user.
+		 *
+		 * @param {Number} id The donation id.
+		 * @return {Object} The donation from the users data object.
+		 */
+
+		fetch_donation: function(id){
+			var donations = money.data(yootil.user.id()).get.donations();
+
+			for(var d = 0, l = donations.length; d &lt; l; d ++){
+				var don_id = donations[d].t + &quot;&quot; + donations[d].f[0];
+
+				if(don_id == id){
+					return donations[d];
+				}
+			}
+
+			return null;
+		},
+
+<span id='monetary-donation-method-build_view_donation_html'>		/**
+</span>		 * Builds the page to view a donation.
+		 */
+
+		build_view_donation_html: function(donation_id){
+			var the_donation = this.fetch_donation(donation_id);
+			var member_id = (yootil.page.member.id())? yootil.page.member.id() : location.href.match(/\/user\/(\d+)/i)[1];
+
+			if(the_donation &amp;&amp; member_id == the_donation.f[0]){
+				the_donation.id = donation_id;
+
+				yootil.create.nav_branch(&quot;/user/&quot; + yootil.html_encode(the_donation.f[0]) + &quot;?monetarydonation&amp;view=3&amp;id=&quot; + yootil.html_encode(donation_id), &quot;Viewing &quot; + this.settings.text.donation);
+
+				this.collect_donation_from_details();
+
+				var donation_from_user = &quot;&lt;a href='&quot; + yootil.html_encode(this.donation_from.url) + &quot;'&gt;&quot; + yootil.html_encode(this.donation_from.name, true) + &quot;&lt;/a&gt;&quot;;
+
+				var html = &quot;&quot;;
+
+				html += &quot;&lt;div class='monetary-donation-form'&gt;&quot;;
+				html += &quot;&lt;div class='monetary-donation-avatar-img'&gt;&lt;img title='&quot; + yootil.html_encode(this.donation_from.name, true) + &quot;' src='&quot; + yootil.html_encode(this.donation_from.avatar) + &quot;'&gt;&lt;p class='monetary-donation-to-current-amount'&gt;&quot; + money.settings.money_symbol + yootil.html_encode(this.donation_from.money) + &quot;&lt;/p&gt;&lt;/div&gt;&quot;;
+				html += &quot;&lt;div class='monetary-donation-fields'&gt;&quot;;
+
+				html += &quot;&lt;dl&gt;&quot;;
+
+				html += &quot;&lt;dt&gt;&lt;strong&gt;&quot; + this.settings.text.donation + &quot; From:&lt;/strong&gt;&lt;/dt&gt;&quot;;
+				html += &quot;&lt;dd&gt;&quot; + donation_from_user + &quot;&lt;/dd&gt;&quot;;
+
+				html += &quot;&lt;dt&gt;&lt;strong&gt;&quot; + this.settings.text.donation + &quot; Amount:&lt;/strong&gt;&lt;/dt&gt;&quot;;
+				html += &quot;&lt;dd&gt;&quot; + money.settings.money_symbol + yootil.html_encode(money.format(the_donation.a, true)) + &quot;&lt;/dd&gt;&quot;;
+
+				html += &quot;&lt;dt&gt;&lt;strong&gt;Message:&lt;/strong&gt;&lt;/dt&gt;&quot;;
+				html += &quot;&lt;dd style='float: left'&gt;&quot; + this.parse_donation_message(the_donation.m) + &quot;&lt;/dd&gt;&quot;;
+
+				html += &quot;&lt;dt style='clear: both'&gt; &lt;/dt&gt;&quot;;
+				html += &quot;&lt;dd style='clear: both'&gt; &lt;/dd&gt;&quot;;
+
+				html += &quot;&lt;dt class='monetary-donation-button'&gt; &lt;/dt&gt;&quot;;
+				html += &quot;&lt;dd class='monetary-donation-button'&gt;&lt;button id='monetary-donation-accept'&gt;Accept &quot; + this.settings.text.donation + &quot;&lt;/button&gt; &lt;button id='monetary-donation-reject'&gt;Reject &quot; + this.settings.text.donation + &quot;&lt;/button&gt;&lt;/dd&gt;&quot;;
+
+				html += &quot;&lt;/dl&gt;&quot;;
+
+				html += &quot;&lt;/div&gt;&lt;br style='clear: both' /&gt;&quot;;
+				html += &quot;&lt;/div&gt;&quot;;
+
+				var title = &quot;&lt;div class='monetary-donation-viewing-title'&gt;Viewing Donation - &lt;span id='monetary-donation-page-expiry'&gt;Page Expires In: &quot; + this.PAGE_TIME_EXPIRY + &quot; seconds&lt;/span&gt;&lt;/div&gt;&quot;;
+				title += &quot;&lt;div class='monetary-donation-receiving-amount-title' id='pd_money_wallet'&gt;&quot; + money.settings.text.wallet + ': ' + money.settings.money_symbol + &quot;&lt;span id='pd_money_wallet_amount'&gt;&quot; + yootil.html_encode(money.data(yootil.user.id()).get.money(true)) + &quot;&lt;/span&gt;&lt;/div&gt;&quot;;
+
+				var container = yootil.create.container(title + &quot;&lt;br style='clear: both;' /&gt;&quot;, html).show();
+
+				container.appendTo(&quot;#content&quot;);
+
+				container.find(&quot;button#monetary-donation-accept&quot;).click($.proxy(this.accept_donation, this, the_donation));
+				container.find(&quot;button#monetary-donation-reject&quot;).click($.proxy(this.reject_donation, this, the_donation));
+
+				if(this.settings.page_timer_enabled){
+					this.monitor_time_on_page();
+				}
+			} else {
+				this.show_error(this.settings.text.donation + &quot; could not be found.&lt;br /&gt;&lt;br /&gt;If you continue to experience this error, please contact a member of staff.&quot;);
+			}
+		},
+
+<span id='monetary-donation-method-accept_donation'>		/**
+</span>		 * Accepts donation and creates a notification for the person who sent it.
+		 *
+		 * @param {Object} donation The donation to be accepted.
+		 */
+
+		accept_donation: function(donation){
+			monetary.create_notification(&quot;[DA:&quot; + donation.a + &quot;|&quot; + yootil.user.id() + &quot;|&quot; + yootil.user.name() + &quot;]&quot;, donation.f[0]);
+
+			money.data(yootil.user.id()).donation.accept(donation, false, {
+				complete: function(){
+					location.href = &quot;/user/&quot; + yootil.user.id() + &quot;?monetarydonation&amp;view=2&quot;;
+					money.sync.trigger();
+				}
+			});
+		},
+
+<span id='monetary-donation-method-reject_donation'>		/**
+</span>		 * Rejects a donation.  The user who sent the donation gets a notification of rejected donations.
+		 *
+		 * @param {Object} donation The donation to be rejected.
+		 */
+
+		reject_donation: function(donation){
+			var reject_donation = {
+				amount: donation.a,
+				receiver: [yootil.user.id(), yootil.user.name()],
+				from: donation.f[0],
+				time: donation.t
+			};
+
+			//monetary.create_notification(&quot;[DR:&quot; + yootil.user.id() + &quot;|&quot; + yootil.user.name() + &quot;]&quot;, reject_donation.from);
+
+			money.data(yootil.user.id()).donation.reject(reject_donation, false, {
+				complete: function(){
+					location.href = &quot;/user/&quot; + yootil.user.id() + &quot;?monetarydonation&amp;view=2&quot;;
+					money.sync.trigger();
+				}
+			});
+		},
+
+<span id='monetary-donation-method-send_donation_handler'>		/**
+</span>		 * The handler for sending donations.  This does the validation and builds the donation object to be sent.
+		 */
+
+		send_donation_handler: function(){
+			var donation_amount = $(&quot;input#pd_donation_amount&quot;).val();
+			var message = $(&quot;textarea#pd_donation_message&quot;).val();
+			var current_amount = money.data(yootil.user.id()).get.money();
+
+			if(!donation_amount.match(/^\d+(\.\d{1,2})?$/)){
+				this.donation_error(this.settings.text.donation + &quot; amount must be a number.&quot;);
+			} else if(parseFloat(donation_amount) &gt; current_amount){
+				this.donation_error(&quot;Not enough money to cover &quot; + this.settings.text.donation.toLowerCase() + &quot;.&quot;);
+			} else {
+				if(parseFloat(donation_amount) &lt; this.settings.minimum_donation){
+					this.donation_error(&quot;Minimum &quot; + this.settings.text.donation.toLowerCase() + &quot; amount is &quot; + money.format(this.settings.minimum_donation, true) + &quot;.&quot;);
+				} else {
+					if(this.settings.maximum_donation &amp;&amp; parseFloat(donation_amount) &gt; this.settings.maximum_donation){
+						this.donation_error(&quot;Maximum &quot; + this.settings.text.donation.toLowerCase() + &quot; amount is &quot; + money.format(this.settings.maximum_donation, true) + &quot;.&quot;);
+					} else {
+						$(&quot;.monetary-donation-button button&quot;).attr(&quot;disabled&quot;, true);
+
+						var the_donation = {
+
+							to: money.data(yootil.page.member.id()),
+							amount: parseFloat(donation_amount),
+
+							message: {
+								text: message,
+								len: this.settings.message_max_len
+							},
+
+							from: {
+								id: yootil.user.id(),
+								name: yootil.user.name()
+							}
+
+						};
+
+						if(money.data(yootil.user.id()).donation.send(the_donation)){
+							this.cancel_expiration();
+							this.update_wallet();
+							money.sync.trigger();
+
+							// Create notification of sent donation
+
+							monetary.create_notification(&quot;[D:&quot; + the_donation.amount + &quot;|&quot; + the_donation.from.id + &quot;|&quot; + the_donation.from.name + &quot;]&quot;, yootil.page.member.id());
+
+							$(&quot;#monetary-donation-page-expiry&quot;).html(&quot;Sent&quot;);
+
+							$(&quot;.monetary-donation-avatar-img&quot;).html(&quot;&lt;img src='&quot; + money.images.info + &quot;' /&gt;&quot;);
+							$(&quot;.monetary-donation-fields&quot;).html(&quot;&lt;div style='margin-left: 5px; margin-top: 10px'&gt;&quot; + this.settings.text.donation + &quot; successfully sent.&lt;br /&gt;&lt;br /&gt;If the recipient does not accept your &quot; + this.settings.text.donation.toLowerCase() + &quot;, you will be notified and refunded.&lt;/div&gt;&quot;);
+						} else {
+							$(&quot;#monetary-donation-page-expiry&quot;).html(&quot;Error&quot;);
+							$(&quot;.monetary-donation-avatar-img&quot;).html(&quot;&lt;img src='&quot; + money.images.info + &quot;' /&gt;&quot;);
+							$(&quot;.monetary-donation-fields&quot;).html(&quot;&lt;div style='margin-left: 5px; margin-top: 10px'&gt;An error has occurred.&lt;br /&gt;&lt;br /&gt;If you continue to get this message, please contact a member of staff.&lt;/div&gt;&quot;);
+						}
+					}
+				}
+			}
+		},
+
+<span id='monetary-donation-method-update_wallet'>		/**
+</span>		 * Updates the users wallet when a donation has been sent.
+		 */
+
+		update_wallet: function(){
+			$(&quot;#pd_money_wallet_amount&quot;).html(yootil.html_encode(money.data(yootil.user.id()).get.money(true)));
+		},
+
+<span id='monetary-donation-method-donation_error'>		/**
+</span>		 * Displays an error to the user.
+		 *
+		 * @param {String} error
+		 */
+
+		donation_error: function(error){
+			var elem = $(&quot;span#pd_donation_amount_error&quot;);
+
+			if(elem.html() != error){
+				elem.stop(true, false);
+				elem.html(&quot; &quot; + error).fadeIn(&quot;slow&quot;).fadeTo(4000, 1).fadeOut(&quot;slow&quot;, function(){
+					elem.html(&quot;&quot;);
+				});
+			}
+		}
+
+	};
+
+})().register();</pre>
+</body>
+</html>

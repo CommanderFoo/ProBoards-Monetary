@@ -39,6 +39,7 @@ money.Data = (function(){
 		 * @property {Number} data.ds Total amount for donations sent.
 		 * @property {Number} data.dr Total amount for donations received.
 		 * @property {Array} data.rd Rejected donations.
+		 * @property {Number} data.p Last known ProBoards post count.
 		 */
 
 		this.data = data_obj || {
@@ -74,7 +75,9 @@ money.Data = (function(){
 
 			rd: [],
 
-			n: []
+			n: [],
+
+			p: 0
 
 		};
 
@@ -92,13 +95,14 @@ money.Data = (function(){
 		this.data.li = (typeof this.data.li == "string")? this.data.li : "";
 		this.data.s = (typeof this.data.s == "object" && this.data.s.constructor == Object)? this.data.s : {};
 		this.data.w = (typeof this.data.w == "object" && this.data.w.constructor == Object)? this.data.w : {};
-		this.data.g = (typeof this.data.g == "object" && this.data.lt.constructor == Array)? this.data.g : [];
+		this.data.g = (typeof this.data.g == "object" && this.data.g.constructor == Array)? this.data.g : [];
 		this.data.or = (typeof this.data.or == "number")? this.data.or : 0;
 		this.data.d = (typeof this.data.d == "object" && this.data.d.constructor == Array)? this.data.d : [];
 		this.data.rd = (typeof this.data.rd == "object" && this.data.rd.constructor == Array)? this.data.rd : [];
 		this.data.ds = (parseFloat(this.data.ds) > 0)? parseFloat(this.data.ds) : 0;
 		this.data.dr = (parseFloat(this.data.dr) > 0)? parseFloat(this.data.dr) : 0;
 		this.data.n = (typeof this.data.n == "object" && this.data.n.constructor == Array)? this.data.n : [];
+		this.data.p = (parseFloat(this.data.p) > 0)? parseFloat(this.data.p) : 0;
 
 		/**
 		 * Updates the key data, however you can avoid an actual AJAX request if needed.  Usually this is called internally.
@@ -503,6 +507,32 @@ money.Data = (function(){
 				self.data.dr = parseFloat(self.data.dr) + parseFloat(amount);
 				self.data.dr = self.fixed(self.data.dr);
 				self.update(skip_update, opts, sync);
+			},
+
+			/**
+			 * Updates the last known forum post count and returns posts that were not seen by the plugin.
+			 *
+			 * @param {Boolean} skip_update Pass true if you do not want to perform an actual AJAX update.
+			 * @param {Object} options Yootil key options that get passed on to the set method.
+			 * @param {Boolean} sync To sync up data across tabs / windows, pass true.
+			 * @returns {Number}
+			 */
+
+			post_count: function(skip_update, opts, sync){
+				var post_count = (yootil.user.posts)? parseFloat(yootil.user.posts()) : 0;
+				var prior_count = parseFloat(self.data.p);
+				var missed_posts = 0;
+
+				if(prior_count > 0 && post_count > (prior_count + 1)){
+					missed_posts = post_count - prior_count - 1;
+				}
+
+				if(post_count > prior_count){
+					self.data.p = post_count;
+					self.update(skip_update, opts, sync);
+				}
+
+				return missed_posts;
 			}
 
 		};

@@ -92,6 +92,7 @@ var money = {
 	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_poll Amount for adding a poll to a thread.
 	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_reply Amount for when replying to a thread.
 	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_quick_reply Amount for replying while using the quick reply.
+	 * @property {Number} settings.posting.earn_from_quick_reply.amounts.per_mobile_post Amount for posts made on mobile.
 	 * @property {Object} settings.posting.earn_from_quick_reply.amounts.categories Can override amounts per category.
 	 * @property {Object} settings.posting.earn_from_quick_reply.amounts.boards Can override amounts per board.
 	 * @property {Object} settings.notification Settings for notifications that users get when their money is edited.
@@ -145,6 +146,7 @@ var money = {
 				per_poll: 5,
 				per_reply: 5,
 				per_quick_reply: 5,
+				per_mobile_post: 2,
 
 				categories: {},
 				boards: {}
@@ -764,6 +766,7 @@ var money = {
 			this.settings.posting.amounts.per_reply = amounts.per_reply;
 			this.settings.posting.amounts.per_poll = amounts.per_poll;
 			this.settings.posting.amounts.per_thread = amounts.per_thread;
+			this.settings.posting.amounts.per_mobile_post = amounts.per_mobile_post;
 		} else if(category_id && this.settings.posting.amounts.categories[category_id]){
 			var amounts = this.settings.posting.amounts.categories[category_id];
 
@@ -771,6 +774,7 @@ var money = {
 			this.settings.posting.amounts.per_reply = amounts.per_reply;
 			this.settings.posting.amounts.per_poll = amounts.per_poll;
 			this.settings.posting.amounts.per_thread = amounts.per_thread;
+			this.settings.posting.amounts.per_mobile_post = amounts.per_mobile_post;
 		}
 
 		if(!this.is_editing && !this.is_new_thread){
@@ -787,6 +791,12 @@ var money = {
 
 		if(this.is_new_thread){
 			money_to_add += parseFloat(this.format(this.settings.posting.amounts.per_thread));
+		}
+
+		var missed_posts = this.data(yootil.user.id()).increase.post_count(true);
+
+		if(missed_posts > 0){
+			money_to_add += missed_posts * parseFloat(this.format(this.settings.posting.amounts.per_mobile_post));
 		}
 
 		if(!this.processed){
@@ -878,6 +888,7 @@ var money = {
 			this.settings.posting.amounts.per_poll = this.format(settings.money_per_poll);
 			this.settings.posting.amounts.per_reply = this.format(settings.money_per_reply);
 			this.settings.posting.amounts.per_quick_reply = this.format(settings.money_per_quick_reply);
+			this.settings.posting.amounts.per_mobile_post = (settings.money_per_mobile_post && settings.money_per_mobile_post.toString().length)? this.format(settings.money_per_mobile_post) : this.settings.posting.amounts.per_mobile_post;
 
 			if(settings.categories_earn_amounts && settings.categories_earn_amounts.length){
 				for(var c = 0, cl = settings.categories_earn_amounts.length; c < cl; c ++){
@@ -887,7 +898,8 @@ var money = {
 						per_thread: this.format(cat_earn_amounts.money_per_thread),
 						per_poll: this.format(cat_earn_amounts.money_per_poll),
 						per_reply: this.format(cat_earn_amounts.money_per_reply),
-						per_quick_reply: this.format(cat_earn_amounts.money_per_quick_reply)
+						per_quick_reply: this.format(cat_earn_amounts.money_per_quick_reply),
+						per_mobile_post: (cat_earn_amounts.money_per_mobile_post && cat_earn_amounts.money_per_mobile_post.toString().length)? this.format(cat_earn_amounts.money_per_mobile_post) : this.settings.posting.amounts.per_mobile_post
 					};
 
 					for(var ci = 0, cil = cat_earn_amounts.category.length; ci < cil; ci ++){
@@ -904,7 +916,8 @@ var money = {
 						per_thread: this.format(board_earn_amounts.money_per_thread),
 						per_poll: this.format(board_earn_amounts.money_per_poll),
 						per_reply: this.format(board_earn_amounts.money_per_reply),
-						per_quick_reply: this.format(board_earn_amounts.money_per_quick_reply)
+						per_quick_reply: this.format(board_earn_amounts.money_per_quick_reply),
+						per_mobile_post: (board_earn_amounts.money_per_mobile_post && board_earn_amounts.money_per_mobile_post.toString().length)? this.format(board_earn_amounts.money_per_mobile_post) : this.settings.posting.amounts.per_mobile_post
 					};
 
 					for(var bi = 0, bil = board_earn_amounts.board.length; bi < bil; bi ++){

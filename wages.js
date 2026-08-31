@@ -346,6 +346,9 @@ money.wages = (function(){
 				}
 
 				this.set_default(today, this.settings.how_often, true);
+
+				data = money.data(yootil.user.id()).get.wages();
+				data.p = 1;
 			}
 
 			if(!this.settings.bonuses_enabled){
